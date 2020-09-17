@@ -1,6 +1,5 @@
 package hicp.message.command;
 
-import hicp.Logger;
 import hicp.message.Message;
 
 public class Add

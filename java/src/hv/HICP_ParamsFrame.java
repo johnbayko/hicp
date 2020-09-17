@@ -35,7 +35,6 @@ public class HICP_ParamsFrame
     final protected JTextField _username;
     final protected JPasswordField _password;
     final protected JTextField _application;
-    final protected JCheckBox _isFramedCheck;
 
     final protected JButton _connectButton;
     final protected JButton _disconnectButton;
@@ -151,15 +150,6 @@ public class HICP_ParamsFrame
                     hicpLC.weightx = 1.0;
                     hicpPanel.add(_application, hicpLC);
 
-                    _isFramedCheck = new JCheckBox("Framed messages");
-                    hicpLC.anchor = GridBagConstraints.WEST;
-                    hicpLC.fill = GridBagConstraints.NONE;
-                    hicpLC.gridx = 0;
-                    hicpLC.gridwidth = GridBagConstraints.REMAINDER;
-                    hicpLC.weightx = 0.0;
-                    hicpLC.gridy++;
-                    hicpPanel.add(_isFramedCheck, hicpLC);
-
                     centrePanel.add(hicpPanel, centreLC);
                 }
 
@@ -211,7 +201,6 @@ public class HICP_ParamsFrame
         _username.setText(hicpParams.username);
         _password.setText(hicpParams.password);
         _application.setText(hicpParams.application);
-        _isFramedCheck.setSelected(hicpParams.isFramed);
     }
 
     public void fillHICP_Params(Params hicpParams) {
@@ -223,7 +212,6 @@ public class HICP_ParamsFrame
         hicpParams.password = new String(_password.getPassword());
 
         hicpParams.application = _application.getText();
-        hicpParams.isFramed = _isFramedCheck.isSelected();
     }
 
     public void addConnectListener(ActionListener l) {
