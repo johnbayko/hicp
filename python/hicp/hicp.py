@@ -653,14 +653,17 @@ class TextField(ContainedComponent):
         # Attribute and value (if specified) must be strings.
         attribute = str(attribute)
         if value is not None:
+            self.logger.debug("value is not None")  # debug
             is_multivalued = True
             value = str(value)
         else:
+            self.logger.debug("value is None")
             is_multivalued = False
 
         # New attribute range can't start past end of content.
         if len(self.__content) < new_attribute_range_start:
             # Nothing to apply attribute to.
+            self.logger.debug("Nothing to apply attribute to.")  # debug
             return
 
         # For consistancy, end index in all cases is the first index not
@@ -682,6 +685,7 @@ class TextField(ContainedComponent):
         attribute_list = self.__attribute_map.get(attribute)
         if attribute_list is None:
             # This is a new attribute for this content.
+            self.logger.debug("This is a new attribute for this content.")  # debug
             if is_multivalued:
                 # Initial value of multivalued attributes is user agent
                 # default, indicated by "".
@@ -691,6 +695,7 @@ class TextField(ContainedComponent):
                 # Initial value of binary attributes is False ("0").
                 default_attribute_range = \
                     TextFieldAttribute(len(self.__content), is_multivalued, "0")
+            self.logger.debug("default_attribute_range " + str(default_attribute_range))  # debug
             attribute_list = [default_attribute_range]
             self.__attribute_map[attribute] = attribute_list
 
@@ -800,6 +805,7 @@ class TextField(ContainedComponent):
                 range_position = 12
             else:
                 range_position = 13
+            self.logger.debug("range_position " + str(range_position))  # debug
 
             if old_attribute_range.value != value:
                 # Old attribute differs from new attribute.
@@ -825,10 +831,12 @@ class TextField(ContainedComponent):
 
                 if 1 == range_position or 2 == range_position or 13 == range_position:
                     # Copy unchanged.
+                    self.logger.debug("Copy unchanged.")  # debug
                     new_attribute_list.append(old_attribute_range)
 
                 if 5 == range_position:
                     # Add range truncated to start of new range.
+                    self.logger.debug("Add range truncated to start of new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_start - old_attribute_range_start,
                             old_attribute_range.is_multivalued,
@@ -852,6 +860,7 @@ class TextField(ContainedComponent):
 
                 if 7 == range_position or 10 == range_position:
                     # Add new range.
+                    self.logger.debug("Add new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_length, is_multivalued, value
                         )
@@ -859,6 +868,7 @@ class TextField(ContainedComponent):
 
                 if 12 == range_position:
                     # Add new range.
+                    self.logger.debug("Add new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_length, is_multivalued, value
                         )
@@ -876,15 +886,18 @@ class TextField(ContainedComponent):
                     or 13 == range_position:
 
                     # Copy unchanged.
+                    self.logger.debug("Copy unchanged.")  # debug
                     new_attribute_list.append(old_attribute_range)
 
                 if 2 == range_position or 3 == range_position:
                     # Extend new to start of old, discard old (do nothing).
+                    self.logger.debug("Extend new to start of old, discard old (do nothing).")  # debug
                     new_attribute_range_start = old_attribute_range_start
 
                 if 11 == range_position or 12 == range_position:
-                    # Extend old to start of new and add.  New is now
+                    #   New is now
                     # part of this range, doesn't need to be added.
+                    self.logger.debug("Extend old to start of new and add.")  # debug
                     add_attribute_range_length = \
                         new_attribute_range_start - old_attribute_range_start
                     add_attribute_range = TextFieldAttribute(
@@ -898,6 +911,7 @@ class TextField(ContainedComponent):
                 # For 9, 7, 9, 10 do nothing (discard old).
 
         self.__attribute_map[attribute] = new_attribute_list
+        self.logger.debug("use new_attribute_list")  # debug
 
         # Generate new attributes string for this attribute.
         attribute_string = attribute + ": "
@@ -921,6 +935,7 @@ class TextField(ContainedComponent):
                     attribute_string + sep_str + str(attribute_range.length)
 
             sep_str = ", "
+        self.logger.debug("attribute_string " + attribute_string)  # debug
 
         self.__attribute_string_map[attribute] = attribute_string
 
@@ -928,12 +943,14 @@ class TextField(ContainedComponent):
         # strings.
         new_attributes = ""
         sep_str = ""
-        for attribute_string in list(__attribute_string_map.values()):
+        for attribute_string in list(self.__attribute_string_map.values()):
             new_attributes = new_attributes + sep_str + attribute_string
             sep_str = "\r\n"
+        self.logger.debug("new_attributes " + new_attributes)  # debug
 
         self.__attributes = new_attributes
         self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+        self.logger.debug("Done")  # debug
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -1056,8 +1073,17 @@ class ReadThread(threading.Thread):
 
         while True:
             self.logger.debug("Create event from in_stream")  # debug
-            event = Event(in_stream=self.in_stream)
-            self.logger.debug("Created event from in_stream")  # debug
+            try:
+                event = Event(in_stream=self.in_stream)
+                self.logger.debug("Created event from in_stream")  # debug
+            except ConnectionResetError:
+                # Maybe Connection reset before disconnect event processed.
+                self.logger.debug("Maybe Connection reset before disconnect event processed.")  # debug
+                # Signal that disconnect happened. Insert disconnect event?
+                message = Message()  # debug
+                message.set_type(Message.EVENT, Message.DISCONNECT)  # debug
+                self.event_thread.add(message)  # debug
+                break;
 
             self.event_thread.add(event)
 

@@ -4,8 +4,6 @@ import os.path
 import sys
 import threading
 
-#from logger import Logger
-#from hicp.hicp import HICP, Message, Panel, Window, Label, Button, TextField
 from hicp import HICP, Message, Panel, Window, Label, Button, TextField
 
 def newLogger(name):
@@ -176,16 +174,16 @@ class Reception:
         )
         window.add(button, 1, 1)
 
-#        text_field = TextField()
-#        text_field.set_content("This is text")
+        text_field = TextField()
+        text_field.set_content("This is text")
         # debug - test binary attribute
-#        text_field.set_attribute(TextField.UNDERLINE, 5, 2)
+        text_field.set_attribute(TextField.UNDERLINE, 5, 2)
         # debug - test value attribute
-#        text_field.set_attribute(TextField.SIZE, 8, 1, "2")
-#        text_field.set_handle_changed(
-#            TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
-#        )
-#        window.add(text_field, 1, 2)
+        text_field.set_attribute(TextField.SIZE, 8, 1, "2")
+        text_field.set_handle_changed(
+            TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
+        )
+        window.add(text_field, 1, 2)
 
 #        extra_label = Label()  # debug
 #        extra_label.set_text(self.EXTRA_ID)  # debug
@@ -219,23 +217,4 @@ class Reception:
         self.__logger.debug("about to run HICP")
         hicp.run()
         self.__logger.debug("done run HICP")
-
-
-# Open a log file and put debug info into it.
-#log = Logger(os.path.join(sys.path[0], "reception.log"))
-#log.removeLog()
-#log.log("Started")
-
-# Make a default app object.
-#reception_app = Reception(log)
-
-# Make an HICP object
-#log.log("about to make HICP")
-#hicp = HICP(
-#    in_stream=sys.stdin,
-#    out_stream=sys.stdout,
-#    logger=log,
-#    default_app=reception_app,
-#    app_list=None,
-#    authenticator=authenticator)
 
