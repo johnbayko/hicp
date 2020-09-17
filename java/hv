@@ -1,0 +1,5 @@
+rm hv.log
+touch hv.log
+tail -f hv.log &
+
+java -classpath dist/HV.jar hv.HV

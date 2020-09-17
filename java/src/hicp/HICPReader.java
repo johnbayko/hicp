@@ -1,0 +1,626 @@
+package hicp;
+
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.BufferedReader;
+import java.nio.ByteBuffer;
+import java.nio.BufferOverflowException;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class HICPReader
+{
+    private static final Logger LOGGER =
+        Logger.getLogger( HICPReader.class.getName() );
+
+//    protected final Pattern _lengthRegex = Pattern.compile("(length) *= *(\\d+)");
+    protected final InputStream _in;
+    protected final CharsetDecoder _decoder;
+
+    protected boolean _isPreviousByte = false;
+    protected int _previousByte = 0;
+    protected int _avgTokenByteCnt = 16;
+
+    protected final Acceptor _headerNameAcceptor;
+    protected final Acceptor _separatorAcceptor;
+    protected final Acceptor _headerValueAcceptor;
+    protected final Acceptor _termCritAcceptor;
+    protected final Acceptor _termSeqAcceptor;
+
+    protected final HICPHeaderValue EMPTY_HEADER_VALUE = new HICPHeaderValue();
+
+    public HICPReader(java.io.InputStream in)
+        throws java.io.UnsupportedEncodingException
+    {
+
+        _in = in;
+
+        _headerNameAcceptor = new TokenAcceptor(':');
+        _separatorAcceptor = new SeparatorAcceptor();
+        _headerValueAcceptor = new TokenAcceptor();
+        _termCritAcceptor = new TokenAcceptor('=');
+        _termSeqAcceptor = new TermSeqAcceptor();
+
+        _decoder = Charset.forName("UTF-8").newDecoder();
+    }
+
+    /**
+        Read until end is reached, determined by Acceptor. End
+        characters are consumed, but not returned as part of the token.
+        There are no escapes in the input.
+     */
+    public HICPHeaderValue readToken(Acceptor acceptor, String eofString)
+        throws IOException
+    {
+        return readToken(acceptor, eofString, false);
+    }
+
+    /**
+        Read until end is reached, determined by Acceptor. End
+        characters are consumed, but not returned as part of the token.
+        If isEscapeProcessing is true, ESC characters indicate that the
+        following character must always be accepted, resetting the
+        acceptor in the process.
+     */
+    public HICPHeaderValue readToken(
+        Acceptor acceptor, String eofString, boolean isEscapeProcessing
+    )
+        throws IOException
+    {
+        ByteBuffer readByteBuffer = ByteBuffer.allocate(_avgTokenByteCnt + 4);
+        int inByte;
+        TokenIndicator tokenIndicator = TokenIndicator.IS_PART;
+
+        boolean isAfterEscape = false;
+        acceptor.reset();
+readLoop:
+        for (;;) {
+            inByte = readByte();
+//LOGGER.log(Level.FINE, "inByte " + inByte);  // debug
+
+            if (-1 == inByte) {
+                // End of file, no more input.
+                if (0 == readByteBuffer.position()) {
+                    // There no input, return null.
+                    return null;
+                } else {
+                    // There was some input, treat as end of token so
+                    // input so far can be processed.
+                    break readLoop;
+                }
+            }
+            if (0x1b == inByte) {
+                // Escape, next character is always accepted.
+                isAfterEscape = true;
+            } else {
+                try {
+                    if (!readByteBuffer.hasRemaining()) {
+                        // No more space, double buffer size before adding.
+                        ByteBuffer newReadByteBuffer =
+                            ByteBuffer.allocate(readByteBuffer.capacity() * 2);
+
+                        // Flip read buffer from input to output.
+                        readByteBuffer.flip();
+                        newReadByteBuffer.put(readByteBuffer);
+
+                        readByteBuffer = newReadByteBuffer;
+                    }
+                    if (isAfterEscape) {
+                        // Character after escape must always be
+                        // accepted. This also means that acceptor must
+                        // start over.
+                        tokenIndicator = TokenIndicator.IS_PART;
+                        acceptor.reset();
+                    } else {
+                        tokenIndicator = acceptor.accept((byte)inByte);
+                    }
+
+                    if ( (TokenIndicator.IS_PART == tokenIndicator)
+                      || (TokenIndicator.IS_END == tokenIndicator) )
+                    {
+                        // Byte is part of current token.
+                        readByteBuffer.put((byte)inByte);
+                    }
+                } catch (BufferOverflowException ex) {
+                    // Should never happen because available space is checked
+                    // before adding bytes, but if it does don't try reading any
+                    // more, just return what's been read.
+                    break readLoop;
+                }
+
+                if (TokenIndicator.NOT_PART == tokenIndicator) {
+                    // No more bytes for this token.
+                    break readLoop;
+                }
+                if (TokenIndicator.IS_END == tokenIndicator) {
+                    // No more bytes for this token. End bytes are not part
+                    // of token, but had to be stored for parsing. Remove
+                    // them before breaking out of read loop by setting read
+                    // position back before end token
+                    readByteBuffer
+                        .position(
+                            readByteBuffer.position() - acceptor.getEndLength()
+                        );
+
+                    break readLoop;
+                }
+                isAfterEscape = false;
+            }
+        } // for (;;)
+
+        if (TokenIndicator.NOT_PART == tokenIndicator) {
+            // Byte just read is part of next token.
+            unreadByte(inByte);
+        }
+
+        _avgTokenByteCnt =
+            (_avgTokenByteCnt + readByteBuffer.position() + 1) / 2;
+
+        // Flip ByteBuffer from input to output.
+        readByteBuffer.flip();
+        return new HICPHeaderValue(readByteBuffer, _decoder);
+    }
+
+    /**
+        Skip until end is reached, determined by Acceptor. End
+        characters are consumed.
+     */
+    public void skipToken(Acceptor acceptor)
+        throws IOException
+    {
+        int inByte;
+        TokenIndicator tokenIndicator = TokenIndicator.IS_PART;
+
+        acceptor.reset();
+readLoop:
+        for (;;) {
+            inByte = readByte();
+
+            if (-1 == inByte) {
+                // End of file, no more input. Treat as end of token.
+                return;
+            }
+            tokenIndicator = acceptor.accept((byte)inByte);
+
+            if ( (TokenIndicator.NOT_PART == tokenIndicator)
+              || (TokenIndicator.IS_END == tokenIndicator) )
+            {
+                // No more bytes for this token.
+                break readLoop;
+            }
+        } // for (;;)
+
+        if (TokenIndicator.NOT_PART == tokenIndicator) {
+            // Byte just read is part of next token.
+            unreadByte(inByte);
+        }
+    }
+
+    protected int readByte()
+        throws IOException
+    {
+        if (_isPreviousByte) {
+            _isPreviousByte = false;
+            return _previousByte;
+        } else {
+            return _in.read();
+        }
+    }
+
+    protected void unreadByte(int inByte)
+    {
+        _isPreviousByte = true;
+        _previousByte = inByte;
+    }
+
+    public HICPHeader readHeader()
+        throws IOException
+    {
+        final String headerName;
+        HICPHeaderValue headerValue = EMPTY_HEADER_VALUE;
+LOGGER.log(Level.FINE, 
+"1 headerValue \"" + headerValue.getString() + "\"");  // debug
+
+        {
+            final HICPHeaderValue headerNameToken =
+                readToken(_headerNameAcceptor, null);
+
+            if (null == headerNameToken) {
+                // End of file.
+LOGGER.log(Level.FINE, 
+"1 return headerValue \"" + headerValue.getString() + "\"");  // debug
+                return null;
+            }
+            headerName = headerNameToken.getString();
+        }
+        if ("".equals(headerName)) {
+            // Blank line - header name and field are null, not "".
+LOGGER.log(Level.FINE, 
+"2 return headerValue \"" + headerValue.getString() + "\"");  // debug
+            return new HICPHeader(null, null);
+        }
+
+        {
+            final HICPHeaderValue separatorToken =
+                readToken(_separatorAcceptor, "");
+
+            if ("".equals(separatorToken.getString())) {
+                // No separator, no header value. For now, leave value as "".
+            } else if ("::".equals(separatorToken.getString())) {
+                final String terminationCriterion =
+                    readToken(_termCritAcceptor, "").getString();
+                if ("length".equals(terminationCriterion)) {
+//log("length");  // debug
+                    // Skip the "=".
+                    readByte();
+                    // Read the rest of the line and parse an integer
+                    // out of it.
+                    final String lengthString =
+                        readToken(_headerValueAcceptor, "0").getString();
+                    try {
+                        final int length = Integer.parseInt(lengthString);
+
+                        // EOL should have been accepted already (no
+                        // unread bytes waiting for readByte()), so
+                        // just fill a buffer from the input stream.
+                        final byte[] valueBytes = new byte[length];
+
+                        _in.read(valueBytes);
+
+                        final ByteBuffer valueBuffer =
+                            ByteBuffer.wrap(valueBytes);
+                        headerValue =
+                            new HICPHeaderValue(valueBuffer, _decoder);
+LOGGER.log(Level.FINE, 
+"2 headerValue \"" + headerValue.getString() + "\"");  // debug
+
+                        // Read final EOL and discard.
+                        skipToken(_headerValueAcceptor);
+
+                    } catch (NumberFormatException ex) {
+                        // No valid length, leave header value as null
+                        // default.  Don't try and read the body because
+                        // there's no way to know how long it is.
+                    }
+                } else if ("boundary".equals(terminationCriterion)) {
+//log("boundary");  // debug
+                    // Skip the "=".
+                    readByte();
+
+                    byte[] termSeqBytes =
+                        readToken(_termSeqAcceptor, "").getBytes();
+
+                    if ( ('\r' == termSeqBytes[0])
+                      && ('\n' == termSeqBytes[1])
+                    ) {
+                        // Special case of termination sequence
+                        // beginning with CR LF, means the next line has
+                        // to be appended to it.
+                        final byte[] appendTermSeqBytes =
+                            readToken(_termSeqAcceptor, "").getBytes();
+                        final byte[] newTermSeqBytes =
+                            new byte[
+                                termSeqBytes.length + appendTermSeqBytes.length
+                            ];
+                        System.arraycopy(
+                            termSeqBytes, 0,
+                            newTermSeqBytes, 0,
+                            termSeqBytes.length
+                        );
+                        System.arraycopy(
+                            appendTermSeqBytes, 0,
+                            newTermSeqBytes, termSeqBytes.length,
+                            appendTermSeqBytes.length
+                        );
+                        termSeqBytes = newTermSeqBytes;
+                    }
+                    headerValue =
+                        readToken(
+                            new BoundaryAcceptor(termSeqBytes), ""
+                        );
+LOGGER.log(Level.FINE, 
+"3 headerValue \"" + headerValue.getString() + "\"");  // debug
+
+                    // Read final EOL and discard.
+                    skipToken(_headerValueAcceptor);
+                } else {
+//log("invalid");  // debug
+                    // Not valid termination criterion. Should skip to
+                    // end, if not at EOL (true if "=" was the last
+                    // character read, _isPreviousByte will be true).
+                    if (_isPreviousByte) {
+                        skipToken(_headerValueAcceptor);
+                    }
+                }
+            } else if (":".equals(separatorToken.getString())) {
+                headerValue = readToken(_headerValueAcceptor, "");
+LOGGER.log(Level.FINE, 
+"4 headerValue \"" + headerValue.getString() + "\"");  // debug
+            } else {
+                // No separator, skip to the end of the line.
+                skipToken(_headerValueAcceptor);
+            }
+        }
+
+LOGGER.log(Level.FINE, 
+"3 return headerValue \"" + headerValue.getString() + "\"");  // debug
+        return new HICPHeader(headerName, headerValue);
+    }
+
+    // Utility
+    private void log(Exception ex) {
+        LOGGER.log(Level.WARNING, ex.toString());
+    }
+
+    private void log(String msg) {
+        LOGGER.log(Level.FINE, msg);
+    }
+}
+
+class TokenIndicator {
+    public static final TokenIndicator IS_PART = new TokenIndicator();
+    public static final TokenIndicator IS_END = new TokenIndicator();
+    public static final TokenIndicator NOT_PART = new TokenIndicator();
+    public static final TokenIndicator IS_INCOMPLETE = new TokenIndicator();
+}
+
+abstract class Acceptor {
+    private static final Logger LOGGER =
+        Logger.getLogger( Acceptor.class.getName() );
+
+    protected Acceptor() {
+    }
+
+    public abstract TokenIndicator accept(byte inByte);
+
+    public abstract void reset();
+
+    public abstract int getEndLength();
+
+// Utility
+    private void log(Exception ex) {
+        LOGGER.log(Level.WARNING, ex.toString());
+    }
+
+    private void log(String msg) {
+        LOGGER.log(Level.FINE, msg);
+    }
+}
+
+/** Can be ": " or ":: ". This could be more specific, but for now will
+   also accept ":::: ". */
+class SeparatorAcceptor
+    extends Acceptor
+{
+    protected static final int MATCH_NONE = 1;
+    protected static final int MATCH_COLON = 2;
+    protected static final int MATCH_SPACE = 3;
+
+    protected int _state = MATCH_NONE;
+
+    public SeparatorAcceptor() {
+    }
+
+    public TokenIndicator accept(byte inByte) {
+        switch (_state) {
+          case MATCH_NONE:
+            if (':' == inByte) {
+                _state = MATCH_COLON;
+                return TokenIndicator.IS_PART;
+            } else {
+                return TokenIndicator.NOT_PART;
+            }
+          case MATCH_COLON:
+            if (':' == inByte) {
+                return TokenIndicator.IS_PART;
+            } else if (' ' == inByte) {
+                _state = MATCH_SPACE;
+                return TokenIndicator.IS_END;
+            } else {
+                return TokenIndicator.NOT_PART;
+            }
+          case MATCH_SPACE:
+          default:
+            return TokenIndicator.NOT_PART;
+        }
+    }
+
+    public void reset() {
+        _state = MATCH_NONE;
+    }
+
+    public int getEndLength() {
+        return 1;
+    }
+}
+
+class TokenAcceptor
+    extends Acceptor
+{
+    protected static final int MATCH_NONE = 1;
+    protected static final int MATCH_CR = 2;
+    protected static final int MATCH_LF = 3;
+
+    protected int _state = MATCH_NONE;
+
+    protected final char _separator;
+    protected final boolean _excludeSeparator;
+
+    public TokenAcceptor() {
+        _separator = '\0';
+        _excludeSeparator = false;
+    }
+
+    public TokenAcceptor(char separator) {
+        _separator = separator;
+        _excludeSeparator = true;
+    }
+
+    public TokenIndicator accept(byte inByte) {
+        // Exclude separator in all states.
+        if (_excludeSeparator && (_separator == (char)inByte)) {
+            return TokenIndicator.NOT_PART;
+        }
+
+        switch (_state) {
+          case MATCH_NONE:
+            if ('\r' == (char)inByte) {
+                _state = MATCH_CR;
+            }
+            return TokenIndicator.IS_PART;
+
+          case MATCH_CR:
+            if ('\n' == (char)inByte) {
+                _state = MATCH_LF;
+                return TokenIndicator.IS_END;
+            }
+            return TokenIndicator.IS_PART;
+
+          default:
+            if (Character.isISOControl((char)inByte)) {
+                return TokenIndicator.NOT_PART;
+            } else {
+                return TokenIndicator.IS_PART;
+            }
+        }
+    }
+
+    public void reset() {
+        _state = MATCH_NONE;
+    }
+
+    public int getEndLength() {
+        return 2;
+    }
+}
+
+class TermSeqAcceptor
+    extends Acceptor
+{
+    protected static final int MATCH_NONE = 1;
+    protected static final int MATCH_CR = 2;
+    protected static final int MATCH_LF = 3;
+
+    protected int _state = MATCH_NONE;
+
+    public TermSeqAcceptor() {
+    }
+
+    public TokenIndicator accept(byte inByte) {
+        switch (_state) {
+          case MATCH_NONE:
+            if ('\r' == (char)inByte) {
+                _state = MATCH_CR;
+            }
+            return TokenIndicator.IS_PART;
+
+          case MATCH_CR:
+            if ('\n' == (char)inByte) {
+                _state = MATCH_LF;
+            }
+            return TokenIndicator.IS_PART;
+
+          case MATCH_LF:
+            if ('\n' == (char)inByte) {
+                _state = MATCH_NONE;
+            }
+            return TokenIndicator.NOT_PART;
+
+          default:
+            return TokenIndicator.IS_PART;
+        }
+    }
+
+    public void reset() {
+        _state = MATCH_NONE;
+    }
+
+    public int getEndLength() {
+        return 0;
+    }
+}
+
+class BoundaryAcceptor
+    extends Acceptor
+{
+    protected int _matchIdx = 0;
+
+    final protected byte[] _termSeq;
+    final protected int[] _failIdx;
+
+    public BoundaryAcceptor(byte[] termSeq) {
+
+        _termSeq = termSeq;
+
+        // Build the _failIdx values. This is a Knuth-Morris-Pratt state
+        // machine. Briefly, consider pattern "ababc" and text
+        // "abababc".
+        // The pattern will have a matched part and an unchecked part:
+        // "abab""c".
+        // The text will have a checked part and an unchecked part:
+        // "abab""abc".
+        // At that point, the match fails, so the matched part of the
+        // pattern should be rolled back two positions, to "ab""abc", so
+        // that nothing will be missed. Now the unchecked part of the
+        // pattern ("abc") will match the unchecked text ("abc").
+        // This code computes the indices used for rolling back the
+        // matches when a mismatch occurs and stores them in the
+        // _failIdx array.
+        _failIdx = new int[_termSeq.length];
+        _failIdx[0] = -1;
+        for (int scanFailIdx = 1;scanFailIdx < _failIdx.length;scanFailIdx++) {
+            int prevFailIdx = _failIdx[scanFailIdx - 1];
+findFailIdxLoop:
+            for (;;) {
+                if (-1 == prevFailIdx) {
+                    break findFailIdxLoop;
+                }
+                if (_termSeq[prevFailIdx] == _termSeq[scanFailIdx - 1])
+                {
+                    break findFailIdxLoop;
+                }
+                prevFailIdx = _failIdx[prevFailIdx];
+            }
+            _failIdx[scanFailIdx] = prevFailIdx + 1;
+        }
+    }
+
+    public TokenIndicator accept(final byte inByte) {
+        while (_matchIdx > -1) {
+            if (inByte == _termSeq[_matchIdx]) {
+                // Matched a byte in termination sequence.
+                _matchIdx++;
+                if (_matchIdx < _termSeq.length) {
+                    // More bytes left to match in termination sequence.
+                    return TokenIndicator.IS_PART;
+                } else {
+                    // Last byte of termination sequence.
+                    return TokenIndicator.IS_END;
+                }
+            } else {
+                // Didn't match, adjust _matchIdx for next try. See
+                // comments in constructor for details.
+                _matchIdx = _failIdx[_matchIdx];
+            }
+        }
+        // Start over at beginning of termination sequence.
+        _matchIdx = 0;
+        return TokenIndicator.IS_PART;
+    }
+
+    public void reset() {
+        _matchIdx = 0;
+    }
+
+    public int getEndLength() {
+        return _termSeq.length;
+    }
+}
+

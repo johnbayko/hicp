@@ -1,0 +1,7 @@
+export PYTHONPATH=hicp
+
+rm reception.log
+touch reception.log
+tail -f reception.log &
+
+python3 reception/receptionx.py
