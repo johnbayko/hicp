@@ -21,14 +21,14 @@ from the user agent generally represent actions by the user such as
 mouse clicks or keystrokes, but can be generated in response to commands
 from the server, or from other sources.
 
-  Q. How is HICP pronounced?
+  Q: How is HICP pronounced?
 
-  A. If you're asking if you can pronounce it with a "u" in the second
+  A: If you're asking if you can pronounce it with a "u" in the second
   syllable, go ahead. I pronounce the letters.
 
-  Q. Why "Holistic"?
+  Q: Why "Holistic"?
 
-  A. After a long, unpredictable, and improbably long path, it ends up
+  A: After a long, unpredictable, and improbably long path, it ends up
   being a tribute to the Douglas Adams book "Dirk Gently's Holistic Detective
   Agency".
 
@@ -41,9 +41,9 @@ events, rather than requests and responses (which would imply a
 relationship between the two). There are a few exceptions related to
 handshaking during starting up.
 
-  Q. What good is an unreliable protocol?
+  Q: What good is an unreliable protocol?
 
-  A. "Unreliable" doesn't mean useless. The ANSI terminal protocol is also
+  A: "Unreliable" doesn't mean useless. The ANSI terminal protocol is also
   unreliable in the same sense that the application can't guarantee that
   characters sent out ever do anything, but in practice they do what is
   expected, and so have provided decades of effective user interfaces.
@@ -179,33 +179,33 @@ bytes, followed by an end-of-line.
 Messages are terminated by a blank line that is not part of a data
 block. 
 
-  Q. Why not UTF-8 field names?
+  Q: Why not UTF-8 field names?
 
-  A. It allows programmers to process the names without being aware of
+  A: It allows programmers to process the names without being aware of
   Unicode, and treat the rest as data. Years from now, all programmers
   will understand Unicode and its representations, and this won't matter,
   but until then, it's safer this way.
 
-  Q. Why not use XML, JSON, or YAML?
+  Q: Why not use XML, JSON, or YAML?
 
-  A. Those are good for representing hierarchical data. These messages are
+  A: Those are good for representing hierarchical data. These messages are
   not hierarchical, so they add nothing but complexity.
 
-  Q. But a UI definition is hierarchical, that's why XUL was invented.
+  Q: But a UI definition is hierarchical, that's why XUL was invented.
 
-  A. This protocol doesn't define a UI, it communicates commands and
+  A: This protocol doesn't define a UI, it communicates commands and
   events. Some of those can be used to construct a GUI display, but others
   are unrelated.
 
-  Q. Wouldn't an all-binary format be more efficient?
+  Q: Wouldn't an all-binary format be more efficient?
 
-  A. Binary messages still need martialling and byte re-ordering, the
+  A: Binary messages still need martialling and byte re-ordering, the
   difference isn't that great. I also think there are advantages to having
   a human-readable message format.
 
-  Q. Binary data in a header value isn't human-readable.
+  Q: Binary data in a header value isn't human-readable.
 
-  A. No, but the overall message is. All modern editors can represent
+  A: No, but the overall message is. All modern editors can represent
   binary data as symbols, the rest is text. Besides, encoded binary data
   like base64 isn't any more human readable than editor-displayed binary.
 
@@ -227,9 +227,9 @@ block.
   escaped if the data is text and the sequence is non-text, so the result
   in that case is the same anyway.
 
-  Q. You could require the termination sequence to also be text.
+  Q: You could require the termination sequence to also be text.
 
-  A. Shut up.
+  A: Shut up.
 
 The blocks will be treated as the format needed for that header, and may
 be specified as encoded if necessary.
@@ -367,15 +367,15 @@ the future, and the user interface root. Items in these areas are identified
 by integers included in commands from the server, and a new item added
 with the same identifier as an existing item replaces the existing one.
 
-  Q. Why not identify items by strings so people can read them?
+  Q: Why not identify items by strings so people can read them?
 
-  A. Numbers can be represented by symbolic names (constants,
+  A: Numbers can be represented by symbolic names (constants,
   enumerations) in source code. Doing this gives compile-time or run-time
   checks against typos.
 
-  Q. Why not replace header tags and keywords with integers?
+  Q: Why not replace header tags and keywords with integers?
 
-  A. I'm tempted, but I think that's going too far. Those don't change,
+  A: I'm tempted, but I think that's going too far. Those don't change,
   and are mostly hidden from application developers, so there's less
   chance that they will be misspelled.
 
@@ -385,14 +385,14 @@ item labels never contain literal text or images, only references to
 items in libraries (data such as text to be edited is specified
 directly).
 
-  Q. Why not allow items like labels to specify the text to display
+  Q: Why not allow items like labels to specify the text to display
   instead of an ID number?
 
-  A. Ask me that again in Spanish.
+  A: Ask me that again in Spanish.
 
-  Q. What about images?
+  Q: What about images?
 
-  A. Images may also contain text or localization (e.g. traffic signs).
+  A: Images may also contain text or localization (e.g. traffic signs).
   It's more efficient to refer to an image from a pre-loaded image library
   for a control than re-send the image each time that control is added.
 
@@ -649,9 +649,9 @@ position: <integer> "," <integer>
   
   The allowed values for a position is arbitrarily 0-255.
 
-    Q. Why a limit at all?
+    Q: Why a limit at all?
 
-    A. If a limit is not defined here, it will be defined by some
+    A: If a limit is not defined here, it will be defined by some
     implementation or another - either explicitly or by the point at which
     it crashes. Better to have a number, even if arbitrary, that guarantees
     uniformity. It can be increased in a future version.
@@ -720,9 +720,9 @@ content: <text>
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for content of a "textfield" or "textarea" component.
 
-  Q. What should I do if there are control characters?
+  Q: What should I do if there are control characters?
 
-  A. If the rules aren't followed, there's no guarantee of anything. You
+  A: If the rules aren't followed, there's no guarantee of anything. You
   could filter out the invalid characters, truncate the string, or refuse
   to do anything with them and treate it as an empty string. You must
   still handle the rest of the headers correctly - that means a text
@@ -750,9 +750,9 @@ attributes: <attribute specifiers>
     support them for text fields, so it's not a good idea to rely on
     that.
 
-      Q. Wait, isn't this the sort of thing XML is for?
+      Q: Wait, isn't this the sort of thing XML is for?
 
-      A. Attributes are meant to indicate how text is to be displayed, it is
+      A: Attributes are meant to indicate how text is to be displayed, it is
       not meant as a document model. More complex document models can be
       supported by disabling direct editing by the component, and processing
       events (key presses, cursor movements, etc.) on the server side, and
@@ -830,10 +830,10 @@ attributes: <attribute specifiers>
     the attributes are visible, seeing them disappear could annoy the
     user, so ought to be avoided.
 
-      Q. Could I set an attribute with length 0, so that no text displays that
+      Q: Could I set an attribute with length 0, so that no text displays that
       attribute, but text added at that point (say, the end) will have it?
 
-      A. The user agent is free to remove any 0 length attributes and join
+      A: The user agent is free to remove any 0 length attributes and join
       adjacent attributes that are the same value, even those at the end of
       the content, so don't count on it. Either use "server" editing mode to
       update the content and attributes at the same time, or wait for a
@@ -1065,9 +1065,9 @@ delta-list: <content/attribute changes>
     after the "n" (producing the text "I said no!") should expand the
     italic segment so that the entire word "no" is italicized.
 
-      Q. Should there be a "replace" change?
+      Q: Should there be a "replace" change?
 
-      A. Maybe, but it would require two parameters and be inconsistent.
+      A: Maybe, but it would require two parameters and be inconsistent.
 
 delta: <single content/attribute change>
   If specified, this is used by these components:
@@ -1177,9 +1177,9 @@ text-direction: <direction> "," <direction>
     contained in another (such as windows). If not specified, the value
     "right, down" is used as the default.
 
-      Q. Why can't I specify the text direction of a label?
+      Q: Why can't I specify the text direction of a label?
 
-      A. The panel needs to know the text direction in order to align the
+      A: The panel needs to know the text direction in order to align the
       label properly (left/right, up/down). You can add a panel into another
       panel's cell, set text direction there, then add a label to it.
 
@@ -1208,9 +1208,9 @@ size: <integer> "," <integer>
     Conversely, if this component overlaps with an existing component,
     that component must be truncated in the same way.
 
-      Q. I'm not sure that looks good.
+      Q: I'm not sure that looks good.
 
-      A. To make it look good, the components shouldn't overlap in the first
+      A: To make it look good, the components shouldn't overlap in the first
       place. This is just to handle the situation if they do. These rules
       ensure that the components are truncated the same way no matter which
       order they are added, while still being functional.

@@ -40,3 +40,31 @@ This repository contains:
     - A module of HICP classes, mainly HICP GUI components and messages.
     - An HICP test server application.
 
+Usage
+=====
+
+Requires:
+
+- Python 3.
+- Java (14 works for sure)
+- ant
+
+On MacOS these are easiest to install with Homebrew. Install Homebrew first,
+obviously, but since it can be installed without Homebrew, it's not in the
+"requires" list.
+
+To run the sample server and client:
+
+- Compile hv with "ant dist". Run using the "hv" script. A window will open to
+  accept connection parameters.
+- Run the receptionx.py server with the "go" script. It will print the socket
+  port number allocated to it.
+- Add parameters to the hv window:
+  - Host of the system receptionx.py is being run on, "localhost" if it's the
+    same host.
+  - Port number printed by receptionx.py.
+  - Test users and passwords are in the very low security
+    python/reception/users file. Default is "user1"/"password1".
+  - The example server doesn't have any applications yet, so leave the
+    application field blank to run the default application ("reception").
+
