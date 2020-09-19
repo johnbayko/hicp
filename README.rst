@@ -59,7 +59,7 @@ To run the sample server and client:
   accept connection parameters.
 - Run the receptionx.py server with the "go" script. It will print the socket
   port number allocated to it.
-- Add parameters to the hv window:
+- Add parameters to the hv window.
   - Host of the system receptionx.py is being run on, "localhost" if it's the
     same host.
   - Port number printed by receptionx.py.
