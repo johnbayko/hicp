@@ -28,6 +28,8 @@ public class MessageExchange
     protected Writer _out;
     protected Controller _controller;
 
+    protected Message lastMessage;
+
     /**
         If the Java runtime doesn't support the UTF8 encoding, the
         calling code ought to know.
@@ -92,8 +94,13 @@ if (null == firstHeader.value) {  // debug
         } catch (IOException ex) {
             log(ex);
         }
+        lastMessage = m;
 
         return this;
+    }
+
+    public Message getLastMessage() {
+        return lastMessage;
     }
 
     public MessageExchange dispose() {

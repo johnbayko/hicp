@@ -50,9 +50,13 @@ class Authenticator:
         check_user = message.get_header(Message.USER)
         check_password = message.get_header(Message.PASSWORD)
 
-        if check_password == self.__user_password[check_user]:
-            return True
-        else:
+        try:
+            if check_password == self.__user_password[check_user]:
+                return True
+            else:
+                return False
+        except KeyError:
+            # No such user
             return False
 
     def get_methods(self):

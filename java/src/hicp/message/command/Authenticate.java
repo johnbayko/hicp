@@ -2,6 +2,7 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Set;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
@@ -10,13 +11,13 @@ import hicp.message.Message;
 public class Authenticate
     extends Command
 {
-    public final static String USER = "user";
     public final static String METHOD = "method";
     public final static String PASSWORD = "password";
 
-    public String user = null;
     public String method = null;
     public String password = null;
+
+    private Set<String> allMethods = null;
 
     public Authenticate(String name, int id) {
         super(name, id);
@@ -42,10 +43,12 @@ readLoop:   for (;;) {
                 }
 
                 // Extract recognized fields.
-                if (USER.equals(hicpHeader.name)) {
-                    user = hicpHeader.value.getString();
-                } else if (METHOD.equals(hicpHeader.name)) {
+                if (METHOD.equals(hicpHeader.name)) {
                     method = hicpHeader.value.getString();
+
+                    // Extract available methods separated by ",",
+                    // discard spaces
+                    allMethods = Set.of(method.trim().split("\\s*,\\s*"));
                 } else if (PASSWORD.equals(hicpHeader.name)) {
                     password = hicpHeader.value.getString();
                 }
@@ -57,8 +60,11 @@ readLoop:   for (;;) {
     }
 
     public void clear() {
-        user = null;
         method = null;
         password = null;
+    }
+
+    public boolean hasMethod(final String method) {
+        return allMethods.contains(method);
     }
 }

@@ -147,20 +147,10 @@ log ("About to _messageExchange.dispose()");  // debug
                         // side supports this authentication method.
                         final String method = "plain";
 
-                        final String[] methodList =
-                            _commaRegex.split(authenticateCmd.method);
-
-methodLoop:             for(int methodIdx = 0;
-                            methodIdx < methodList.length;
-                            methodIdx++)
-                        {
-                            if (method.equals( methodList[methodIdx].trim())) {
-                                // Method is supported.
-                                authenticateEvent.password = password;
-                                authenticateEvent.method = method;
-
-                                break methodLoop;
-                            }
+                        if (authenticateCmd.hasMethod(method)) {
+                            // Method is supported.
+                            authenticateEvent.password = password;
+                            authenticateEvent.method = method;
                         }
                     } // if (password...)
                 }
@@ -335,7 +325,17 @@ methodLoop:             for(int methodIdx = 0;
             }
             break;
           case Command.DISCONNECT_ID:
-            disconnect();
+            {
+                if (_messageExchange.getLastMessage()
+                    instanceof hicp.message.event.Authenticate
+                ) {
+                    // User authentication failure.
+                    log("User authentication failure.");
+
+                    // TODO: Find a better way to notify the user.
+                }
+                disconnect();
+            }
             break;
           default:
             log("Unrecognized command in message: " + m.getName());
