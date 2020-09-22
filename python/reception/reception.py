@@ -204,8 +204,8 @@ class Reception:
         # Does nothing yet.
 #        pass
 
-    def run(self):
-        self.__logger.debug('run()')
+    def start(self):
+        self.__logger.debug('start()')
         # Make an authenticator
         authenticator = Authenticator(os.path.join(sys.path[0], "users"))
 
@@ -218,7 +218,7 @@ class Reception:
             app_list=None,
             authenticator=authenticator)
 
-        self.__logger.debug("about to run HICP")
-        hicp.run()
-        self.__logger.debug("done run HICP")
+        self.__logger.debug("about to start HICP")
+        hicp.start()
+        self.__logger.debug("done HICP")
 

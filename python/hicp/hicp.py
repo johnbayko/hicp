@@ -7,14 +7,16 @@ import sys
 import threading
 
 def newLogger(name):
-    lf = logging.Formatter('%(name)s:%(funcName)s %(lineno)d: %(message)s')
-
-    lh = logging.FileHandler('reception.log')
-    lh.setFormatter(lf)
-
     logger = logging.getLogger(__name__ + '.' + name)
-    logger.addHandler(lh)
-    logger.setLevel(logging.DEBUG)
+
+    if not logger.hasHandlers():
+        lf = logging.Formatter('%(name)s:%(funcName)s %(lineno)d: %(message)s')
+
+        lh = logging.FileHandler('reception.log')
+        lh.setFormatter(lf)
+
+        logger.addHandler(lh)
+        logger.setLevel(logging.DEBUG)
 
     return logger
 
@@ -98,7 +100,6 @@ class Message:
 
     def __init__(self, in_stream=None):
         # These may be null.
-        self.in_stream = in_stream
         self.logger = newLogger(type(self).__name__)
 
         self.disconnected = False
@@ -115,12 +116,11 @@ class Message:
             # No message to read in - probably making one to send.
             return
 
-        self.logger.debug("Starting to read lines")  # debug
         # Read headers into the header dict.
         line_cnt = 0
         try:
             while True:
-                line = self.readline()
+                line = self.readline(in_stream)
                 self.logger.debug("Read: " + line)  # debug
 
                 if line == "\r\n" or line == "":
@@ -153,11 +153,11 @@ class Message:
 
                         # header_value is the next length bytes (unless
                         # EOF is encountered).
-                        header_value = self.in_stream.read(length)
+                        header_value = in_stream.read(length)
 
                         # There must be a terminating CR LF, so read to
                         # the end of the input line (extra is discarded).
-                        self.readline()
+                        self.readline(in_stream)
 
                     elif 0 <= termination_criterion.find("boundary"):
                         boundary_match = BOUNDARY_RE.search(termination_criterion)
@@ -170,8 +170,8 @@ class Message:
                             # string returned by readline(), but it's
                             # easier to find the boundary if they are
                             # included.
-#                        boundary = "\r\n" + self.readline()
-                            boundary = self.readline()
+#                        boundary = "\r\n" + self.readline(in_stream)
+                            boundary = self.readline(in_stream)
                             full_line = True
                         else:
                             full_line = False
@@ -181,7 +181,7 @@ class Message:
                         found_boundary = False
                         prev_last_esc_affects_eol = False
                         while 1:
-                            header_value_part = self.readline()
+                            header_value_part = self.readline(in_stream)
                             # Remove any escapes, but keep track of
                             # index of last one.
                             (header_value_unescaped, esc_cnt) = \
@@ -275,12 +275,12 @@ class Message:
             self.set_type(self.EVENT, self.DISCONNECT)
 
     # Read until CR LF is found.
-    def readline(self):
+    def readline(self, in_stream):
         # Some systems may stop at CR (or LF), doesn't guarantee next is
         # LF (or previous is CR), so loop until both are read.
         line = ""
         while True:
-            line_part = self.in_stream.readline()
+            line_part = in_stream.readline()
             if not line_part:
                 # EOF
                 break
@@ -289,7 +289,7 @@ class Message:
                 # Ended at CR, try to get a LF as well. At EOF, read
                 # will return "", and this will loop back up to the
                 # readline above where the EOF will be detected.
-                line = line + line_part + self.in_stream.read(1)
+                line = line + line_part + in_stream.read(1)
             else:
                 line = line + line_part
 
@@ -383,7 +383,6 @@ class Event(Message):
 
     def __init__(self, in_stream=None):
         Message.__init__(self, in_stream)
-        self.logger.debug("Done Message.__init__()")  # debug
 
         self.stage = Event.STAGE_FEEDBACK
         self.component = None
@@ -941,7 +940,6 @@ class TextField(ContainedComponent):
                     attribute_string + sep_str + str(attribute_range.length)
 
             sep_str = ", "
-        self.logger.debug("attribute_string " + attribute_string)  # debug
 
         self.__attribute_string_map[attribute] = attribute_string
 
@@ -952,11 +950,9 @@ class TextField(ContainedComponent):
         for attribute_string in list(self.__attribute_string_map.values()):
             new_attributes = new_attributes + sep_str + attribute_string
             sep_str = "\r\n"
-        self.logger.debug("new_attributes " + new_attributes)  # debug
 
         self.__attributes = new_attributes
         self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
-        self.logger.debug("Done")  # debug
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -1040,13 +1036,6 @@ class WriteThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def write(self, message):
-        if message is not None: # debug
-            self.logger.debug("About to queue message "
-                + message.get_type()
-                + ": "
-                + message.get_type_value()
-            ) # debug
-
         self.write_queue.put(message)
 
     def run(self):
@@ -1057,7 +1046,6 @@ class WriteThread(threading.Thread):
                 # End of messages to write.
                 return
 
-            self.logger.debug("Write message") # debug
             message.write(self.out_stream)
 
     def log(self, msg):
@@ -1066,7 +1054,6 @@ class WriteThread(threading.Thread):
 
 class ReadThread(threading.Thread):
     def __init__(self, in_stream, event_thread):
-
         self.in_stream = in_stream
         self.event_thread = event_thread
 
@@ -1078,7 +1065,6 @@ class ReadThread(threading.Thread):
         self.logger.debug("Read thread started")  # debug
 
         while True:
-            self.logger.debug("Create event from in_stream")  # debug
             event = Event(in_stream=self.in_stream)
 
             self.event_thread.add(event)
@@ -1086,7 +1072,8 @@ class ReadThread(threading.Thread):
             if event.disconnected:
                 self.logger.debug("ReadThread End of file input")
                 break
-            self.logger.debug("event is not disconnect")  # debug
+
+        self.logger.debug("Read thread ended")  # debug
 
 
 class ProcessThread(threading.Thread):
@@ -1209,13 +1196,13 @@ class EventThread(threading.Thread):
         state = STATE_WAIT_CONNECT
         self.logger.debug("Initial state STATE_WAIT_CONNECT") # debug
         while True:
-            self.logger.debug("EventThread about to get Event")
+            self.logger.debug("EventThread about to get Event")  # debug
             event = self.event_queue.get()
 
             if event is None or event.disconnected:
                 self.logger.debug("End of file input")
                 self.process_thread.add(event)
-                self.logger.debug("Passed on to event thread")
+                self.logger.debug("Passed on to process thread")
                 break
 
             if event.get_type() != Message.EVENT:
@@ -1242,7 +1229,6 @@ class EventThread(threading.Thread):
                         state = STATE_RUNNING
 
             elif STATE_WAIT_AUTHENTICATE == state:
-                self.logger.debug("in state STATE_WAIT_AUTHENTICATE") # debug
                 if Message.DISCONNECT == event_type:
                     state = STATE_WAIT_CONNECT
 
@@ -1300,9 +1286,7 @@ class EventThread(threading.Thread):
                             # Add the close event handler to event message.
                             try:
                                 if event.component is not None:
-                                    self.logger.debug("click about to set handler")  # debug
                                     event.handler = event.component.get_handle_click()
-                                    self.logger.debug("click done set handler")  # debug
                             except AttributeError:
                                 # Component does not respond to close
                                 # message, handler is incorrect.
@@ -1315,10 +1299,8 @@ class EventThread(threading.Thread):
                             # Add the close event handler to event message.
                             try:
                                 if event.component is not None:
-                                    self.logger.debug("changed about to set handler")  # debug
                                     event.handler = \
                                         event.component.get_handle_changed(event)
-                                    self.logger.debug("changed done set handler")  # debug
                             except AttributeError:
                                 # Component does not respond to changed
                                 # message, handler is incorrect.
@@ -1519,7 +1501,7 @@ class HICP:
         self.__app_list = app_list
         self.__authenticator = authenticator
 
-    def run(self):
+    def start(self):
         # Things for this object
         self.__gui_id = 0
         self.__component_list = {}
@@ -1543,11 +1525,12 @@ class HICP:
         self.logger.debug("about to make ReadThread()")  # debug
         self.__read_thread = ReadThread( self.in_stream, self.__event_thread)
         self.__read_thread.start()
+        self.logger.debug("about to join read_thread")  # debug
+        self.__read_thread.join()
 
         self.logger.debug("about to join event_thread")  # debug
         self.__event_thread.join()
 
-        # Read thread should already be stopped (it stops event thread).
         # Stop write thread.
         self.logger.debug("about to __write_thread.write(None)")  # debug
         self.__write_thread.write(None)
