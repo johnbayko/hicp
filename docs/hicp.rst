@@ -598,7 +598,8 @@ component: <keyword>
     minimise, raise, lower, etc.).
 
   "button"
-    A button control. It generates a "click" event when clicked.
+    A button control. It generates a "click" event when activated (mouse click
+    with a pointer, finger tap).
 
     Buttons may display a text label or an image. The user agent may
     support displaying both at the same time, but does not need to, and
@@ -1399,6 +1400,23 @@ event: "close"
 
 id: <integer>
   The GUI ID of the window to be closed.
+
+CLICK
++++++
+
+Event generated when a component is activated by a user action - most simply,
+clicking on it, but could be applied to something else if you're creative.
+
+Maybe to be general purpose, it should be a "changed" event. Leave that for
+the future to consider.
+
+Required headers
+~~~~~~~~~~~~~~~~
+
+event: "click"
+
+id: <integer>
+  The GUI ID of the component which was activated.
 
 CHANGED
 +++++++
