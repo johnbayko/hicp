@@ -28,7 +28,7 @@ public class GUITextFieldItem
         TextItem textItem,  // Doesn't apply to text fields.
         MessageExchange messageExchange
     ) {
-        super(addCmd/*, logger*/);
+        super(addCmd);
 
         _messageExchange = messageExchange;
 
