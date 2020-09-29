@@ -13,7 +13,7 @@ public class WholeNumberDocument
         if (0 == str.length()) {
             return;
         }
-        final StringBuilder validStr = new StringBuilder();
+        final var validStr = new StringBuilder();
 
         str.codePoints()
             .filter(checkChar -> Character.isDigit(checkChar))

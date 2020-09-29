@@ -88,7 +88,8 @@ public class HICP_ParamsFrame
                     connectPanel.add(new JLabel("Port"), connectLC);
 
                     _port = new JTextField();
-                    _port.setDocument(new WholeNumberDocument());
+                    final var portDocument = new WholeNumberDocument();
+                    _port.setDocument(portDocument);
                     connectLC.anchor = GridBagConstraints.WEST;
                     connectLC.fill = GridBagConstraints.HORIZONTAL;
                     connectLC.gridx = 1;

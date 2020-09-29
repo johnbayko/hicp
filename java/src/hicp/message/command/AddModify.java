@@ -3,10 +3,15 @@ package hicp.message.command;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
 import hicp.TextDirection;
+import hicp.message.TextAttributes;
 import hicp.message.Message;
 
 public abstract class AddModify
@@ -30,6 +35,8 @@ public abstract class AddModify
     public final static String VISIBLE = "visible";
 
     public String attributes = null;
+    public TextAttributes textAttributes = null;
+
     public String content = null;
     public String component = null;
     public String parent = null;
@@ -45,7 +52,8 @@ public abstract class AddModify
     public int horizontalSize = 0;
     public int verticalSize = 0;
 
-    protected static final Pattern _splitter = Pattern.compile(",");
+    protected static final Pattern commaSplitter =
+        Pattern.compile("\\s,\\s");
 
     public AddModify(String name, int id) {
         super(name, id);
@@ -85,6 +93,7 @@ readLoop:   for (;;) {
             return true;
         } else if (ATTRIBUTES.equals(hicpHeader.name)) {
             attributes = hicpHeader.value.getString();
+            textAttributes = new TextAttributes(attributes);
             return true;
         } else if (CONTENT.equals(hicpHeader.name)) {
             content = hicpHeader.value.getString();
@@ -101,7 +110,7 @@ readLoop:   for (;;) {
             // split into three - any extra will be separated into third
             // String that's ignored.
             final String[] positions =
-                _splitter.split(hicpHeader.value.getString(), 3);
+                commaSplitter.split(hicpHeader.value.getString(), 3);
 
             if (0 < positions.length) {
                 try {
@@ -121,7 +130,7 @@ readLoop:   for (;;) {
         } else if (SIZE.equals(hicpHeader.name)) {
             // Much like POSITION.
             final String[] sizes =
-                _splitter.split(hicpHeader.value.getString(), 3);
+                commaSplitter.split(hicpHeader.value.getString(), 3);
 
             if (0 < sizes.length) {
                 try {
@@ -144,7 +153,7 @@ readLoop:   for (;;) {
             // split into three - any extra will be separated into third
             // String that's ignored.
             final String[] directions =
-                _splitter.split(hicpHeader.value.getString(), 3);
+                commaSplitter.split(hicpHeader.value.getString(), 3);
 
             if (0 < directions.length) {
                 firstTextDirection =

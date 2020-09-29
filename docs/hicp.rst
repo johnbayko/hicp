@@ -764,7 +764,15 @@ attributes: <attribute specifiers>
       to be preserved as text is edited.
     
     Attribute specifiers are separated by <end-of-line> sequences - the
-    attributes header itself is terminated by an <end-of-line> sequence.
+    attributes header itself is terminated by an <end-of-line> sequence. This
+    makes the string a data block which would be encoded with a boundary
+    string, and would look like this::
+
+      attributes:: boundary=
+      --
+      underline: ...attribute indexes...
+      font: ...attribute indexes...
+      --
 
     Attributes can be binary (on/off) or multivalued. Binary attributes
     are specified in this form::
