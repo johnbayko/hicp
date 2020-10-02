@@ -119,6 +119,8 @@ public class TextAttributes {
         public final String name;
         public final List<AttributeRange> attributeRangeList;
 
+        public boolean hasValues = false;
+
         public AttributeTypeInfo(final String attributeTypeStr)
             throws TextAttributesException
         {
@@ -157,6 +159,10 @@ public class TextAttributes {
                         new AttributeRange(valueLengthStr);
 
                     attributeRangeList.add(attributeRange);
+
+                    if ("".equals(attributeRange.value)) {
+                        hasValues = true;
+                    }
                 } catch (NoAttributeRange ex) {
                     // Just skip this range - the indexing will be
                     // messed up, hopefully the user will complain
@@ -179,6 +185,8 @@ public class TextAttributes {
 
                 attributeRangeList.add(newAttributeRange);
             }
+
+            hasValues = otherAttributeTypeInfo.hasValues;
         }
 
         public void insert(final int offset, final int len) {
@@ -197,16 +205,18 @@ public class TextAttributes {
         }
 
         public void remove(final int removeOffsetStart, final int len) {
+            final int removeOffsetLim = removeOffsetStart + len;
+
             // Find all ranges covered by this removal. Shorten ranges which
             // just overlap, delete ranges which are within the removal.
-
-            final int removeOffsetLim = removeOffsetStart + len;
+            int deletedLen = 0;
             int rangeStart = 0;
-            final Iterator<AttributeRange> rangeIter =
-                attributeRangeList.iterator();
-            while (rangeIter.hasNext()) {
-                final var attributeRange = rangeIter.next();
+            for (int attributeIdx = 0;
+                attributeIdx < attributeRangeList.size();
+            ) {
+                final var attributeRange = attributeRangeList.get(attributeIdx);
                 final int nextRangeStart = rangeStart + attributeRange.length;
+
                 /*
                     Range to remove: |   |
                     Attribute range: +---+
@@ -243,15 +253,83 @@ public class TextAttributes {
                 } 
                 else if (includeRangeStart && includeRangeEnd)
                 {
-                    rangeIter.remove();
-                } 
+                    attributeRange.length = 0;
+                }
                 else if (includeRangeStart && !includeRangeEnd)
                 {
                     final int overlap = removeOffsetLim - rangeStart;
                     attributeRange.length -= overlap;
+                }
+
+                // Do actual delete,
+                // or clean up after one or more ranges deleted.
+                final boolean shouldDelete = (0 == attributeRange.length);
+
+                boolean didDelete = false;
+                if (shouldDelete) {
+                    // Do actual delete now.
+                    if ((attributeIdx == 0) && !hasValues) {
+                        // Special case, binary attribute always has to start
+                        // with "off", so instead of deleting, set length to 0.
+                        attributeRange.length = 0;
+                    } else {
+                        attributeRangeList.remove(attributeIdx);
+                        didDelete = true;
+                        deletedLen++;
+                    }
+                } else {
+                    // Not deleted. Might need to merge attribute ranges if
+                    // this is the end of a string of deletes.
+                    if (0 < deletedLen) {
+                        // Is there a previous range to merge this one with?
+                        if (0 > attributeIdx) {
+                            final int prevIdx = attributeIdx - 1;
+                            final var prevRange =
+                                attributeRangeList.get(prevIdx);
+
+                            // If the attribute value after the deleted range
+                            // is the same as before (e.g. "a=2, b=1, a=2"
+                            // becoems "a=2, a=2"), merge them (e.g.  "a=4").
+                            final boolean shouldMergeValues =
+                                    hasValues
+                                 && prevRange
+                                        .value
+                                        .equals(attributeRange.value);
+
+                            // If binary attribute and number of deletes is
+                            // odd, then this disrupts on-off-on-off pattern -
+                            // on-on-off will not be interpreted correctly, so
+                            // merge on-on so it becomes on-off again.
+                            final boolean isDeletedLenOdd =
+                                0 != (deletedLen % 2);
+                            final boolean shouldMergeBinary =
+                                    !hasValues
+                                 && isDeletedLenOdd;
+
+                            if (shouldMergeValues || shouldMergeBinary) {
+                                prevRange.length += attributeRange.length;
+
+                                attributeRangeList.remove(attributeIdx);
+                                didDelete = true;
+                            }
+                        }
+                    }
+                    // A merge is not a deletion.
+                    deletedLen = 0;
+                }
+                if (nextRangeStart >= removeOffsetLim) {
+                    // Next range is past end of remove range, no more ranges
+                    // to check.
                     break;
                 }
                 rangeStart += nextRangeStart;
+
+                // If this was deleted, then the current index is gone,
+                // next has shifted to current, so dont increment
+                // attributeIdx then - only if not deleted.
+                if (!didDelete) {
+                    attributeIdx++;
+                }
             }
         }
 
@@ -363,6 +441,10 @@ public class TextAttributes {
         Copy attributes.
      */
     public TextAttributes(final TextAttributes otherTextAttributes) {
+        if (null == otherTextAttributes) {
+            // Leave as default / empty, can add attributes later.
+            return;
+        }
         for (var attributeKey : otherTextAttributes.attributeTypesMap.keySet()) {
             final var otherAttributeTypeInfo =
                 otherTextAttributes.attributeTypesMap.get(attributeKey);
