@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
@@ -17,6 +19,9 @@ import hicp.message.Message;
 public abstract class AddModify
     extends AddModifyRemove
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( HICPReader.class.getName() );
+
     public final static String COMPONENT = "component";
 
     public final static String BUTTON = "button";
@@ -53,7 +58,7 @@ public abstract class AddModify
     public int verticalSize = 0;
 
     protected static final Pattern commaSplitter =
-        Pattern.compile("\\s,\\s");
+        Pattern.compile("\\s*,\\s*");
 
     public AddModify(String name, int id) {
         super(name, id);
@@ -86,7 +91,6 @@ readLoop:   for (;;) {
             return true;
         }
 
-//log("AddModify.readField() field " + hicpHeader.name);  // debug
         // Extract recognized fields.
         if (TEXT.equals(hicpHeader.name)) {
             text = hicpHeader.value.getString();

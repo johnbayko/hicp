@@ -132,7 +132,6 @@ public abstract class GUIItem
 
     public GUIItem setParent(GUIContainerItem parent) {
         _parent = parent;
-
         _parent.add(this);
 
         return this;

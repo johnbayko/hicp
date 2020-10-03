@@ -54,16 +54,15 @@ readLoop:   while (null != _in) {
                 final HICPHeader firstHeader = _in.readHeader();
                 if (null == firstHeader) { 
                     // Connecton closed.
-log("null == firstHeader");  // debug
                     break readLoop;
                 }
                 
                 // If line is blank or not a header (.name is null),
                 // don't do anything.
                 if (null != firstHeader.name) {
-if (null == firstHeader.value) {  // debug
-    log("null == firstHeader.value");  // debug
-}  // debug
+                    // I cringe at a lot of what I wrote way back then.
+                    // But also Java was missing some features I was trying
+                    // to kind of emulate. Hope to fix it some day.
                     final Message templateMessage =
                         Command.getMessage(firstHeader.value.getString());
 
@@ -92,7 +91,7 @@ if (null == firstHeader.value) {  // debug
         try {
             m.write(_out);
         } catch (IOException ex) {
-            log(ex);
+            LOGGER.log(Level.WARNING, ex.toString());
         }
         lastMessage = m;
 
@@ -111,14 +110,5 @@ if (null == firstHeader.value) {  // debug
         this.interrupt();
 
         return this;
-    }
-
-    // Utility
-    private void log(Exception ex) {
-        LOGGER.log(Level.WARNING, ex.toString());
-    }
-
-    private void log(String msg) {
-        LOGGER.log(Level.FINE, msg);
     }
 }

@@ -10,6 +10,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -25,6 +27,9 @@ import hicp.message.event.Event;
 public class GUIWindowItem
     extends GUILayoutItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIWindowItem.class.getName() );
+
     // Should be used only from GUI thread.
     protected JFrame _component;
     protected JPanel _panel;
@@ -156,14 +161,12 @@ public class GUIWindowItem
     }
 
     protected void removeComponentInvoked(Component component) {
-//        _component.getContentPane().remove(component);
         _panel.remove(component);
     }
 
     protected void addComponentInvoked(
         Component component, GridBagConstraints gridBagConstraints
     ) {
-//        _component.getContentPane().add(component, gridBagConstraints);
         _panel.add(component, gridBagConstraints);
     }
 
@@ -191,13 +194,10 @@ public class GUIWindowItem
     }
 
     public void dispose() {
-log("GUIWindowItem.dispose() entered");  // debug
         // GUIContainerItem will remove any items added to this.
         super.dispose();
-log("GUIWindowItem.dispose() done super.dispose()");  // debug
 
         if (null == _component) {
-log("GUIItem has no component");  // debug
             return;
         }
 
@@ -208,13 +208,10 @@ log("GUIItem has no component");  // debug
 //        }
 
         // Dispose of this object.
-log("GUIWindowItem.dispose() invokeLater(RunDispose)");  // debug
         SwingUtilities.invokeLater(
             new RunDispose(_component)
         );
         _component = null;
-
-log("GUIWindowItem.dispose() done remove");  // debug
     }
 
     class RunDispose
@@ -227,9 +224,7 @@ log("GUIWindowItem.dispose() done remove");  // debug
         }
 
         public void run() {
-log("GUIWindowItem.dispose() RunDispose.run() about to _component.dispose()");  // debug
             _component.dispose();
-log("GUIWindowItem.dispose() RunDispose.run() done _component.dispose()");  // debug
         }
     }
 

@@ -20,7 +20,6 @@ public class HICPReader
     private static final Logger LOGGER =
         Logger.getLogger( HICPReader.class.getName() );
 
-//    protected final Pattern _lengthRegex = Pattern.compile("(length) *= *(\\d+)");
     protected final InputStream _in;
     protected final CharsetDecoder _decoder;
 
@@ -225,28 +224,20 @@ readLoop:
     {
         final String headerName;
         HICPHeaderValue headerValue = EMPTY_HEADER_VALUE;
-LOGGER.log(Level.FINE, 
-"1 headerValue \"" + headerValue.getString() + "\"");  // debug
-
         {
             final HICPHeaderValue headerNameToken =
                 readToken(_headerNameAcceptor, null);
 
             if (null == headerNameToken) {
                 // End of file.
-LOGGER.log(Level.FINE, 
-"1 return headerValue \"" + headerValue.getString() + "\"");  // debug
                 return null;
             }
             headerName = headerNameToken.getString();
         }
         if ("".equals(headerName)) {
             // Blank line - header name and field are null, not "".
-LOGGER.log(Level.FINE, 
-"2 return headerValue \"" + headerValue.getString() + "\"");  // debug
             return new HICPHeader(null, null);
         }
-
         {
             final HICPHeaderValue separatorToken =
                 readToken(_separatorAcceptor, "");
@@ -257,7 +248,6 @@ LOGGER.log(Level.FINE,
                 final String terminationCriterion =
                     readToken(_termCritAcceptor, "").getString();
                 if ("length".equals(terminationCriterion)) {
-//log("length");  // debug
                     // Skip the "=".
                     readByte();
                     // Read the rest of the line and parse an integer
@@ -278,8 +268,6 @@ LOGGER.log(Level.FINE,
                             ByteBuffer.wrap(valueBytes);
                         headerValue =
                             new HICPHeaderValue(valueBuffer, _decoder);
-LOGGER.log(Level.FINE, 
-"2 headerValue \"" + headerValue.getString() + "\"");  // debug
 
                         // Read final EOL and discard.
                         skipToken(_headerValueAcceptor);
@@ -290,7 +278,6 @@ LOGGER.log(Level.FINE,
                         // there's no way to know how long it is.
                     }
                 } else if ("boundary".equals(terminationCriterion)) {
-//log("boundary");  // debug
                     // Skip the "=".
                     readByte();
 
@@ -325,13 +312,10 @@ LOGGER.log(Level.FINE,
                         readToken(
                             new BoundaryAcceptor(termSeqBytes), ""
                         );
-LOGGER.log(Level.FINE, 
-"3 headerValue \"" + headerValue.getString() + "\"");  // debug
 
                     // Read final EOL and discard.
                     skipToken(_headerValueAcceptor);
                 } else {
-//log("invalid");  // debug
                     // Not valid termination criterion. Should skip to
                     // end, if not at EOL (true if "=" was the last
                     // character read, _isPreviousByte will be true).
@@ -341,16 +325,11 @@ LOGGER.log(Level.FINE,
                 }
             } else if (":".equals(separatorToken.getString())) {
                 headerValue = readToken(_headerValueAcceptor, "");
-LOGGER.log(Level.FINE, 
-"4 headerValue \"" + headerValue.getString() + "\"");  // debug
             } else {
                 // No separator, skip to the end of the line.
                 skipToken(_headerValueAcceptor);
             }
         }
-
-LOGGER.log(Level.FINE, 
-"3 return headerValue \"" + headerValue.getString() + "\"");  // debug
         return new HICPHeader(headerName, headerValue);
     }
 

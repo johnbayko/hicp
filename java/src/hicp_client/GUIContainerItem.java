@@ -6,6 +6,8 @@ import java.awt.event.WindowEvent;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,6 +23,9 @@ import hicp.message.event.Event;
 public abstract class GUIContainerItem
     extends GUIItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIContainerItem.class.getName() );
+
     protected TextDirection _firstTextDirection = null;
     protected TextDirection _secondTextDirection = null;
 
@@ -38,7 +43,6 @@ public abstract class GUIContainerItem
         synchronized (_itemList) {
             _itemList.add(guiItem);
         }
-log("GUIContainerItem done _itemList.add()");  // debug
         return this;
     }
 
@@ -70,19 +74,14 @@ log("GUIContainerItem done _itemList.add()");  // debug
         }
 
         public void run() {
-log("GUIContainerItem.RunModify checking for text direction");  // debug
             if ( (null != _modifyCmd.firstTextDirection)
               || (null != _modifyCmd.secondTextDirection)
             ) {
-log("about to set text direction");  // debug
                 setTextDirectionInvoked(
                     _modifyCmd.firstTextDirection,
                     _modifyCmd.secondTextDirection
                 );
             }
-else {
-log("no text direction");  // debug
-}
         }
     }
 
@@ -108,14 +107,11 @@ log("no text direction");  // debug
 
     public TextDirection getFirstTextDirection() {
         if (null != _firstTextDirection) {
-log("GUIContainerItem.getFirstTextDirection() " + _firstTextDirection);  // debug
             return _firstTextDirection;
         } else {
             if (null != _parent) {
-log("GUIContainerItem.getFirstTextDirection() none, get from parent");  // debug
                 return _parent.getFirstTextDirection();
             } else {
-log("GUIContainerItem.getFirstTextDirection() none, no parent, return null");  // debug
                 return null;
             }
         }
@@ -135,13 +131,6 @@ log("GUIContainerItem.getFirstTextDirection() none, no parent, return null");  /
 
     public TextDirection getHorizontalTextDirection() {
         final TextDirection firstTextDirection = getFirstTextDirection();
-if (null != firstTextDirection) {
-log("GUIContainerItem.getHorizontalTextDirection() firstTextDirection "
-    + firstTextDirection.toString()
-);  // debug
-} else {  // debug
-log("GUIContainerItem.getHorizontalTextDirection() firstTextDirection null");  // debug
-}
         if ( (TextDirection.LEFT == firstTextDirection)
           || (TextDirection.RIGHT == firstTextDirection)
         ) {
@@ -149,13 +138,6 @@ log("GUIContainerItem.getHorizontalTextDirection() firstTextDirection null");  /
         }
         {
             final TextDirection secondTextDirection = getSecondTextDirection();
-if (null != secondTextDirection) {
-log("GUIContainerItem.getHorizontalTextDirection() getSecondTextDirection() "
-    + getSecondTextDirection().toString()
-);  // debug
-} else {
-log("GUIContainerItem.getHorizontalTextDirection() getSecondTextDirection() null");  // debug
-}
             return getSecondTextDirection();
         }
     }

@@ -394,13 +394,13 @@ public class TextAttributes {
         Pattern.compile("\r\n", Pattern.LITERAL);
 
     public static final Pattern commaSplitter =
-        Pattern.compile("\\s,\\s");
+        Pattern.compile("\\s*,\\s*");
 
     public static final Pattern keyValueSplitter =
-        Pattern.compile("\\s=\\s");
+        Pattern.compile("\\s*=\\s*");
 
     public static final Pattern colonSplitter =
-        Pattern.compile("\\s:\\s");
+        Pattern.compile("\\s*:\\s*");
 
     private Map<String, AttributeTypeInfo> attributeTypesMap =
         new HashMap<>();

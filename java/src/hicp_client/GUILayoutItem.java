@@ -3,9 +3,10 @@ package hicp_client;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
@@ -15,20 +16,12 @@ import hicp.message.command.Add;
 public abstract class GUILayoutItem
     extends GUIContainerItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUILayoutItem.class.getName() );
+
     public final static int POSITION_LIMIT = 255;
 
     protected final MessageExchange _messageExchange;
-
-    protected final GridBagConstraints _gridBagConstraints =
-        new GridBagConstraints(
-            0, 0,
-            1, 1,
-            1.0, 1.0,
-            GridBagConstraints.CENTER,
-            GridBagConstraints.NONE,
-            new Insets(1, 1, 1, 1),
-            0, 0
-        );
 
     protected final SizeInfo[][] _positionGrid =
         new SizeInfo
@@ -154,26 +147,20 @@ public abstract class GUILayoutItem
         int maxHorizontal = 0;
         int maxVertical = 0;
 
-        {
-            Iterator/*<SizeInfo>*/ it = _itemSizeList.iterator();
+        for (final var sizeInfo : _itemSizeList) {
+            sizeInfo.oldHorizontalSize = sizeInfo.horizontalSize;
+            sizeInfo.oldVerticalSize = sizeInfo.verticalSize;
 
-            while (it.hasNext()) {
-                final SizeInfo sizeInfo = (SizeInfo)it.next();
+            final GUIItem guiItem = sizeInfo.guiItem;
 
-                sizeInfo.oldHorizontalSize = sizeInfo.horizontalSize;
-                sizeInfo.oldVerticalSize = sizeInfo.verticalSize;
+            final int horizontalPosition = guiItem.horizontalPosition;
+            final int verticalPosition = guiItem.verticalPosition;
 
-                final GUIItem guiItem = sizeInfo.guiItem;
-
-                final int horizontalPosition = guiItem.horizontalPosition;
-                final int verticalPosition = guiItem.verticalPosition;
-
-                if (horizontalPosition > maxHorizontal) {
-                    maxHorizontal = horizontalPosition;
-                }
-                if (verticalPosition > maxVertical) {
-                    maxVertical = verticalPosition;
-                }
+            if (horizontalPosition > maxHorizontal) {
+                maxHorizontal = horizontalPosition;
+            }
+            if (verticalPosition > maxVertical) {
+                maxVertical = verticalPosition;
             }
         }
 
@@ -450,35 +437,32 @@ adjustZeroSizeLoop:
 
         // Iterate through size list, any item that has changed size
         // must be removed and re-added with the new size.
-        {
-            Iterator/*<SizeInfo>*/ it = _itemSizeList.iterator();
+        for (final var sizeInfo : _itemSizeList) {
+            if ( (sizeInfo.oldHorizontalSize != sizeInfo.horizontalSize)
+              || (sizeInfo.oldVerticalSize != sizeInfo.verticalSize) )
+            {
+                final var guiItem = sizeInfo.guiItem;
+                removeComponentInvoked(guiItem.getComponent());
 
-            while (it.hasNext()) {
-                final SizeInfo sizeInfo = (SizeInfo)it.next();
-                final GUIItem guiItem = sizeInfo.guiItem;
-
-                if ( (sizeInfo.oldHorizontalSize != sizeInfo.horizontalSize)
-                  || (sizeInfo.oldVerticalSize != sizeInfo.verticalSize) )
-                {
-                    removeComponentInvoked(guiItem.getComponent());
-
-                    // Set layout parameters.
-                    _gridBagConstraints.gridx = guiItem.horizontalPosition;
-                    _gridBagConstraints.gridy = guiItem.verticalPosition;
-
-                    _gridBagConstraints.gridwidth = sizeInfo.horizontalSize;
-                    _gridBagConstraints.gridheight = sizeInfo.verticalSize;
-
-                    _gridBagConstraints.anchor = guiItem.getGridBagAnchor();
-                    _gridBagConstraints.fill = guiItem.getGridBagFill();
-
-                    addComponentInvoked(
-                        guiItem.getComponent(), _gridBagConstraints
+                // Set layout parameters.
+                final GridBagConstraints gridBagConstraints =
+                    new GridBagConstraints(
+                        guiItem.horizontalPosition,
+                        guiItem.verticalPosition,
+                        sizeInfo.horizontalSize,
+                        sizeInfo.verticalSize,
+                        1.0, 1.0,
+                        guiItem.getGridBagAnchor(),
+                        guiItem.getGridBagFill(),
+                        new Insets(1, 1, 1, 1),
+                        0, 0
                     );
-                }
-            } // while (it.hasNext())
-        }
 
+                addComponentInvoked(
+                    guiItem.getComponent(), gridBagConstraints
+                );
+            }
+        }
         return this;
     }
 

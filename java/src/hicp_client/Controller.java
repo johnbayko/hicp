@@ -163,7 +163,7 @@ log ("About to _messageExchange.dispose()");  // debug
                     (hicp.message.command.Add)m;
                 if (null == addCmd.category) {
                     // No category, ignore incomplete message.
-                    log("Add without category");
+                    LOGGER.log(Level.FINE, "Add without category");
                     break;
                 }
                 if (addCmd.TEXT.equals(addCmd.category)) {
@@ -171,7 +171,7 @@ log ("About to _messageExchange.dispose()");  // debug
                 } else if (addCmd.GUI.equals(addCmd.category)) {
                     // Must have id and component fields.
                     if ((null == addCmd.id) || (null == addCmd.component)) {
-                        log("Add gui missing id or component");
+                        LOGGER.log(Level.FINE, "Add gui missing id or component");
                         break;
                     }
                     {
@@ -184,7 +184,6 @@ log ("About to _messageExchange.dispose()");  // debug
                             _guiMap.remove(addCmd.id);
                         }
                     }
-
                     {
                         final GUIItem guiItem;
 
@@ -220,7 +219,9 @@ log ("About to _messageExchange.dispose()");  // debug
                     }
                 } else {
                     // Unrecognized category.
-                    log("Add to unrecognized category: " + addCmd.category);
+                    LOGGER.log(Level.FINE,
+                        "Add to unrecognized category: " + addCmd.category
+                    );
                 }
             }
             break;
