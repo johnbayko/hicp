@@ -107,14 +107,10 @@ public class Controller
         }
 
         // Dispose of any opened GUI objects.
-log ("About to _root.dispose()");  // debug
         _root.dispose();
-log ("About to _guiMap.clear()");  // debug
         _guiMap.clear();
-log ("Done _guiMap.clear()");  // debug
 
         // Dispose of message exchange.
-log ("About to _messageExchange.dispose()");  // debug
         _messageExchange.dispose();
         _messageExchange = null;
 

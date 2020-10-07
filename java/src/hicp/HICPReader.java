@@ -82,7 +82,6 @@ public class HICPReader
 readLoop:
         for (;;) {
             inByte = readByte();
-//LOGGER.log(Level.FINE, "inByte " + inByte);  // debug
 
             if (-1 == inByte) {
                 // End of file, no more input.
@@ -147,7 +146,6 @@ readLoop:
                         .position(
                             readByteBuffer.position() - acceptor.getEndLength()
                         );
-
                     break readLoop;
                 }
                 isAfterEscape = false;
@@ -287,9 +285,21 @@ readLoop:
                     if ( ('\r' == termSeqBytes[0])
                       && ('\n' == termSeqBytes[1])
                     ) {
-                        // Special case of termination sequence
-                        // beginning with CR LF, means the next line has
-                        // to be appended to it.
+                        /*
+                           Special case of termination sequence
+                           beginning with CR LF, means the next line has
+                           to be appended to it.
+                           E.g:
+                             abc:: boundary=\r\n
+                             --\r\n
+                             one\r\n
+                             two\r\n
+                             --\r\n
+                           First read is: "\r\n"
+                           Second read is "--\r\n"
+                           Termination sequence is "\r\n--\r\n".
+                           Value is "one\r\ntwo" (no terminating "\r\n")
+                         */
                         final byte[] appendTermSeqBytes =
                             readToken(_termSeqAcceptor, "").getBytes();
                         final byte[] newTermSeqBytes =
@@ -312,9 +322,6 @@ readLoop:
                         readToken(
                             new BoundaryAcceptor(termSeqBytes), ""
                         );
-
-                    // Read final EOL and discard.
-                    skipToken(_headerValueAcceptor);
                 } else {
                     // Not valid termination criterion. Should skip to
                     // end, if not at EOL (true if "=" was the last
@@ -378,6 +385,9 @@ abstract class Acceptor {
 class SeparatorAcceptor
     extends Acceptor
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( SeparatorAcceptor.class.getName() );
+
     protected static final int MATCH_NONE = 1;
     protected static final int MATCH_COLON = 2;
     protected static final int MATCH_SPACE = 3;
@@ -423,6 +433,9 @@ class SeparatorAcceptor
 class TokenAcceptor
     extends Acceptor
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( TokenAcceptor.class.getName() );
+
     protected static final int MATCH_NONE = 1;
     protected static final int MATCH_CR = 2;
     protected static final int MATCH_LF = 3;
@@ -480,9 +493,15 @@ class TokenAcceptor
     }
 }
 
+/*
+    Terminal sequance is "\r\n" (CR LF).
+ */
 class TermSeqAcceptor
     extends Acceptor
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( TermSeqAcceptor.class.getName() );
+
     protected static final int MATCH_NONE = 1;
     protected static final int MATCH_CR = 2;
     protected static final int MATCH_LF = 3;
@@ -504,16 +523,13 @@ class TermSeqAcceptor
             if ('\n' == (char)inByte) {
                 _state = MATCH_LF;
             }
-            return TokenIndicator.IS_PART;
+            return TokenIndicator.IS_END;
 
           case MATCH_LF:
-            if ('\n' == (char)inByte) {
-                _state = MATCH_NONE;
-            }
             return TokenIndicator.NOT_PART;
 
           default:
-            return TokenIndicator.IS_PART;
+            return TokenIndicator.NOT_PART;
         }
     }
 
@@ -529,13 +545,15 @@ class TermSeqAcceptor
 class BoundaryAcceptor
     extends Acceptor
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( BoundaryAcceptor.class.getName() );
+
     protected int _matchIdx = 0;
 
     final protected byte[] _termSeq;
     final protected int[] _failIdx;
 
     public BoundaryAcceptor(byte[] termSeq) {
-
         _termSeq = termSeq;
 
         // Build the _failIdx values. This is a Knuth-Morris-Pratt state

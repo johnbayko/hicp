@@ -16,18 +16,11 @@ public abstract class Command
     public final static int REMOVE_ID = 4;
     public final static int DISCONNECT_ID = 5;
 
-    public final static Authenticate AUTHENTICATE =
-        new Authenticate("authenticate", AUTHENTICATE_ID);
-    public final static Add ADD =
-        new Add("add", ADD_ID);
-    public final static Modify MODIFY =
-        new Modify("modify", MODIFY_ID);
-    public final static Remove REMOVE =
-        new Remove("remove", REMOVE_ID);
-    public final static Disconnect DISCONNECT =
-        new Disconnect("disconnect", DISCONNECT_ID);
-
-    protected static Map<String, Command> _messageMap;
+    public final static String AUTHENTICATE_STR = "authenticate";
+    public final static String ADD_STR = "add";
+    public final static String MODIFY_STR = "modify";
+    public final static String REMOVE_STR = "remove";
+    public final static String DISCONNECT_STR = "disconnect";
 
     public Command(String name, int id) {
         super(name, id);
@@ -37,18 +30,20 @@ public abstract class Command
         if (null == name) {
             return null;
         }
-
-        if (null == _messageMap) {
-            _messageMap = new HashMap<>();
-            _messageMap.put(AUTHENTICATE.getName(), AUTHENTICATE);
-            _messageMap.put(ADD.getName(), ADD);
-            _messageMap.put(MODIFY.getName(), MODIFY);
-            _messageMap.put(REMOVE.getName(), REMOVE);
-            _messageMap.put(DISCONNECT.getName(), DISCONNECT);
+        switch (name) {
+          case AUTHENTICATE_STR:
+            return new Authenticate();
+          case ADD_STR:
+            return new Add();
+          case MODIFY_STR:
+            return new Modify();
+          case REMOVE_STR:
+            return new Remove();
+          case DISCONNECT_STR:
+            return new Disconnect();
+          default:
+            return null;
         }
-
-        // If not in map, will return null.
-        return (Message)_messageMap.get(name);
     }
 }
 

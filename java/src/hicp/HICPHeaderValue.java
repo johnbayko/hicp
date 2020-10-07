@@ -9,12 +9,10 @@ public class HICPHeaderValue {
     protected final ByteBuffer _byteBuffer;
     protected final CharsetDecoder _decoder;
 
-    protected byte[] _bytes = null;
     protected String _string = null;
 
     /** Construct an empty object. */
     public HICPHeaderValue() {
-        _bytes = new byte[0];
         _string = "";
 
         _byteBuffer = null;
@@ -27,11 +25,9 @@ public class HICPHeaderValue {
     }
 
     public byte[] getBytes() {
-        if (null == _bytes) {
-            _bytes = new byte[_byteBuffer.position()];
-            System.arraycopy(_byteBuffer.array(), 0, _bytes, 0, _bytes.length);
-        }
-        return _bytes;
+        final byte[] bytes = new byte[_byteBuffer.remaining()];
+        _byteBuffer.get(bytes);
+        return bytes;
     }
 
     public String getString() {

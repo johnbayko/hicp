@@ -10,12 +10,12 @@ import hicp.message.Message;
 public class Disconnect
     extends Command
 {
-    public Disconnect(String name, int id) {
-        super(name, id);
+    public Disconnect() {
+        super(Command.DISCONNECT_STR, Command.DISCONNECT_ID);
     }
 
     public Message newMessage() {
-        return new Disconnect(getName(), getID());
+        return new Disconnect();
     }
 
     public void write(Writer out)

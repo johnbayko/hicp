@@ -107,11 +107,20 @@ things). The headers differ from RFC822 in the following ways:
   characters), or byte sequence ("boundary=" and a number of bytes which may
   have any value apart from end-of-line), both followed by end-of-line. This
   ensures that there is no unterminated data block in a message.
+
+  A length delimite block contains all and only the number of bytes following
+  the end-of-line, but an additional end-of-line sequence is required, and
+  discarded, for human readability. For example:: 
+
+    dataheader:: length=29
+    Hi, this is 29 bytes of data.
+
+    next_message_header: abcd
     
   A terminating byte sequence must include at least one byte, so there is a
   special case if the "=" is immediately followed by an end-of-line sequence,
-  the bytes (including the end-of-line sequence) up to the next end-of-line
-  sequence are included in the terminating byte sequence. The use for this is
+  the bytes (including the end-of-line sequence) up to (and including) the next
+  end-of-line sequence are the terminating byte sequence. The use for this is
   shown below.
     
   Except for the word "boundary", this is not at all similar to MIME encoding
@@ -126,8 +135,9 @@ things). The headers differ from RFC822 in the following ways:
     Hi, this is a bunch of data.
     --
 
-  The data consists of the string without the end-of-line characters,
-  since they are part of the termination sequence.
+  The data consists of the string without the end-of-line characters ("Hi, this
+  is a bunch of data."), since the end-of-line is part of the termination
+  sequence (CR, LF, '-', '-', CR, LF).
 
   The data block may be any data and is interpreted by context, such
   as image or audio format.

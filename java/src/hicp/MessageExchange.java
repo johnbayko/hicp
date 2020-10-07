@@ -60,20 +60,11 @@ readLoop:   while (null != _in) {
                 // If line is blank or not a header (.name is null),
                 // don't do anything.
                 if (null != firstHeader.name) {
-                    // I cringe at a lot of what I wrote way back then.
-                    // But also Java was missing some features I was trying
-                    // to kind of emulate. Hope to fix it some day.
-                    final Message templateMessage =
+                    final Message inMessage =
                         Command.getMessage(firstHeader.value.getString());
 
-                    if (null != templateMessage) {
-                        // Make a duplicate - more of the same message may
-                        // arrive before this is processed.
-                        final Message inMessage =
-                            templateMessage.newMessage();
-
+                    if (null != inMessage) {
                         inMessage.read(_in);
-
                         _controller.receivedMessage(inMessage);
                     }
                 }

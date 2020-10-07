@@ -5,11 +5,11 @@ import hicp.message.Message;
 public class Add
     extends AddModify
 {
-    public Add(String name, int id) {
-        super(name, id);
+    public Add() {
+        super(Command.ADD_STR, Command.ADD_ID);
     }
 
     public Message newMessage() {
-        return new Add(getName(), getID());
+        return new Add();
     }
 }

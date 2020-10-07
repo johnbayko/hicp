@@ -308,7 +308,7 @@ class Message:
         # Write all headers
         for header_key in list(self.__headers.keys()):
             header_value = self.__headers[header_key]
-            self.logger.debug("Write header " + header_key + ": " + header_value) # debug
+            self.logger.debug("header " + header_key + ": " + header_value) # debug
             # If value has "\r\n" within it, output as data block,
             # otherwise as simple header.
             if -1 == header_value.find("\r\n"):
@@ -321,14 +321,20 @@ class Message:
                 # Escape each occurrence by splitting string with "\r\n--",
                 # write out each with ESC prior to "\r\n--".
                 header_value_list = header_value.split("\r\n--")
+
+                # If there is no match, header_value_list will have one entry
+                # with original string.
+                sep = ""  # Escaped separator between previous and current
                 for header_value_part in header_value_list:
-                    out_stream.write(header_value_part + "\033\r\n--")
+                    out_stream.write(sep + header_value_part)
+                    sep = "\033\r\n--"
 
                 # Write out terminator sequence and extra "\r\n" as
                 # block terminator.
                 out_stream.write("\r\n--\r\n")
 
         # Write end of message blank line
+        self.logger.debug(" write:" + "\r\n") # debug
         out_stream.write("\r\n")
 
         out_stream.flush()
@@ -419,7 +425,7 @@ keep track of which items have been changed so they can be sent in
         self.changed_header_list[header] = field
 
     def fill_headers_add(self, message):
-        self.logger.debug("Component fill add headers")
+        self.logger.debug("Component fill add headers: " + Message.GUI + " id " + str(self.id) + " component " + self.component)  # debug
         message.add_header(Message.CATEGORY, Message.GUI)
         message.add_header(Message.ID, str(self.id))
         message.add_header(self.COMPONENT, self.component)
@@ -700,7 +706,6 @@ class TextField(ContainedComponent):
                 # Initial value of binary attributes is False ("0").
                 default_attribute_range = \
                     TextFieldAttribute(len(self.__content), is_multivalued, "0")
-            self.logger.debug("default_attribute_range " + str(default_attribute_range))  # debug
             attribute_list = [default_attribute_range]
             self.__attribute_map[attribute] = attribute_list
 
@@ -958,6 +963,8 @@ class TextField(ContainedComponent):
         ContainedComponent.fill_headers_add(self, message)
         if self.__content is not None:
             message.add_header(Message.CONTENT, self.__content)
+        if self.__attributes is not None and self.__attributes != "":
+            message.add_header(Message.ATTRIBUTES, self.__attributes)
 
     def set_handle_changed(self, handle_changed):
         self.__handle_changed = handle_changed
