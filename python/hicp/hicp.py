@@ -862,7 +862,7 @@ class TextField(ContainedComponent):
 
                     # Add range truncated to end of new range.
                     add_attribute_range = TextFieldAttribute(
-                            new_attribute_range_end - old_attribute_range_end,
+                            old_attribute_range_end - new_attribute_range_end,
                             old_attribute_range.is_multivalued,
                             old_attribute_range.value
                         )

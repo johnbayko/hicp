@@ -104,6 +104,7 @@ class TextFieldHandler:
 
     def update(self, hicp, event_message, component):
         self.logger.debug("TextFieldHandler In update handler")
+        self.logger.debug("attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
         self.__label.set_text(self.__next_text_id)
         self.__label.update()
 
@@ -180,9 +181,11 @@ class Reception:
 
         text_field = TextField()
         text_field.set_content("This is text")
-        # debug - test binary attribute
+        # debug - test binary attribute - underline "is"
+        # Should be: 5 2 5
         text_field.set_attribute(TextField.UNDERLINE, 5, 2)
-        # debug - test value attribute
+        # debug - test value attribute - size of "t" in "text"
+        # Should be: 8 2=1 3
         text_field.set_attribute(TextField.SIZE, 8, 1, "2")
         text_field.set_handle_changed(
             TextFieldHandler(click_label, self.LABEL_CHANGED_ID)

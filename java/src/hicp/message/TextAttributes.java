@@ -7,8 +7,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TextAttributes {
+    private static final Logger LOGGER =
+        Logger.getLogger( TextAttributes.class.getName() );
+
     public static class TextAttributesException extends Exception {
         public TextAttributesException(final String msg) {
             super(msg);
@@ -22,6 +27,9 @@ public class TextAttributes {
     }
 
     public static class AttributeRange {
+        private static final Logger LOGGER =
+            Logger.getLogger( AttributeRange.class.getName() );
+
         public final String value;
         public int length;
 
@@ -116,6 +124,9 @@ public class TextAttributes {
     }
 
     public static class AttributeTypeInfo {
+        private static final Logger LOGGER =
+            Logger.getLogger( AttributeTypeInfo.class.getName() );
+
         public final String name;
         public final List<AttributeRange> attributeRangeList;
 
