@@ -180,13 +180,13 @@ class Reception:
         window.add(button, 1, 1)
 
         text_field = TextField()
-        text_field.set_content("This is text")
+        text_field.set_content("This is text.")
         # debug - test binary attribute - underline "is"
-        # Should be: 5 2 5
+        # Should be: 5 2 6
         text_field.set_attribute(TextField.UNDERLINE, 5, 2)
-        # debug - test value attribute - size of "t" in "text"
-        # Should be: 8 2=1 3
-        text_field.set_attribute(TextField.SIZE, 8, 1, "2")
+        # debug - test value attribute - size of "text"
+        # Should be: 8 2=4 1
+        text_field.set_attribute(TextField.SIZE, 8, 4, "2")
         text_field.set_handle_changed(
             TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
         )

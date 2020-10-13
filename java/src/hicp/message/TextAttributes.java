@@ -200,21 +200,58 @@ public class TextAttributes {
             hasValues = otherAttributeTypeInfo.hasValues;
         }
 
-        public void insert(final int offset, final int len) {
+        private void insertAtStart(final int len) {
+            if (0 == attributeRangeList.size()) {
+                // No attribute range to extend.
+                return;
+            }
+            final var attributeRange = attributeRangeList.get(0);
+
+            if (null == attributeRange) {
+                // Should never happen.
+                // No attribute range to extend here either.
+                return;
+            }
+            attributeRange.length += len;
+        }
+
+        private void insertAfterStart(final int offset, final int len) {
             // Increase the length of whatever range this is inserted to.
             int rangeStart = 0;
             for (final var attributeRange : attributeRangeList) {
                 final int nextRangeStart = rangeStart + attributeRange.length;
-                if ((rangeStart < offset) && (nextRangeStart > offset)) {
+                /*
+                    Typically inserting after the end of a range extends it,
+                    rather than extending the next range. E.g:
+                      "abc"
+                      1, 1, 1 (offsets at: 0, 1, 2)
+                    Insert "b" at position 2:
+                      "abbc"
+                      1, 2, 1 (offsets at: 0, 1, 3)
+                    Need a special case for insert at 0.
+                 */
+                if ((rangeStart < offset) && (nextRangeStart >= offset)) {
                     attributeRange.length += len;
 
                     // Doesn't affect any other attribute range.
                     break;
                 }
-                rangeStart += nextRangeStart;
+                rangeStart = nextRangeStart;
             }
         }
 
+        // Should model actual behaviour when component that supports text
+        // attributes is used, but this works for now.
+        public void insert(final int offset, final int len) {
+            if (0 == offset) {
+                insertAtStart(len);
+            } else {
+                insertAfterStart(offset, len);
+            }
+        }
+
+        // Should model actual behaviour when component that supports text
+        // attributes is used, but this works for now.
         public void remove(final int removeOffsetStart, final int len) {
             final int removeOffsetLim = removeOffsetStart + len;
 
@@ -243,31 +280,35 @@ public class TextAttributes {
                               | +---+ Reduce length by overlap and quit.
                               +-----+ Reduce length by overlap (= len) and quit.
                  */
-                final boolean includeRangeStart =
+                final boolean removeRangeStart =
                     (rangeStart >= removeOffsetStart);
 
-                final boolean includeRangeEnd =
+                final boolean removeRangeEnd =
                     (nextRangeStart <= removeOffsetLim);
 
                 if (nextRangeStart <= removeOffsetStart) {
                     // No overlap, skip.
                     // This is necessary to simplify the other range checks.
                 } 
-                else if (!includeRangeStart && includeRangeEnd)
+                else if (!removeRangeStart && removeRangeEnd)
                 {
+                    // Remove from right of range.
                     final int overlap = nextRangeStart - removeOffsetStart;
                     attributeRange.length -= overlap;
                 } 
-                else if (!includeRangeStart && !includeRangeEnd)
+                else if (!removeRangeStart && !removeRangeEnd)
                 {
+                    // Remove from middle fo range.
                     attributeRange.length -= len;
                 } 
-                else if (includeRangeStart && includeRangeEnd)
+                else if (removeRangeStart && removeRangeEnd)
                 {
+                    // All of range removed.
                     attributeRange.length = 0;
                 }
-                else if (includeRangeStart && !includeRangeEnd)
+                else if (removeRangeStart && !removeRangeEnd)
                 {
+                    // Remove from left of range.
                     final int overlap = removeOffsetLim - rangeStart;
                     attributeRange.length -= overlap;
                 }
@@ -333,7 +374,7 @@ public class TextAttributes {
                     // to check.
                     break;
                 }
-                rangeStart += nextRangeStart;
+                rangeStart = nextRangeStart;
 
                 // If this was deleted, then the current index is gone,
                 // next has shifted to current, so dont increment
@@ -456,7 +497,7 @@ public class TextAttributes {
             // Leave as default / empty, can add attributes later.
             return;
         }
-        for (var attributeKey : otherTextAttributes.attributeTypesMap.keySet()) {
+        for (var attributeKey: otherTextAttributes.attributeTypesMap.keySet()) {
             final var otherAttributeTypeInfo =
                 otherTextAttributes.attributeTypesMap.get(attributeKey);
 

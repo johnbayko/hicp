@@ -166,6 +166,8 @@ log("changedEvent.attributes \"" + changedEvent.attributes.toString() + "\"");  
             nonPrintablePattern.matcher(content);
         content = nonPrintableMatcher.replaceAll("");
 
+        // Replacement text doesn't need old text attributes.
+        _document.setTextAttributes((TextAttributes)null);
         _component.setText(content);
         _content = content;
 
@@ -174,7 +176,9 @@ log("changedEvent.attributes \"" + changedEvent.attributes.toString() + "\"");  
         // attributes after the text has been set.
         // TextAttributes is mutable, so make copies (one tor the document, one
         // original to check later if any have changed.
-        _document.setTextAttributes(new TextAttributes(textAttributes));
+        if (null != textAttributes) {
+            _document.setTextAttributes(new TextAttributes(textAttributes));
+        }
         _attributes = new TextAttributes(textAttributes);
     }
 
