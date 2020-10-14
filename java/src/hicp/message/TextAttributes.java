@@ -154,6 +154,8 @@ public class TextAttributes {
                     "Attribute type missing: \"" + attributeTypeStr + "\""
                 );
             }
+            // TODO: determine whether attributes are value or binary based on
+            // name. Probably add this info in message classes somewhere.
 
             final String rangeStr = attributeTypeInfoSplit[1];
 
@@ -171,7 +173,7 @@ public class TextAttributes {
 
                     attributeRangeList.add(attributeRange);
 
-                    if ("".equals(attributeRange.value)) {
+                    if (!"".equals(attributeRange.value)) {
                         hasValues = true;
                     }
                 } catch (NoAttributeRange ex) {
@@ -222,12 +224,16 @@ public class TextAttributes {
                 final int nextRangeStart = rangeStart + attributeRange.length;
                 /*
                     Typically inserting after the end of a range extends it,
-                    rather than extending the next range. E.g:
+                    rather than extending the next range. E.g for underline
+                    (first position is 0):
                       "abc"
-                      1, 1, 1 (offsets at: 0, 1, 2)
+                        -
                     Insert "b" at position 2:
                       "abbc"
-                      1, 2, 1 (offsets at: 0, 1, 3)
+                        --
+                    But insert "b" at position 1:
+                      "abbc"
+                         -
                     Need a special case for insert at 0.
                  */
                 if ((rangeStart < offset) && (nextRangeStart >= offset)) {
@@ -259,9 +265,8 @@ public class TextAttributes {
             // just overlap, delete ranges which are within the removal.
             int deletedLen = 0;
             int rangeStart = 0;
-            for (int attributeIdx = 0;
-                attributeIdx < attributeRangeList.size();
-            ) {
+            int attributeIdx = 0;
+            while (attributeIdx < attributeRangeList.size()) {
                 final var attributeRange = attributeRangeList.get(attributeIdx);
                 final int nextRangeStart = rangeStart + attributeRange.length;
 
@@ -280,39 +285,40 @@ public class TextAttributes {
                               | +---+ Reduce length by overlap and quit.
                               +-----+ Reduce length by overlap (= len) and quit.
                  */
-                final boolean removeRangeStart =
-                    (rangeStart >= removeOffsetStart);
+                {
+                    final boolean willRemoveRangeStart =
+                        (rangeStart >= removeOffsetStart);
 
-                final boolean removeRangeEnd =
-                    (nextRangeStart <= removeOffsetLim);
+                    final boolean willRemoveRangeEnd =
+                        (nextRangeStart <= removeOffsetLim);
 
-                if (nextRangeStart <= removeOffsetStart) {
-                    // No overlap, skip.
-                    // This is necessary to simplify the other range checks.
-                } 
-                else if (!removeRangeStart && removeRangeEnd)
-                {
-                    // Remove from right of range.
-                    final int overlap = nextRangeStart - removeOffsetStart;
-                    attributeRange.length -= overlap;
-                } 
-                else if (!removeRangeStart && !removeRangeEnd)
-                {
-                    // Remove from middle fo range.
-                    attributeRange.length -= len;
-                } 
-                else if (removeRangeStart && removeRangeEnd)
-                {
-                    // All of range removed.
-                    attributeRange.length = 0;
+                    if (nextRangeStart <= removeOffsetStart) {
+                        // No overlap, skip.
+                        // This is necessary to simplify the other range checks.
+                    } 
+                    else if (!willRemoveRangeStart && willRemoveRangeEnd)
+                    {
+                        // Remove from right of range.
+                        final int overlap = nextRangeStart - removeOffsetStart;
+                        attributeRange.length -= overlap;
+                    } 
+                    else if (!willRemoveRangeStart && !willRemoveRangeEnd)
+                    {
+                        // Remove from middle fo range.
+                        attributeRange.length -= len;
+                    } 
+                    else if (willRemoveRangeStart && willRemoveRangeEnd)
+                    {
+                        // All of range removed.
+                        attributeRange.length = 0;
+                    }
+                    else if (willRemoveRangeStart && !willRemoveRangeEnd)
+                    {
+                        // Remove from left of range.
+                        final int overlap = removeOffsetLim - rangeStart;
+                        attributeRange.length -= overlap;
+                    }
                 }
-                else if (removeRangeStart && !removeRangeEnd)
-                {
-                    // Remove from left of range.
-                    final int overlap = removeOffsetLim - rangeStart;
-                    attributeRange.length -= overlap;
-                }
-
                 // Do actual delete,
                 // or clean up after one or more ranges deleted.
                 final boolean shouldDelete = (0 == attributeRange.length);
@@ -324,50 +330,18 @@ public class TextAttributes {
                         // Special case, binary attribute always has to start
                         // with "off", so instead of deleting, set length to 0.
                         attributeRange.length = 0;
+                        // TODO: length is already 0, that's what makes shouldDelete true.
                     } else {
                         attributeRangeList.remove(attributeIdx);
                         didDelete = true;
                         deletedLen++;
                     }
-                } else {
-                    // Not deleted. Might need to merge attribute ranges if
-                    // this is the end of a string of deletes.
-                    if (0 < deletedLen) {
-                        // Is there a previous range to merge this one with?
-                        if (0 > attributeIdx) {
-                            final int prevIdx = attributeIdx - 1;
-                            final var prevRange =
-                                attributeRangeList.get(prevIdx);
-
-                            // If the attribute value after the deleted range
-                            // is the same as before (e.g. "a=2, b=1, a=2"
-                            // becoems "a=2, a=2"), merge them (e.g.  "a=4").
-                            final boolean shouldMergeValues =
-                                    hasValues
-                                 && prevRange
-                                        .value
-                                        .equals(attributeRange.value);
-
-                            // If binary attribute and number of deletes is
-                            // odd, then this disrupts on-off-on-off pattern -
-                            // on-on-off will not be interpreted correctly, so
-                            // merge on-on so it becomes on-off again.
-                            final boolean isDeletedLenOdd =
-                                0 != (deletedLen % 2);
-                            final boolean shouldMergeBinary =
-                                    !hasValues
-                                 && isDeletedLenOdd;
-
-                            if (shouldMergeValues || shouldMergeBinary) {
-                                prevRange.length += attributeRange.length;
-
-                                attributeRangeList.remove(attributeIdx);
-                                didDelete = true;
-                            }
-                        }
-                    }
-                    // A merge is not a deletion.
-                    deletedLen = 0;
+                }
+                // If this was deleted, then the current index is gone,
+                // next has shifted to current, so dont increment
+                // attributeIdx then - only if not deleted.
+                if (!didDelete) {
+                    attributeIdx++;
                 }
                 if (nextRangeStart >= removeOffsetLim) {
                     // Next range is past end of remove range, no more ranges
@@ -375,12 +349,42 @@ public class TextAttributes {
                     break;
                 }
                 rangeStart = nextRangeStart;
+            }
 
-                // If this was deleted, then the current index is gone,
-                // next has shifted to current, so dont increment
-                // attributeIdx then - only if not deleted.
-                if (!didDelete) {
-                    attributeIdx++;
+            // Done deleting. Is there an attribute range left?
+            if (attributeIdx < attributeRangeList.size()) {
+                // Yes, might need to merge attribute ranges.
+
+                final var attributeRange = attributeRangeList.get(attributeIdx);
+                if (0 < deletedLen) {
+                    // Is there a previous range to merge this one with?
+                    if (0 < attributeIdx) {
+                        final int prevIdx = attributeIdx - 1;
+                        final var prevRange = attributeRangeList.get(prevIdx);
+
+                        // If the attribute value after the deleted range
+                        // is the same as before (e.g. "a=2, b=1, a=2"
+                        // becoems "a=2, a=2"), merge them (e.g.  "a=4").
+                        final boolean shouldMergeValues =
+                                hasValues
+                             && prevRange.value.equals(attributeRange.value);
+
+                        // If binary attribute and number of deletes is
+                        // odd, then this disrupts on-off-on-off pattern -
+                        // on-on-off will not be interpreted correctly, so
+                        // merge on-on so it becomes on-off again.
+                        final boolean isDeletedLenOdd =
+                            0 != (deletedLen % 2);
+                        final boolean shouldMergeBinary =
+                                !hasValues
+                             && isDeletedLenOdd;
+
+                        if (shouldMergeValues || shouldMergeBinary) {
+                            prevRange.length += attributeRange.length;
+
+                            attributeRangeList.remove(attributeIdx);
+                        }
+                    }
                 }
             }
         }
