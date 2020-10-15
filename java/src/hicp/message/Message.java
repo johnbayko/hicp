@@ -18,8 +18,10 @@ public abstract class Message {
 
     /** Message ID used for internal tracking only, not part of written message
         text. */
+// TODO: Make an enum?
     protected final int _id;
 
+// TODO: Remove
     public abstract Message newMessage();
 
     public abstract void write(Writer out) throws IOException;

@@ -19,12 +19,12 @@ public class Authenticate
 
     private Set<String> allMethods = null;
 
-    public Authenticate() {
-        super(Command.AUTHENTICATE_STR, Command.AUTHENTICATE_ID);
+    public Authenticate(final String name, final int id) {
+        super(name, id);
     }
 
     public Message newMessage() {
-        return new Authenticate();
+        return new Authenticate(_name, _id);
     }
 
     public void write(Writer out)
