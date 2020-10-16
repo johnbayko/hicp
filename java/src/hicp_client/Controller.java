@@ -12,6 +12,7 @@ import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
+import hicp.message.command.CommandEnum;
 import hicp.message.event.Event;
 
 // Main controller for handling HICP communication.
@@ -118,10 +119,10 @@ public class Controller
     }
 
 // Called by message exchange (input thread).
-    public void receivedMessage(Message m) {
+    public void receivedMessage(Command m) {
         // Action based on message command.
-        switch (m.getID()) {
-          case Command.AUTHENTICATE_ID:
+        switch (CommandEnum.getEnum(m.getName())) {
+          case AUTHENTICATE:
             {
                 final hicp.message.command.Authenticate authenticateCmd =
                     (hicp.message.command.Authenticate)m;
@@ -153,7 +154,7 @@ public class Controller
                 _messageExchange.send(authenticateEvent);
             }
             break;
-          case Command.ADD_ID:
+          case ADD:
             {
                 final hicp.message.command.Add addCmd =
                     (hicp.message.command.Add)m;
@@ -221,7 +222,7 @@ public class Controller
                 }
             }
             break;
-          case Command.MODIFY_ID:
+          case MODIFY:
             {
                 final hicp.message.command.Modify modifyCmd =
                     (hicp.message.command.Modify)m;
@@ -263,7 +264,7 @@ public class Controller
                 }
             }
             break;
-          case Command.REMOVE_ID:
+          case REMOVE:
             {
                 final hicp.message.command.Remove removeCmd =
                     (hicp.message.command.Remove)m;
@@ -321,7 +322,7 @@ public class Controller
                 }
             }
             break;
-          case Command.DISCONNECT_ID:
+          case DISCONNECT:
             {
                 if (_messageExchange.getLastMessage()
                     instanceof hicp.message.event.Authenticate

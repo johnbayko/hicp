@@ -24,8 +24,8 @@ public abstract class AddModifyRemove
     public String category = null;
     public String id = null;
 
-    public AddModifyRemove(String name, int id) {
-        super(name, id);
+    public AddModifyRemove(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -60,10 +60,5 @@ readLoop:   for (;;) {
             return true;
         }
         return false;
-    }
-
-    public void clear() {
-        category = null;
-        id = null;
     }
 }

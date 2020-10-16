@@ -16,31 +16,16 @@ public abstract class Message {
 
     protected final String _name;
 
-    /** Message ID used for internal tracking only, not part of written message
-        text. */
-// TODO: Make an enum?
-    protected final int _id;
-
-// TODO: Remove
-    public abstract Message newMessage();
-
     public abstract void write(Writer out) throws IOException;
 
     public abstract void read(HICPReader in) throws IOException;
 
-    public abstract void clear();
-
-    public Message(String name, int id) {
+    public Message(String name) {
         _name = name;
-        _id = id;
     }
 
     public String getName() {
         return _name;
-    }
-
-    public int getID() {
-        return _id;
     }
 
     protected void writeHeader(Writer out, String name, String value)

@@ -5,57 +5,40 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import hicp.message.Message;
-
 public enum CommandEnum
 {
-    AUTHENTICATE(1, "authenticate") {
-        public Message newMessage(
-            final String newMessageName, final int newMessageId
-        ) {
-            return new Authenticate(newMessageName, newMessageId);
+    AUTHENTICATE("authenticate") {
+        public Command newCommand(final String newMessageName) {
+            return new Authenticate(newMessageName);
         }
     },
 
-    ADD(2, "add") {
-        public Message newMessage(
-            final String newMessageName, final int newMessageId
-        ) {
-            return new Add(newMessageName, newMessageId);
+    ADD("add") {
+        public Command newCommand(final String newMessageName) {
+            return new Add(newMessageName);
         }
     },
 
-    MODIFY(3, "modify") {
-        public Message newMessage(
-            final String newMessageName, final int newMessageId
-        ) {
-            return new Modify(newMessageName, newMessageId);
+    MODIFY("modify") {
+        public Command newCommand(final String newMessageName) {
+            return new Modify(newMessageName);
         }
     },
 
-    REMOVE(4, "remove") {
-        public Message newMessage(
-            final String newMessageName, final int newMessageId
-        ) {
-            return new Remove(newMessageName, newMessageId);
+    REMOVE("remove") {
+        public Command newCommand(final String newMessageName) {
+            return new Remove(newMessageName);
         }
     },
 
-    DISCONNECT(5, "disconnect") {
-        public Message newMessage(
-            final String newMessageName, final int newMessageId
-        ) {
-            return new Disconnect(newMessageName, newMessageId);
+    DISCONNECT("disconnect") {
+        public Command newCommand(final String newMessageName) {
+            return new Disconnect(newMessageName);
         }
     };
 
 
-    public final int messageId;
     public final String messageName;
-
-    public abstract Message newMessage(
-        final String newMessageName, final int newMessageId
-    );
 
     private static final Map<String, CommandEnum> messageNameMap =
         Arrays.stream(CommandEnum.values())
@@ -66,20 +49,20 @@ public enum CommandEnum
                 )
             );
 
-    CommandEnum(
-        final int newMessageId,
-        final String newMessageName
-    ) {
-        messageId = newMessageId;
+
+    CommandEnum(final String newMessageName) {
         messageName = newMessageName;
     }
 
-    public static Message getMessage(String messageName) {
-        final var m = messageNameMap.get(messageName);
-        if (null == m) {
-            return null;
-        }
-        return m.newMessage(m.messageName, m.messageId);
+
+    public abstract Command newCommand(final String newMessageName);
+
+    public Command newCommand() {
+        return newCommand(messageName);
+    }
+
+
+    public static CommandEnum getEnum(String messageName) {
+        return messageNameMap.get(messageName);
     }
 }
-

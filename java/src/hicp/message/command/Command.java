@@ -10,12 +10,8 @@ public abstract class Command
 {
     public static String COMMAND = "command";
 
-    public Command(String name, int id) {
-        super(name, id);
-    }
-
-    public static Message getMessage(String name) {
-        return CommandEnum.getMessage(name);
+    public Command(String name) {
+        super(name);
     }
 }
 

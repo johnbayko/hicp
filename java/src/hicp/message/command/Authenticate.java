@@ -19,12 +19,8 @@ public class Authenticate
 
     private Set<String> allMethods = null;
 
-    public Authenticate(final String name, final int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Authenticate(_name, _id);
+    public Authenticate(final String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -57,11 +53,6 @@ readLoop:   for (;;) {
             // Unexpected end of input - not really an error, so just
             // quietly return with whatever was read.
         }
-    }
-
-    public void clear() {
-        method = null;
-        password = null;
     }
 
     public boolean hasMethod(final String method) {

@@ -60,8 +60,8 @@ public abstract class AddModify
     protected static final Pattern commaSplitter =
         Pattern.compile("\\s*,\\s*");
 
-    public AddModify(String name, int id) {
-        super(name, id);
+    public AddModify(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -174,14 +174,5 @@ readLoop:   for (;;) {
         }
 
         return false;
-    }
-
-    public void clear() {
-        super.clear();
-
-        component = null;
-        parent = null;
-        text = null;
-        visible = false;
     }
 }

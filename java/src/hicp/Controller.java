@@ -1,9 +1,9 @@
 package hicp;
 
-import hicp.message.Message;
+import hicp.message.command.Command;
 
 public interface Controller {
-    public void receivedMessage(Message m);
+    public void receivedMessage(Command m);
 
     public void closed();
 }

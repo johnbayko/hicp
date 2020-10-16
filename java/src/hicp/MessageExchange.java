@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 
 import hicp.message.Message;
 import hicp.message.command.Command;
+import hicp.message.command.CommandEnum;
 
 /**
     Starts a thread which converts characters from an input stream into
@@ -35,7 +36,7 @@ public class MessageExchange
         calling code ought to know.
      */
     public MessageExchange(
-        InputStream in, OutputStream out, Controller controller//, Logger logger
+        InputStream in, OutputStream out, Controller controller
     )
         throws UnsupportedEncodingException
     {
@@ -60,12 +61,14 @@ readLoop:   while (null != _in) {
                 // If line is blank or not a header (.name is null),
                 // don't do anything.
                 if (null != firstHeader.name) {
-                    final Message inMessage =
-                        Command.getMessage(firstHeader.value.getString());
+                    final CommandEnum commandEnum =
+                        CommandEnum.getEnum(firstHeader.value.getString());
+                    if (null != commandEnum) {
+                        final Command command = commandEnum.newCommand();
 
-                    if (null != inMessage) {
-                        inMessage.read(_in);
-                        _controller.receivedMessage(inMessage);
+                        command.read(_in);
+                        // TODO: Pass enum also?
+                        _controller.receivedMessage(command);
                     }
                 }
             }
