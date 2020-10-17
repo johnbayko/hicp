@@ -9,12 +9,8 @@ import hicp.message.Message;
 public class Close
     extends GUIEvent
 {
-    public Close(String name, int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Close(getName(), getID());
+    public Close(String name) {
+        super(name);
     }
 
     public void write(Writer out)

@@ -13,7 +13,9 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
+import hicp.message.event.Connect;
 import hicp.message.event.Event;
+import hicp.message.event.EventEnum;
 
 // Main controller for handling HICP communication.
 public class Controller
@@ -57,8 +59,7 @@ public class Controller
         }
         // Send connect message.
         {
-            hicp.message.event.Connect connectEvent = Event.CONNECT;
-            connectEvent.clear();
+            Connect connectEvent = (Connect)EventEnum.CONNECT.newEvent();
             {
                 final String application = _session.params.application;
                 if ( (null != application) && (0 != application.length()) )
@@ -119,17 +120,18 @@ public class Controller
     }
 
 // Called by message exchange (input thread).
-    public void receivedMessage(Command m) {
+    public void receivedMessage(CommandEnum commandEnum, Command c) {
         // Action based on message command.
-        switch (CommandEnum.getEnum(m.getName())) {
+        switch (commandEnum) {
           case AUTHENTICATE:
             {
                 final hicp.message.command.Authenticate authenticateCmd =
-                    (hicp.message.command.Authenticate)m;
-                final hicp.message.event.Authenticate authenticateEvent =
-                    Event.AUTHENTICATE;
+                    (hicp.message.command.Authenticate)c;
 
-                authenticateEvent.clear();
+                final hicp.message.event.Authenticate authenticateEvent =
+                    (hicp.message.event.Authenticate)EventEnum
+                        .AUTHENTICATE
+                        .newEvent();
                 {
                     final String username = _session.params.username;
                     if ((null != username) && (0 != username.length())) {
@@ -157,7 +159,7 @@ public class Controller
           case ADD:
             {
                 final hicp.message.command.Add addCmd =
-                    (hicp.message.command.Add)m;
+                    (hicp.message.command.Add)c;
                 if (null == addCmd.category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
@@ -225,7 +227,7 @@ public class Controller
           case MODIFY:
             {
                 final hicp.message.command.Modify modifyCmd =
-                    (hicp.message.command.Modify)m;
+                    (hicp.message.command.Modify)c;
                 if (null == modifyCmd.category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
@@ -267,7 +269,7 @@ public class Controller
           case REMOVE:
             {
                 final hicp.message.command.Remove removeCmd =
-                    (hicp.message.command.Remove)m;
+                    (hicp.message.command.Remove)c;
                 if (null == removeCmd.category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
@@ -334,9 +336,6 @@ public class Controller
                 }
                 disconnect();
             }
-            break;
-          default:
-            log("Unrecognized command in message: " + m.getName());
             break;
         }
     }

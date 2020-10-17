@@ -14,7 +14,9 @@ import hicp.MessageExchange;
 import hicp.message.TextAttributes;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
+import hicp.message.event.Changed;
 import hicp.message.event.Event;
+import hicp.message.event.EventEnum;
 import hicp_client.text.AttributeTrackDocument;
 
 public class GUITextFieldItem
@@ -102,8 +104,7 @@ public class GUITextFieldItem
             // Content has changed.
             // Send a changed event with this object's ID
             // and the new content.
-            hicp.message.event.Changed changedEvent =
-                (hicp.message.event.Changed)Event.CHANGED.newMessage();
+            Changed changedEvent = (Changed)EventEnum.CHANGED.newEvent();
             
             changedEvent.id = idString;
             if (hasContentChanged) {

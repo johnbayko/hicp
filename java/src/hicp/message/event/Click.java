@@ -9,12 +9,8 @@ import hicp.message.Message;
 public class Click
     extends GUIEvent
 {
-    public Click(String name, int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Click(getName(), getID());
+    public Click(String name) {
+        super(name);
     }
 
     public void write(Writer out)

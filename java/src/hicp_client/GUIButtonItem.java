@@ -14,7 +14,9 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
+import hicp.message.event.Click;
 import hicp.message.event.Event;
+import hicp.message.event.EventEnum;
 
 public class GUIButtonItem
     extends GUIItem
@@ -57,9 +59,8 @@ public class GUIButtonItem
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Send a click event with this object's ID.
-                        hicp.message.event.Click clickEvent =
-                            (hicp.message.event.Click)
-                                Event.CLICK.newMessage();
+                        final Click clickEvent =
+                            (Click)EventEnum.CLICK.newEvent();
             
                         clickEvent.id = idString;
         

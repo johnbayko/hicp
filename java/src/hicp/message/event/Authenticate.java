@@ -17,12 +17,8 @@ public class Authenticate
     public String method = null;
     public String password = null;
 
-    public Authenticate(String name, int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Authenticate(getName(), getID());
+    public Authenticate(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -47,11 +43,5 @@ public class Authenticate
     }
 
     public void read(HICPReader in) {
-    }
-
-    public void clear() {
-        user = null;
-        method = null;
-        password = null;
     }
 }

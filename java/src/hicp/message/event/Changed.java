@@ -16,12 +16,8 @@ public class Changed
     public String content = null;
     public TextAttributes attributes = null;
 
-    public Changed(String name, int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Changed(getName(), getID());
+    public Changed(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -36,7 +32,7 @@ log(getName() + " send content \"" + content + "\"");  // debug
         }
         if (null != attributes) {
             writeHeader(out, ATTRIBUTES, attributes.toString());
-log(getName() + " send content \"" + content + "\"");  // debug
+log(getName() + " send attributes \"" + attributes + "\"");  // debug
         }
 
         writeEndOfMessage(out);

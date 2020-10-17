@@ -67,8 +67,8 @@ readLoop:   while (null != _in) {
                         final Command command = commandEnum.newCommand();
 
                         command.read(_in);
-                        // TODO: Pass enum also?
-                        _controller.receivedMessage(command);
+
+                        _controller.receivedMessage(commandEnum, command);
                     }
                 }
             }

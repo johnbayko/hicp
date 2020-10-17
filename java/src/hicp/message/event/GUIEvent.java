@@ -12,8 +12,8 @@ public abstract class GUIEvent
 
     public String id = null;
 
-    public GUIEvent(String name, int id) {
-        super(name, id);
+    public GUIEvent(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -28,9 +28,5 @@ public abstract class GUIEvent
     }
 
     public void read(HICPReader in) {
-    }
-
-    public void clear() {
-        id = null;
     }
 }

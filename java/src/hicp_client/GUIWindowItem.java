@@ -22,7 +22,9 @@ import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
+import hicp.message.event.Close;
 import hicp.message.event.Event;
+import hicp.message.event.EventEnum;
 
 public class GUIWindowItem
     extends GUILayoutItem
@@ -101,9 +103,8 @@ public class GUIWindowItem
                 new WindowAdapter() {
                     public void windowClosing(WindowEvent e) {
                         // Send a close event with this object's ID.
-                        hicp.message.event.Close closeEvent =
-                            (hicp.message.event.Close)
-                                Event.CLOSE.newMessage();
+                        final Close closeEvent =
+                            (Close)EventEnum.CLOSE.newEvent();
 
                         closeEvent.id = idString;
 

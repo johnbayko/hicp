@@ -13,12 +13,8 @@ public class Connect
 
     public String application = null;
 
-    public Connect(String name, int id) {
-        super(name, id);
-    }
-
-    public Message newMessage() {
-        return new Connect(getName(), getID());
+    public Connect(String name) {
+        super(name);
     }
 
     public void write(Writer out)
@@ -35,9 +31,5 @@ public class Connect
     }
 
     public void read(HICPReader in) {
-    }
-
-    public void clear() {
-        application = null;
     }
 }
