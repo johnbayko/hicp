@@ -156,16 +156,6 @@ class Reception:
         amazing_label.set_text(self.AMAZING_ID)
         amazing_panel.add(amazing_label, 0, 0)
 
-# debug
-#        amazing_label = Label()
-#        amazing_label.set_text(self.AMAZING_ID)
-#        amazing_panel.add(amazing_label, 0, 1)
-
-# debug
-#        amazing_label = Label()
-#        amazing_label.set_text(self.AMAZING_ID)
-#        amazing_panel.add(amazing_label, 0, 2)
-
         click_label = Label()
         click_label.set_text(self.LABEL_CLICK_ID)
         click_label.set_size(1, 1)  # debug

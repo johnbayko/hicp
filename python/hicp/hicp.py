@@ -1474,6 +1474,90 @@ class EventThread(threading.Thread):
         self.logger.debug(msg)
 
 
+class TextManagerGroup:
+    "Contains id to string mapping for a text manager group"
+
+    def __init__(self):
+        # Doesn't need to know what group it's in, just the text info.
+        self.id_to_text = {}
+        self.text_to_id = {}
+
+    def add_text(self, id, text):
+        self.text_to_id[text] = id
+        self.id_to_text[id] = text
+
+    def find_free_id(self):
+        ks = sorted(self.id_to_text.keys())
+        # Assuming keys start at 0, but specification allows negative ids.
+        prev_key = -1
+        for key in ks:
+            if (key - prev_key) > 1:
+                # There was a gap in keys
+                return prev_key + 1
+            prev_key = key
+        # No gap found, next key is end of list
+        return prev_key + 1
+
+    def add_text_get_id(self, text: str):
+        if text in self.text_to_id:
+            # Already there.
+            return self.text_to_id[text]
+
+        free_id = self.find_free_id()
+        add_text(free_id, text)
+        return free_id
+
+    def get_id(self, text: str):
+        # None if not there.
+        return self.text_to_id.get(text)
+
+    def get_text(self, id):
+        # None if not there.
+        return self.id_to_text.get(id)
+
+class TextManager:
+    "Manage text groups, IDs, and strings"
+
+    def __init__(self, default_group: str):
+        if default_group is None or '' == default_group:
+            raise UnboundLocalError("default_group required, not defined")
+
+        self.groups: Dict[str, TextManagerGroup] = {}
+        set_group(default_group)
+
+    def get_group(self, group: str = None):
+        if group is None:
+            group = self.default_group
+
+        if group in self.groups:
+            return self.groups[group]
+
+        tmg = TextManagerGroup()
+        self.groups[group] = tmg
+        return tmg
+
+    def set_group(self, new_group: str):
+        if group is None or '' == group:
+            raise UnboundLocalError("group required and not '', not defined")
+
+        # Creates group as side effect.
+        get_group(new_group)
+        self.default_group = new_group
+
+    # TODO: Maybe don't need these - just get group and use directly.
+    def add_text(self, id, text, group: str = None):
+        self.get_group(group).add_text(id, text)
+
+    def add_text_get_id(self, text, group: str = None):
+        return self.get_group(group).add_text_get_id(text)
+
+    def get_text(self, id, group: str = None):
+        return self.get_group(group).get_text(text)
+
+    def get_id(self, text, group=None):
+        return self.get_group(group).get_id(text)
+
+
 class HICP:
     "HICP control class"
 
@@ -1500,11 +1584,11 @@ class HICP:
         if default_app is None:
             raise UnboundLocalError("default_app required, not defined")
 
+        self.logger = newLogger(type(self).__name__)
+
         self.in_stream = in_stream
         self.out_stream = out_stream
         self.__default_app = default_app
-
-        self.logger = newLogger(type(self).__name__)
         self.__app_list = app_list
         self.__authenticator = authenticator
 
@@ -1530,7 +1614,7 @@ class HICP:
         self.__event_thread.start()
 
         self.logger.debug("about to make ReadThread()")  # debug
-        self.__read_thread = ReadThread( self.in_stream, self.__event_thread)
+        self.__read_thread = ReadThread(self.in_stream, self.__event_thread)
         self.__read_thread.start()
         self.logger.debug("about to join read_thread")  # debug
         self.__read_thread.join()
@@ -1544,12 +1628,21 @@ class HICP:
         self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
 
+    # TODO: Update text manager for these.
+    # TODO: Add text group parameters.
+
     def add_all_text(self, text_dict):
         # Add each id/string entry in the dictionary
         for text_id in list(text_dict.keys()):
             self.add_text(text_id, text_dict[text_id])
 
     def add_text(self, text_id, text_string):
+        if text_id is None:
+            raise UnboundLocalError("text_id required, not defined")
+
+        if text_string is None:
+            raise UnboundLocalError("text_string required, not defined")
+
         message = Message()
         message.set_type(Message.COMMAND, Message.ADD)
 
