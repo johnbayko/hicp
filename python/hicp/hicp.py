@@ -1482,8 +1482,8 @@ class TextManagerGroup:
         self.id_to_text = {}
         self.text_to_id = {}
 
-    def add_text(self, id, text):
-        self.text_to_id[text] = id
+    def add_text(self, text_id, text):
+        self.text_to_id[text] = text_id
         self.id_to_text[id] = text
 
     def find_free_id(self):
@@ -1504,16 +1504,20 @@ class TextManagerGroup:
             return self.text_to_id[text]
 
         free_id = self.find_free_id()
-        add_text(free_id, text)
+        self.add_text(free_id, text)
         return free_id
 
     def get_id(self, text: str):
         # None if not there.
         return self.text_to_id.get(text)
 
-    def get_text(self, id):
+    def get_text(self, text_id):
         # None if not there.
-        return self.id_to_text.get(id)
+        return self.id_to_text.get(text_id)
+
+    def get_all_text(self):
+        "Return a copy of id/text dictionary."
+        return self.id_to_text.copy()
 
 class TextManager:
     "Manage text groups, IDs, and strings"
@@ -1523,7 +1527,7 @@ class TextManager:
             raise UnboundLocalError("default_group required, not defined")
 
         self.groups: Dict[str, TextManagerGroup] = {}
-        set_group(default_group)
+        self.set_group(default_group)
 
     def get_group(self, group: str = None):
         if group is None:
@@ -1537,25 +1541,29 @@ class TextManager:
         return tmg
 
     def set_group(self, new_group: str):
-        if group is None or '' == group:
+        if new_group is None or '' == new_group:
             raise UnboundLocalError("group required and not '', not defined")
 
         # Creates group as side effect.
-        get_group(new_group)
+        self.get_group(new_group)
         self.default_group = new_group
 
     # TODO: Maybe don't need these - just get group and use directly.
-    def add_text(self, id, text, group: str = None):
-        self.get_group(group).add_text(id, text)
+    def add_text(self, text_id, text, group: str = None):
+        self.get_group(group).add_text(text_id, text)
 
     def add_text_get_id(self, text, group: str = None):
         return self.get_group(group).add_text_get_id(text)
 
-    def get_text(self, id, group: str = None):
-        return self.get_group(group).get_text(text)
+    def get_text(self, text_id, group: str = None):
+        return self.get_group(group).get_text(text_id)
 
     def get_id(self, text, group=None):
         return self.get_group(group).get_id(text)
+
+    def get_all_text(self, group:str = None):
+        "Return a dict of id/text that can be passed to HICP.add_all_text()"
+        return self.get_group(group).get_all_text()
 
 
 class HICP:
@@ -1572,6 +1580,7 @@ class HICP:
         out_stream,
         default_app,
         app_list=None,
+        text_group=None,
         authenticator=None):
 
         # These must be specified for this to work.
@@ -1590,11 +1599,19 @@ class HICP:
         self.out_stream = out_stream
         self.__default_app = default_app
         self.__app_list = app_list
+        if text_group is None:
+            # Default language. If they don't specify, make it awkward enough
+            # so they make the effort.
+            # Canadian English: Remember the "our"s, but not the "ise"s.
+            text_group = "en-ca"
+        self.__text_group = text_group
         self.__authenticator = authenticator
 
     def start(self):
         # Things for this object
+        # TODO: Maybe should be in __init__()?
         self.__gui_id = 0
+        self.__text_manager = TextManager(self.__text_group)
         self.__component_list = {}
         self.__event_handler_list = {}
 
@@ -1631,10 +1648,21 @@ class HICP:
     # TODO: Update text manager for these.
     # TODO: Add text group parameters.
 
+    def set_text_group(self, text_group):
+        "Will define what text group to use."
+        if text_group != self.__text_group:
+            self.__text_group = text_group
+            self.__text_manager.set_group(text_group)
+
+            # Group is changed, send all text from new group to client.
+            all_text = self.__text_manager.get_all_text()
+            for text_id, text in text_dict.items():
+                self.send_add_text_message(text_id, text)
+
     def add_all_text(self, text_dict):
         # Add each id/string entry in the dictionary
-        for text_id in list(text_dict.keys()):
-            self.add_text(text_id, text_dict[text_id])
+        for text_id, text in text_dict.items():
+            self.add_text(text_id, text)
 
     def add_text(self, text_id, text_string):
         if text_id is None:
@@ -1643,6 +1671,10 @@ class HICP:
         if text_string is None:
             raise UnboundLocalError("text_string required, not defined")
 
+        self.send_add_text_message(text_id, text_string)
+        self.__text_manager.add_text(text_id, text_string)
+
+    def send_add_text_message(self, text_id, text_string):
         message = Message()
         message.set_type(Message.COMMAND, Message.ADD)
 
