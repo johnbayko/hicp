@@ -92,7 +92,7 @@ class ButtonHandler:
 
     def update(self, hicp, event_message, component):
         self.logger.debug("ButtonHandler In update handler")
-        self.__label.set_text(self.__next_text_id)
+        self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
 
@@ -105,7 +105,7 @@ class TextFieldHandler:
     def update(self, hicp, event_message, component):
         self.logger.debug("TextFieldHandler In update handler")
         self.logger.debug("attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
-        self.__label.set_text(self.__next_text_id)
+        self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
         component.set_content("Woo-hoo!")
@@ -143,7 +143,7 @@ class Reception:
         self.__logger.debug("Reception done add text")
 
         window = Window()
-        window.set_text(self.WINDOW_TITLE_ID)
+        window.set_text_id(self.WINDOW_TITLE_ID)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
         self.__logger.debug("Reception done add window")
@@ -153,16 +153,16 @@ class Reception:
         window.add(amazing_panel, 0, 0)
 
         amazing_label = Label()
-        amazing_label.set_text(self.AMAZING_ID)
+        amazing_label.set_text_id(self.AMAZING_ID)
         amazing_panel.add(amazing_label, 0, 0)
 
         click_label = Label()
-        click_label.set_text(self.LABEL_CLICK_ID)
+        click_label.set_text_id(self.LABEL_CLICK_ID)
         click_label.set_size(1, 1)  # debug
         window.add(click_label, 1, 0)
 
         button = Button()
-        button.set_text(self.BUTTON_ID)
+        button.set_text_id(self.BUTTON_ID)
         button.set_size(1, 1)  # debug
         button.set_handle_click(
             ButtonHandler(click_label, self.LABEL_THANKS_ID)
@@ -183,7 +183,7 @@ class Reception:
         window.add(text_field, 1, 2)
 
 #        extra_label = Label()  # debug
-#        extra_label.set_text(self.EXTRA_ID)  # debug
+#        extra_label.set_text_id(self.EXTRA_ID)  # debug
 #        window.add(extra_label, 4, 0)  # debug
 
         window.set_visible(True)

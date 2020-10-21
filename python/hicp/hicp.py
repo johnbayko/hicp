@@ -543,32 +543,32 @@ class Label(ContainedComponent):
         ContainedComponent.__init__(self)
 
         self.component = Component.LABEL
-        self.__text = None # Number
+        self.__text_id = None # Number
 
-    def set_text(self, text_id):
-        self.__text = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text)
+    def set_text_id(self, text_id):
+        self.__text_id = str(text_id)
+        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
-        if self.__text is not None:
-            message.add_header(Message.TEXT, self.__text)
+        if self.__text_id is not None:
+            message.add_header(Message.TEXT, self.__text_id)
 
 class Button(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
 
         self.component = Component.BUTTON
-        self.__text = None # Number
+        self.__text_id = None # Number
 
-    def set_text(self, text_id):
-        self.__text = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text)
+    def set_text_id(self, text_id):
+        self.__text_id = str(text_id)
+        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
-        if self.__text is not None:
-            message.add_header(Message.TEXT, self.__text)
+        if self.__text_id is not None:
+            message.add_header(Message.TEXT, self.__text_id)
 
     def set_handle_click(self, handle_click):
         self.__handle_click = handle_click
@@ -1001,12 +1001,12 @@ class Window(Container):
         Container.__init__(self)
 
         self.component = Component.WINDOW
-        self.__text = None
+        self.__text_id = None
         self.__visible = False
 
-    def set_text(self, text_id):
-        self.__text = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text)
+    def set_text_id(self, text_id):
+        self.__text_id = str(text_id)
+        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def set_visible(self, visible):
         self.__visible = visible
@@ -1024,8 +1024,8 @@ class Window(Container):
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
 
-        if self.__text is not None:
-            message.add_header(Message.TEXT, self.__text)
+        if self.__text_id is not None:
+            message.add_header(Message.TEXT, self.__text_id)
 
         if self.__visible is not None:
             message.add_header(Message.VISIBLE, "true")
@@ -1645,18 +1645,14 @@ class HICP:
         self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
 
-    # TODO: Update text manager for these.
-    # TODO: Add text group parameters.
-
     def set_text_group(self, text_group):
-        "Will define what text group to use."
+        "Define what text group to use."
         if text_group != self.__text_group:
             self.__text_group = text_group
             self.__text_manager.set_group(text_group)
 
             # Group is changed, send all text from new group to client.
-            all_text = self.__text_manager.get_all_text()
-            for text_id, text in text_dict.items():
+            for text_id, text in self.__text_manager.get_all_text().items():
                 self.send_add_text_message(text_id, text)
 
     def add_all_text(self, text_dict):
