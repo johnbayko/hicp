@@ -395,7 +395,7 @@ class Event(Message):
         self.handler = None
 
 class Component:
-    """Components use Java-style getters and setters, because they need to
+    """Components use getters and setters functions, because they need to
 keep track of which items have been changed so they can be sent in
 "modify" messages when updated."""
 
@@ -412,7 +412,14 @@ keep track of which items have been changed so they can be sent in
         self.logger = newLogger(type(self).__name__)
 
         self.id = None
-        self.hicp = None
+        self.added_to_hicp = None
+
+        self.__text_id = None # Number
+        # When text string is set, it needs to be passed to client through hicp
+        # object (not text_id, which represents text string already sent). Must
+        # be same as added to hicp component, but used differently so can't be
+        # the same variable.
+        self.text_hicp = None
 
         self.changed_header_list = {}
 
@@ -429,6 +436,8 @@ keep track of which items have been changed so they can be sent in
         message.add_header(Message.CATEGORY, Message.GUI)
         message.add_header(Message.ID, str(self.id))
         message.add_header(self.COMPONENT, self.component)
+        if self.__text_id is not None:
+            message.add_header(Message.TEXT, self.__text_id)
 
     def fill_headers_modify(self, message):
         self.logger.debug("Component fill modify headers")
@@ -438,11 +447,15 @@ keep track of which items have been changed so they can be sent in
         # Other fields are in the changed header list, used by update.
 
     def update(self):
-        if self.hicp is None:
+        if self.added_to_hicp is None:
             # No hicp to handle update call.
             return
 
-        self.hicp.update(self)
+        self.added_to_hicp.update(self)
+
+    def set_text_id(self, text_id):
+        self.__text_id = str(text_id)
+        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def log(self, msg):
         self.logger.debug(msg)
@@ -538,37 +551,16 @@ position."""
         if field is not None:
             message.add_header(Message.SIZE, field)
 
+
 class Label(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
-
         self.component = Component.LABEL
-        self.__text_id = None # Number
-
-    def set_text_id(self, text_id):
-        self.__text_id = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text_id)
-
-    def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
-        if self.__text_id is not None:
-            message.add_header(Message.TEXT, self.__text_id)
 
 class Button(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
-
         self.component = Component.BUTTON
-        self.__text_id = None # Number
-
-    def set_text_id(self, text_id):
-        self.__text_id = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text_id)
-
-    def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
-        if self.__text_id is not None:
-            message.add_header(Message.TEXT, self.__text_id)
 
     def set_handle_click(self, handle_click):
         self.__handle_click = handle_click
@@ -986,8 +978,8 @@ class Container(ContainedComponent):
     def add(self, component, horizontal, vertical):
         component.set_parent(self)
         component.set_position(horizontal, vertical)
-        if self.hicp is not None:
-            self.hicp.add(component)
+        if self.added_to_hicp is not None:
+            self.added_to_hicp.add(component)
         self.__component_list.append(component)
 
 class Panel(Container):
@@ -1001,12 +993,7 @@ class Window(Container):
         Container.__init__(self)
 
         self.component = Component.WINDOW
-        self.__text_id = None
         self.__visible = False
-
-    def set_text_id(self, text_id):
-        self.__text_id = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def set_visible(self, visible):
         self.__visible = visible
@@ -1023,9 +1010,6 @@ class Window(Container):
 
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
-
-        if self.__text_id is not None:
-            message.add_header(Message.TEXT, self.__text_id)
 
         if self.__visible is not None:
             message.add_header(Message.VISIBLE, "true")
@@ -1691,17 +1675,17 @@ class HICP:
     def add(self, component):
         """Make a message to add the component."""
 
-        if component.hicp is not None:
+        if component.added_to_hicp is not None:
             # Already added. Maybe update instead.
             self.logger.debug("Alread added component") # debug
-            if self == component.hicp:
+            if self == component.added_to_hicp:
                 # Component was added to this HICP object, it can be
                 # updated.
                 self.logger.debug("about to update instead") # debug
                 self.update(component)
             return
 
-        component.hicp = self
+        component.added_to_hicp = self
         component.id = self.get_gui_id()
 
         # Add component to list first - when the other end gets it, it
@@ -1720,13 +1704,13 @@ class HICP:
     def update(self, component):
         """Normally, the component's update method is called, then it calls this method."""
 
-        if component.hicp is None:
-            # Not added yet. Only happens if hicp.update(component) is
+        if component.added_to_hicp is None:
+            # Not added yet. Only happens if added_to_hicp.update(component) is
             # called, component.update() can't call this because it has
             # no hicp component to pass that call to.
             self.add(component)
         else:
-            if self != component.hicp:
+            if self != component.added_to_hicp:
                 # Component was added to different HICP object, it
                 # cannot be updated.
                 self.logger.debug("Component has different hicp value.") # debug
@@ -1754,12 +1738,12 @@ class HICP:
 
     def remove(self, component):
         self.logger.debug("Remove component.") # debug
-        if component.hicp is None:
+        if component.added_to_hicp is None:
             # Not added yet, so can't remove.
             self.logger.debug("Can't remove component, has not been added.") # debug
             return
 
-        if self != component.hicp:
+        if self != component.added_to_hicp:
             # Component was added to different HICP object, it
             # cannot be updated.
             self.logger.debug("Component has different hicp value.") # debug
