@@ -133,7 +133,7 @@ class Reception:
         hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "Button window",
-            self.AMAZING_ID : "Amazing!",
+#            self.AMAZING_ID : "Amazing!",
             self.BUTTON_ID : "Button",
             self.LABEL_CLICK_ID : "Please click the button.",
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
@@ -153,7 +153,8 @@ class Reception:
         window.add(amazing_panel, 0, 0)
 
         amazing_label = Label()
-        amazing_label.set_text_id(self.AMAZING_ID)
+#        amazing_label.set_text_id(self.AMAZING_ID)
+        amazing_label.set_text("Extra Amazing!", hicp)
         amazing_panel.add(amazing_label, 0, 0)
 
         click_label = Label()

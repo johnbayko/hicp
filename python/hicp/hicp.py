@@ -550,11 +550,21 @@ class ComponentText():
         # object (not text_id, which represents text string already sent). Must
         # be same as added to hicp component, but used differently so can't be
         # the same variable.
-#        self.text_hicp = None
+        self.text_hicp = None
 
     def set_text_id(self, text_id):
-        self.__text_id = str(text_id)
-        self.control.set_changed_header(Message.TEXT, self.__text_id)
+        text_id_str = str(text_id)
+        if text_id_str != self.__text_id:
+            self.__text_id = text_id_str
+            self.control.set_changed_header(Message.TEXT, self.__text_id)
+
+    def set_text(self, text, hicp):
+        self.text_hicp = hicp
+
+        text_id = hicp.text_manager.add_text_get_id(text)
+        # Make sure text is added to client before setting here.
+        hicp.add_text(text_id, text)
+        self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
         if self.__text_id is not None:
@@ -570,6 +580,9 @@ class Label(ContainedComponent):
     def set_text_id(self, text_id):
         self.component_text.set_text_id(text_id)
 
+    def set_text(self, text, hicp):
+        self.component_text.set_text(text, hicp)
+
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
         self.component_text.fill_headers_add(message)
@@ -582,6 +595,9 @@ class Button(ContainedComponent):
 
     def set_text_id(self, text_id):
         self.component_text.set_text_id(text_id)
+
+    def set_text(self, text, hicp):
+        self.component_text.set_text(text, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -1023,6 +1039,9 @@ class Window(Container):
 
     def set_text_id(self, text_id):
         self.component_text.set_text_id(text_id)
+
+    def set_text(self, text, hicp):
+        self.component_text.set_text(text, hicp)
 
     def set_visible(self, visible):
         self.__visible = visible
@@ -1493,18 +1512,25 @@ class TextManagerGroup:
     "Contains id to string mapping for a text manager group"
 
     def __init__(self):
+        self.logger = newLogger(type(self).__name__)
+
         # Doesn't need to know what group it's in, just the text info.
         self.id_to_text = {}
         self.text_to_id = {}
 
     def add_text(self, text_id, text):
         self.text_to_id[text] = text_id
-        self.id_to_text[id] = text
+        self.id_to_text[text_id] = text
 
     def find_free_id(self):
-        ks = sorted(self.id_to_text.keys())
-        # Assuming keys start at 0, but specification allows negative ids.
-        prev_key = -1
+        keys = self.id_to_text.keys()
+        if 0 == len(keys):
+            # Nothing, any ID will do.
+            return 0
+        ks = sorted(keys)
+
+        # Start at lowest key value
+        prev_key = ks[0]
         for key in ks:
             if (key - prev_key) > 1:
                 # There was a gap in keys
@@ -1620,13 +1646,13 @@ class HICP:
             # Canadian English: Remember the "our"s, but not the "ise"s.
             text_group = "en-ca"
         self.__text_group = text_group
+        self.text_manager = TextManager(text_group)
         self.__authenticator = authenticator
 
     def start(self):
         # Things for this object
         # TODO: Maybe should be in __init__()?
         self.__gui_id = 0
-        self.__text_manager = TextManager(self.__text_group)
         self.__component_list = {}
         self.__event_handler_list = {}
 
@@ -1664,10 +1690,10 @@ class HICP:
         "Define what text group to use."
         if text_group != self.__text_group:
             self.__text_group = text_group
-            self.__text_manager.set_group(text_group)
+            self.text_manager.set_group(text_group)
 
             # Group is changed, send all text from new group to client.
-            for text_id, text in self.__text_manager.get_all_text().items():
+            for text_id, text in self.text_manager.get_all_text().items():
                 self.send_add_text_message(text_id, text)
 
     def add_all_text(self, text_dict):
@@ -1683,7 +1709,7 @@ class HICP:
             raise UnboundLocalError("text_string required, not defined")
 
         self.send_add_text_message(text_id, text_string)
-        self.__text_manager.add_text(text_id, text_string)
+        self.text_manager.add_text(text_id, text_string)
 
     def send_add_text_message(self, text_id, text_string):
         message = Message()
