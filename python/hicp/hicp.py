@@ -414,13 +414,6 @@ keep track of which items have been changed so they can be sent in
         self.id = None
         self.added_to_hicp = None
 
-        self.__text_id = None # Number
-        # When text string is set, it needs to be passed to client through hicp
-        # object (not text_id, which represents text string already sent). Must
-        # be same as added to hicp component, but used differently so can't be
-        # the same variable.
-        self.text_hicp = None
-
         self.changed_header_list = {}
 
     def set_changed_header(self, header, field):
@@ -436,8 +429,6 @@ keep track of which items have been changed so they can be sent in
         message.add_header(Message.CATEGORY, Message.GUI)
         message.add_header(Message.ID, str(self.id))
         message.add_header(self.COMPONENT, self.component)
-        if self.__text_id is not None:
-            message.add_header(Message.TEXT, self.__text_id)
 
     def fill_headers_modify(self, message):
         self.logger.debug("Component fill modify headers")
@@ -452,10 +443,6 @@ keep track of which items have been changed so they can be sent in
             return
 
         self.added_to_hicp.update(self)
-
-    def set_text_id(self, text_id):
-        self.__text_id = str(text_id)
-        self.set_changed_header(Message.TEXT, self.__text_id)
 
     def log(self, msg):
         self.logger.debug(msg)
@@ -552,15 +539,53 @@ position."""
             message.add_header(Message.SIZE, field)
 
 
+class ComponentText():
+    def __init__(self, control):
+        self.logger = newLogger(type(self).__name__)
+
+        self.control = control
+        self.__text_id = None # Number
+
+        # When text string is set, it needs to be passed to client through hicp
+        # object (not text_id, which represents text string already sent). Must
+        # be same as added to hicp component, but used differently so can't be
+        # the same variable.
+#        self.text_hicp = None
+
+    def set_text_id(self, text_id):
+        self.__text_id = str(text_id)
+        self.control.set_changed_header(Message.TEXT, self.__text_id)
+
+    def fill_headers_add(self, message):
+        if self.__text_id is not None:
+            message.add_header(Message.TEXT, self.__text_id)
+
+
 class Label(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.LABEL
+        self.component_text = ComponentText(self)
+
+    def set_text_id(self, text_id):
+        self.component_text.set_text_id(text_id)
+
+    def fill_headers_add(self, message):
+        ContainedComponent.fill_headers_add(self, message)
+        self.component_text.fill_headers_add(message)
 
 class Button(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.BUTTON
+        self.component_text = ComponentText(self)
+
+    def set_text_id(self, text_id):
+        self.component_text.set_text_id(text_id)
+
+    def fill_headers_add(self, message):
+        ContainedComponent.fill_headers_add(self, message)
+        self.component_text.fill_headers_add(message)
 
     def set_handle_click(self, handle_click):
         self.__handle_click = handle_click
@@ -993,7 +1018,11 @@ class Window(Container):
         Container.__init__(self)
 
         self.component = Component.WINDOW
+        self.component_text = ComponentText(self)
         self.__visible = False
+
+    def set_text_id(self, text_id):
+        self.component_text.set_text_id(text_id)
 
     def set_visible(self, visible):
         self.__visible = visible
@@ -1015,6 +1044,8 @@ class Window(Container):
             message.add_header(Message.VISIBLE, "true")
         else:
             message.add_header(Message.VISIBLE, "false")
+
+        self.component_text.fill_headers_add(message)
 
 
 class WriteThread(threading.Thread):
