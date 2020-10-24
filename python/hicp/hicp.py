@@ -546,12 +546,6 @@ class ComponentText():
         self.control = control
         self.__text_id = None # Number
 
-        # When text string is set, it needs to be passed to client through hicp
-        # object (not text_id, which represents text string already sent). Must
-        # be same as added to hicp component, but used differently so can't be
-        # the same variable.
-        self.text_hicp = None
-
     def set_text_id(self, text_id):
         text_id_str = str(text_id)
         if text_id_str != self.__text_id:
@@ -559,8 +553,6 @@ class ComponentText():
             self.control.set_changed_header(Message.TEXT, self.__text_id)
 
     def set_text(self, text, hicp):
-        self.text_hicp = hicp
-
         text_id = hicp.text_manager.add_text_get_id(text)
         # Make sure text is added to client before setting here.
         hicp.add_text(text_id, text)
