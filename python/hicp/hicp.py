@@ -552,11 +552,37 @@ class ComponentText():
             self.__text_id = text_id_str
             self.control.set_changed_header(Message.TEXT, self.__text_id)
 
-    def set_text(self, text, hicp):
+    def set_text_get_id(self, text, hicp, group = None):
         text_id = hicp.text_manager.add_text_get_id(text)
+
         # Make sure text is added to client before setting here.
         hicp.add_text(text_id, text)
         self.set_text_id(text_id)
+
+        return text_id
+
+    def set_groups_text(self, group_text_dict, hicp):
+        "Set text strings for a bunch of groups."
+        # Find the ID for the text in the current group (either exisitng, or
+        # new ID when added).
+        # For each other group, add the text for that group using the same ID.
+        # This has the potential to really screw up text IDs if they haven't
+        # been added in a consistent way. Caveat emptor.
+
+        tm = hicp.text_manager
+        cg = tm.current_group
+
+        # Is text being added for the current group?
+        if cg not in group_text_dict:
+            # Don't know what ID to use for the new text,
+            raise ValueError("Setting group text but missing text for current group " + cg)
+
+        cg_text_to_add = group_text_dict[cg]
+        text_id = self.set_text_get_id(cg_text_to_add, hicp, cg)
+
+        # Don't need to filter out group already added, tm has no side effects,
+        for group, text_to_add in group_text_dict.items():
+            tm.add_text(text_id, text_to_add, group)
 
     def fill_headers_add(self, message):
         if self.__text_id is not None:
@@ -573,7 +599,10 @@ class Label(ContainedComponent):
         self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
+
+    def set_groups_text(self, group_text_dict, hicp):
+        self.component_text.set_groups_text(group_text_dict, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -589,7 +618,10 @@ class Button(ContainedComponent):
         self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
+
+    def set_groups_text(self, group_text_dict, hicp):
+        self.component_text.set_groups_text(group_text_dict, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -1033,7 +1065,10 @@ class Window(Container):
         self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
+
+    def set_groups_text(self, group_text_dict, hicp):
+        self.component_text.set_groups_text(group_text_dict, hicp)
 
     def set_visible(self, visible):
         self.__visible = visible
@@ -1555,16 +1590,18 @@ class TextManagerGroup:
 class TextManager:
     "Manage text groups, IDs, and strings"
 
-    def __init__(self, default_group: str):
-        if default_group is None or '' == default_group:
-            raise UnboundLocalError("default_group required, not defined")
+    def __init__(self, current_group: str):
+        if current_group is None or '' == current_group:
+            raise UnboundLocalError("current_group required, not defined")
 
         self.groups: Dict[str, TextManagerGroup] = {}
-        self.set_group(default_group)
+        self.deault_group = None
+
+        self.set_group(current_group)
 
     def get_group(self, group: str = None):
         if group is None:
-            group = self.default_group
+            group = self.current_group
 
         if group in self.groups:
             return self.groups[group]
@@ -1579,7 +1616,7 @@ class TextManager:
 
         # Creates group as side effect.
         self.get_group(new_group)
-        self.default_group = new_group
+        self.current_group = new_group
 
     # TODO: Maybe don't need these - just get group and use directly.
     def add_text(self, text_id, text, group: str = None):

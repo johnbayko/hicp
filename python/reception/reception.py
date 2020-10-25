@@ -154,7 +154,11 @@ class Reception:
 
         amazing_label = Label()
 #        amazing_label.set_text_id(self.AMAZING_ID)
-        amazing_label.set_text("Extra Amazing!", hicp)
+#        amazing_label.set_text("Extra Amazing!", hicp)
+        amazing_label.set_groups_text({
+                "en-ca" : "en-ca Amazing!",
+                "fr" : "fr Amazing!"
+            }, hicp)
         amazing_panel.add(amazing_label, 0, 0)
 
         click_label = Label()
