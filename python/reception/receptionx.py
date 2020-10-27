@@ -15,7 +15,8 @@ s.listen()
 # start actual reception app.
 f = cs.makefile(mode='rw', encoding='utf-8', newline='\n')
 
-reception_app = reception.Reception(f, f)
+#reception_app = reception.Reception(f, f)
+reception_app = reception.ReceptionML(f, f)
 reception_app.start()
 
 cs.close()

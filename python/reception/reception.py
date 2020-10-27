@@ -133,7 +133,7 @@ class Reception:
         hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "Button window",
-#            self.AMAZING_ID : "Amazing!",
+            self.AMAZING_ID : "Amazing!",
             self.BUTTON_ID : "Button",
             self.LABEL_CLICK_ID : "Please click the button.",
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
@@ -153,12 +153,7 @@ class Reception:
         window.add(amazing_panel, 0, 0)
 
         amazing_label = Label()
-#        amazing_label.set_text_id(self.AMAZING_ID)
-#        amazing_label.set_text("Extra Amazing!", hicp)
-        amazing_label.set_groups_text({
-                "en-ca" : "en-ca Amazing!",
-                "fr" : "fr Amazing!"
-            }, hicp)
+        amazing_label.set_text_id(self.AMAZING_ID)
         amazing_panel.add(amazing_label, 0, 0)
 
         click_label = Label()
@@ -190,6 +185,141 @@ class Reception:
 #        extra_label = Label()  # debug
 #        extra_label.set_text_id(self.EXTRA_ID)  # debug
 #        window.add(extra_label, 4, 0)  # debug
+
+        window.set_visible(True)
+        self.__logger.debug("About to window.update") # debug
+        window.update()
+        self.__logger.debug("Done window.update") # debug
+
+
+# Will eventually do authentication (really?).
+#    def authenticate(self):
+        # Does nothing yet.
+#        pass
+
+    def start(self):
+        self.__logger.debug('start()')
+        # Make an authenticator
+        authenticator = Authenticator(os.path.join(sys.path[0], "users"))
+
+        # Make an HICP object
+        self.__logger.debug("about to make HICP")
+        hicp = HICP(
+            in_stream=self.in_stream,
+            out_stream=self.out_stream,
+            default_app=self,
+            app_list=None,
+            authenticator=authenticator)
+
+        self.__logger.debug("about to start HICP")
+        hicp.start()
+        self.__logger.debug("done HICP")
+
+
+class ButtonHandlerML:
+    def __init__(self, label, next_group_text, hicp):
+        self.logger = newLogger(type(self).__name__)
+        self.__label = label
+        self.__next_group_text = next_group_text
+        self.__hicp = hicp
+
+    def update(self, hicp, event_message, component):
+        self.logger.debug("ButtonHandler In update handler")
+        self.__label.set_groups_text(self.__next_group_text, self.__hicp)
+        self.__label.update()
+
+
+class TextFieldHandlerML:
+    def __init__(self, label, next_group_text, hicp):
+        self.logger = newLogger(type(self).__name__)
+        self.__label = label
+        self.__next_group_text = next_group_text
+        self.__hicp = hicp
+
+    def update(self, hicp, event_message, component):
+        self.logger.debug("TextFieldHandler In update handler")
+        self.logger.debug("attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
+        self.__label.set_groups_text(self.__next_group_text, self.__hicp)
+        self.__label.update()
+
+        component.set_content("Woo-hoo!")
+        component.update()
+
+
+# Test multilingual features.
+class ReceptionML:
+    LANG_EN_CA = "en-ca"
+    LANG_FR_CA = "fr-ca"
+
+    def __init__(self, in_stream, out_stream):
+        self.in_stream = in_stream
+        self.out_stream = out_stream
+
+        self.__logger = newLogger(type(self).__name__)
+
+    def connected(self, hicp):
+        self.__logger.debug("Reception connected")
+#        hicp.text_direction(hicp.LEFT, hicp.UP) # debug
+        hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
+        hicp.set_text_group(self.LANG_EN_CA) # debug
+
+        window = Window()
+        window.set_groups_text({
+                self.LANG_EN_CA: "Window",
+                self.LANG_FR_CA: "Fenȇtre"
+            }, hicp)
+        window.set_handle_close(ButtonWindowCloser())
+        hicp.add(window)
+        self.__logger.debug("Reception done add window")
+
+        # TODO: Make amazing panel, add amazing label.
+        amazing_panel = Panel()
+        window.add(amazing_panel, 0, 0)
+
+        amazing_label = Label()
+        amazing_label.set_groups_text({
+                self.LANG_EN_CA : "Amazing!",
+                self.LANG_FR_CA : "Sensationnel!"
+            }, hicp)
+        amazing_panel.add(amazing_label, 0, 0)
+
+        click_label = Label()
+        click_label.set_groups_text({
+                self.LANG_EN_CA : "Please click the button.",
+                self.LANG_FR_CA : "Veuillez cliquer sur le bouton."
+            }, hicp)
+        click_label.set_size(1, 1)  # debug
+        window.add(click_label, 1, 0)
+
+        button = Button()
+        button.set_groups_text({
+                self.LANG_EN_CA : "Button",
+                self.LANG_FR_CA : "Bouton"
+            }, hicp)
+        button.set_size(1, 1)  # debug
+        button.set_handle_click(
+            ButtonHandlerML(click_label, {
+                self.LANG_EN_CA : "Thank you. Don't click the button again.",
+                self.LANG_FR_CA : "Merci. Ne cliquez plus sur le bouton."
+            }, hicp)
+        )
+        window.add(button, 1, 1)
+
+        text_field = TextField()
+        text_field.set_content("This is text.")
+        # debug - test binary attribute - underline "is"
+        # Should be: 5 2 6
+        text_field.set_attribute(TextField.UNDERLINE, 5, 2)
+        # debug - test value attribute - size of "text"
+        # Should be: 8 2=4 1
+        text_field.set_attribute(TextField.SIZE, 8, 4, "2")
+        text_field.set_handle_changed(
+            TextFieldHandlerML(click_label, {
+                self.LANG_EN_CA : "Text has been changed.",
+                self.LANG_FR_CA : "Le texte a été modifié."
+            }, hicp)
+        )
+        window.add(text_field, 1, 2)
 
         window.set_visible(True)
         self.__logger.debug("About to window.update") # debug
