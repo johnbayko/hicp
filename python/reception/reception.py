@@ -229,6 +229,17 @@ class ButtonHandlerML:
         self.__label.update()
 
 
+class ButtonLangHandler:
+    def __init__(self, lang, hicp):
+        self.logger = newLogger(type(self).__name__)
+        self.__lang = lang
+        self.__hicp = hicp
+
+    def update(self, hicp, event_message, component):
+        self.logger.debug("ButtonLangHandler In update handler")
+        self.__hicp.set_text_group(self.__lang)
+
+
 class TextFieldHandlerML:
     def __init__(self, label, next_group_text, hicp):
         self.logger = newLogger(type(self).__name__)
@@ -259,9 +270,9 @@ class ReceptionML:
 
     def connected(self, hicp):
         self.__logger.debug("Reception connected")
-#        hicp.text_direction(hicp.LEFT, hicp.UP) # debug
-        hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
-        hicp.set_text_group(self.LANG_EN_CA) # debug
+#        hicp.text_direction(hicp.LEFT, hicp.DOWN) # debug
+        hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
+        hicp.set_text_group(self.LANG_EN_CA)
 
         window = Window()
         window.set_groups_text({
@@ -282,6 +293,26 @@ class ReceptionML:
                 self.LANG_FR_CA : "Sensationnel!"
             }, hicp)
         amazing_panel.add(amazing_label, 0, 0)
+
+        button_en = Button()
+        button_en.set_groups_text({
+                self.LANG_EN_CA : "English",
+                self.LANG_FR_CA : "English"
+            }, hicp)
+        button_en.set_handle_click(
+            ButtonLangHandler(self.LANG_EN_CA, hicp)
+        )
+        amazing_panel.add(button_en, 0, 1)
+
+        button_fr = Button()
+        button_fr.set_groups_text({
+                self.LANG_EN_CA : "Français",
+                self.LANG_FR_CA : "Français"
+            }, hicp)
+        button_fr.set_handle_click(
+            ButtonLangHandler(self.LANG_FR_CA, hicp)
+        )
+        amazing_panel.add(button_fr, 0, 2)
 
         click_label = Label()
         click_label.set_groups_text({

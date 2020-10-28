@@ -208,7 +208,7 @@ class Message:
                             if 0 <= boundary_index:
                                 # Make sure last escape did not affect
                                 # boundary. If it did, it's not the
-                                # boundary we're looking for. 
+                                # boundary we're looking for.
                                 if prev_last_esc_affects_eol \
                                     and after_last_esc_index <= boundary_index:
 
@@ -1180,7 +1180,7 @@ class ProcessThread(threading.Thread):
             component = event.component
         except AttributeError:
             component = None
-            
+
         try:
             handler = event.handler
         except AttributeError:
@@ -1455,7 +1455,7 @@ class EventThread(threading.Thread):
             component = event.component
         except AttributeError:
             component = None
-            
+
         try:
             handler = event.handler
         except AttributeError:
@@ -1510,7 +1510,7 @@ class EventThread(threading.Thread):
             component = event.component
         except AttributeError:
             component = None
-            
+
         try:
             handler = event.handler
         except AttributeError:
@@ -1524,9 +1524,9 @@ class EventThread(threading.Thread):
             else:
                 handler.update(self.hicp, event)
 
-        except AttributeError:
+        except AttributeError as ae:
             # No process handler, no biggie. Ignore it.
-            self.logger.debug("event_update event handler has no update method")
+            self.logger.debug("event_update event handler missing method: " + str(ae))
         except TypeError:
             # Process handler has wrong number of arguments.
             self.logger.debug("event update handler has wrong number of args")
