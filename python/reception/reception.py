@@ -4,7 +4,9 @@ import os.path
 import sys
 import threading
 
-from hicp import HICP, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP
+from component import Panel, Window, Label, Button, TextField
+from message import Message
 
 def newLogger(name):
     lf = logging.Formatter('%(name)s:%(funcName)s %(lineno)d: %(message)s')
