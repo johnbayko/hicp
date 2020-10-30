@@ -1,6 +1,6 @@
 import re
 
-from logger import newLogger
+from hicp.logger import newLogger
 
 class Message:
     # Constants

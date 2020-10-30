@@ -1,4 +1,4 @@
-export PYTHONPATH=hicp
+export PYTHONPATH=.
 
 rm reception.log
 touch reception.log

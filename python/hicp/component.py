@@ -1,7 +1,7 @@
 import re
 
-from logger import newLogger
-from message import Message
+from hicp.logger import newLogger
+from hicp.message import Message
 
 class Component:
     """Components use getters and setters functions, because they need to

@@ -5,8 +5,8 @@ import re
 import sys
 import threading
 
-from logger import newLogger
-from message import Message, Event
+from hicp.logger import newLogger
+from hicp.message import Message, Event
 
 class WriteThread(threading.Thread):
     def __init__(self, out_stream):
@@ -532,7 +532,6 @@ class TextManager:
         self.get_group(new_group)
         self.current_group = new_group
 
-    # TODO: Maybe don't need these - just get group and use directly.
     def add_text(self, text_id, text, group: str = None):
         self.get_group(group).add_text(text_id, text)
 
