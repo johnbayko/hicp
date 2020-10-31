@@ -685,12 +685,12 @@ class HICP:
             return
 
         component.added_to_hicp = self
-        component.id = self.get_gui_id()
+        component.component_id = self.get_gui_id()
 
         # Add component to list first - when the other end gets it, it
         # might send an event right away, and this side should be ready for
         # processing without delay.
-        self.__component_list[str(component.id)] = component
+        self.__component_list[str(component.component_id)] = component
 
         message = Message()
         message.set_type(Message.COMMAND, Message.ADD)
@@ -751,7 +751,7 @@ class HICP:
         message = Message()
         message.set_type(Message.COMMAND, Message.REMOVE)
         message.add_header(Message.CATEGORY, Message.GUI)
-        message.add_header(Message.ID, str(component.id))
+        message.add_header(Message.ID, str(component.component_id))
 
         self.__write_thread.write(message)
         self.logger.debug("sent Remove component message.") # debug
@@ -762,7 +762,7 @@ class HICP:
         self.logger.debug("Cleared header list.") # debug
 
         # Remove from component list.
-        del self.__component_list[str(component.id)]
+        del self.__component_list[str(component.component_id)]
 
         self.logger.debug("Removed component from component list.") # debug
 

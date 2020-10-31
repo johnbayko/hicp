@@ -20,7 +20,7 @@ keep track of which items have been changed so they can be sent in
     def __init__(self):
         self.logger = newLogger(type(self).__name__)
 
-        self.id = None
+        self.component_id = None
         self.added_to_hicp = None
 
         self.changed_header_list = {}
@@ -34,15 +34,15 @@ keep track of which items have been changed so they can be sent in
         self.changed_header_list[header] = field
 
     def fill_headers_add(self, message):
-        self.logger.debug("Component fill add headers: " + Message.GUI + " id " + str(self.id) + " component " + self.component)  # debug
+        self.logger.debug("Component fill add headers: " + Message.GUI + " component_id " + str(self.component_id) + " component " + self.component)  # debug
         message.add_header(Message.CATEGORY, Message.GUI)
-        message.add_header(Message.ID, str(self.id))
+        message.add_header(Message.ID, str(self.component_id))
         message.add_header(self.COMPONENT, self.component)
 
     def fill_headers_modify(self, message):
         self.logger.debug("Component fill modify headers")
         message.add_header(Message.CATEGORY, Message.GUI)
-        message.add_header(Message.ID, str(self.id))
+        message.add_header(Message.ID, str(self.component_id))
 
         # Other fields are in the changed header list, used by update.
 
@@ -76,16 +76,16 @@ position."""
             self.logger.debug("ContainedComponent.set_parent() component is null")
             return
         try:
-            if component.id is None:
-                # No id attribute.
-                self.logger.debug("ContainedComponent.set_parent() component has null id attribute")
+            if component.component_id is None:
+                # No component_id attribute.
+                self.logger.debug("ContainedComponent.set_parent() component has null component_id attribute")
                 return
         except AttributeError:
-            # No id attribute at all.
-            self.logger.debug("ContainedComponent.set_parent() component has no .id attribute")
+            # No component_id attribute at all.
+            self.logger.debug("ContainedComponent.set_parent() component has no .component_id attribute")
             return
 
-        self.__parent_id = component.id
+        self.__parent_id = component.component_id
         self.set_changed_header(Message.PARENT, str(self.__parent_id))
 
     def __position_field(self):
