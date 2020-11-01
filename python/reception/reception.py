@@ -112,7 +112,7 @@ class TextFieldHandler:
         component.update()
 
 
-class Reception:
+class TestApp:
     WINDOW_TITLE_ID = 1
     AMAZING_ID = 2
     BUTTON_ID = 3
@@ -121,15 +121,11 @@ class Reception:
     LABEL_CHANGED_ID = 6
     EXTRA_ID = 7  # debug
 
-    def __init__(self, in_stream, out_stream):
-        self.in_stream = in_stream
-        self.out_stream = out_stream
-
+    def __init__(self):
         self.__logger = newLogger(type(self).__name__)
 
     def connected(self, hicp):
-        self.__logger.debug("Reception connected")
-#        hicp.text_direction(hicp.LEFT, hicp.UP) # debug
+        self.__logger.debug("TestApp connected")
         hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "Button window",
@@ -140,13 +136,13 @@ class Reception:
             self.LABEL_CHANGED_ID : "Text has been changed.",
             self.EXTRA_ID : "Extra"  # debug
         })
-        self.__logger.debug("Reception done add text")
+        self.__logger.debug("TestApp done add text")
 
         window = Window()
         window.set_text_id(self.WINDOW_TITLE_ID)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
-        self.__logger.debug("Reception done add window")
+        self.__logger.debug("TestApp done add window")
 
         # TODO: Make amazing panel, add amazing label.
         amazing_panel = Panel()
@@ -197,24 +193,6 @@ class Reception:
         # Does nothing yet.
 #        pass
 
-    def start(self):
-        self.__logger.debug('start()')
-        # Make an authenticator
-        authenticator = Authenticator(os.path.join(sys.path[0], "users"))
-
-        # Make an HICP object
-        self.__logger.debug("about to make HICP")
-        hicp = HICP(
-            in_stream=self.in_stream,
-            out_stream=self.out_stream,
-            default_app=self,
-            app_list=None,
-            authenticator=authenticator)
-
-        self.__logger.debug("about to start HICP")
-        hicp.start()
-        self.__logger.debug("done HICP")
-
 
 class ButtonHandlerML:
     def __init__(self, label, next_group_text, hicp):
@@ -258,19 +236,15 @@ class TextFieldHandlerML:
 
 
 # Test multilingual features.
-class ReceptionML:
+class TestAppML:
     LANG_EN_CA = "en-ca"
     LANG_FR_CA = "fr-ca"
 
-    def __init__(self, in_stream, out_stream):
-        self.in_stream = in_stream
-        self.out_stream = out_stream
-
+    def __init__(self):
         self.__logger = newLogger(type(self).__name__)
 
     def connected(self, hicp):
-        self.__logger.debug("Reception connected")
-#        hicp.text_direction(hicp.LEFT, hicp.DOWN) # debug
+        self.__logger.debug("TestAppML connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
         hicp.set_text_group(self.LANG_EN_CA)
 
@@ -281,7 +255,7 @@ class ReceptionML:
             }, hicp)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
-        self.__logger.debug("Reception done add window")
+        self.__logger.debug("TestAppML done add window")
 
         # TODO: Make amazing panel, add amazing label.
         amazing_panel = Panel()
@@ -363,12 +337,22 @@ class ReceptionML:
         # Does nothing yet.
 #        pass
 
+class Reception:
+    def __init__(self, in_stream, out_stream):
+        self.in_stream = in_stream
+        self.out_stream = out_stream
+
+        self.__logger = newLogger(type(self).__name__)
+
     def start(self):
         self.__logger.debug('start()')
 
         # Make app list.
-        default_app = "test"
-        app_list = {default_app: self}
+        app_list = {
+            "test": TestApp(),
+            "testml": TestAppML()
+        }
+        default_app = list(app_list.keys())[0]
 
         # Make an authenticator.
         authenticator = Authenticator(os.path.join(sys.path[0], "users"))
