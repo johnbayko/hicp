@@ -365,16 +365,21 @@ class ReceptionML:
 
     def start(self):
         self.__logger.debug('start()')
-        # Make an authenticator
+
+        # Make app list.
+        default_app = "test"
+        app_list = {default_app: self}
+
+        # Make an authenticator.
         authenticator = Authenticator(os.path.join(sys.path[0], "users"))
 
-        # Make an HICP object
+        # Make an HICP object.
         self.__logger.debug("about to make HICP")
         hicp = HICP(
             in_stream=self.in_stream,
             out_stream=self.out_stream,
-            default_app=self,
-            app_list=None,
+            app_list=app_list,
+            default_app=default_app,
             authenticator=authenticator)
 
         self.__logger.debug("about to start HICP")

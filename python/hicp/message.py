@@ -335,6 +335,7 @@ class Message:
         self.__headers.clear()
 
     def get_header(self, header_key):
+        "Return value for key, or None if no header with that key, or key is None."
         if header_key is None:
             return None
 
@@ -343,7 +344,7 @@ class Message:
             header_value = self.__headers[header_key.lower()]
         except KeyError:
             self.logger.debug("Header not found key: " + header_key) # debug
-            for header_key in list(self.__headers.keys()):
+            for header_key in list(self.__headers.keys()):  # debug
                 header_value = self.__headers[header_key] # debug
                 self.logger.debug("get_header " + header_key + ": " + header_value) # debug
             header_value = None

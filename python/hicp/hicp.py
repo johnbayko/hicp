@@ -148,17 +148,18 @@ class EventThread(threading.Thread):
         app_list=None,
         authenticator=None):
 
+        self.logger = newLogger(type(self).__name__)
+
         self.hicp = hicp
         self.component_list = component_list
         self.event_handler_list = event_handler_list
         self.write_thread = write_thread
         self.default_app = default_app
-
-        self.logger = newLogger(type(self).__name__)
         self.app_list = app_list
         self.authenticator = authenticator
 
         self.event_queue = queue.Queue()
+        self.connect_event = None
 
         threading.Thread.__init__(self)
 
@@ -197,7 +198,7 @@ class EventThread(threading.Thread):
             if STATE_WAIT_CONNECT == state:
                 if Message.CONNECT == event_type:
                     # save connection info.
-                    connect_event = event
+                    self.connect_event = event
 
                     if self.authenticator is not None:
                         # Send an authentication request
@@ -224,8 +225,10 @@ class EventThread(threading.Thread):
                         # Can the default application do
                         # authentication?
                         try:
-                            self.default_app.authenticate()
-                            state = STATE_RUNNING
+                            app = self.get_app()
+                            if app is not None:
+                                self.default_app.authenticate()
+                                state = STATE_RUNNING
                         except AttributeError:
                             # Can't authenticate, send disconnect
                             # command and go back to wait for connect.
@@ -325,18 +328,30 @@ class EventThread(threading.Thread):
 
         self.write_thread.write(message)
 
+    def get_app(self):
+        if self.app_list is None:
+            # Nothing to start, so done.
+            return
+
+        if self.connect_event is None:
+            # Not conected.
+            return
+
+        app_name = self.connect_event.get_header(Message.APPLICATION)
+
+        if app_name is None:
+            # Connection event didn't specify one, use default.
+            app_name = self.default_app
+
+        if app_name is None or app_name not in self.app_list.keys():
+            # No default, pick first app in list.
+            app_name = (self.app_list.keys())[0]
+
+        return self.app_list[app_name]
+
     def start_application(self, event):
         # select app and start running.
-        application = self.default_app
-        if self.app_list is not None:
-            app_name = event.get_header(Message.APPLICATION)
-            if app_name is not None:
-                # User wants specific app.
-                try:
-                    application = self.app_list[app_name]
-                except KeyError:
-                    # App not found, use default application.
-                    pass
+        application = self.get_app()
 
         # Notify application that it's connected so it can send messages
         # to define the user interface.
@@ -561,8 +576,8 @@ class HICP:
         self,
         in_stream,
         out_stream,
-        default_app,
-        app_list=None,
+        app_list,
+        default_app=None,
         text_group=None,
         authenticator=None):
 
@@ -572,9 +587,6 @@ class HICP:
 
         if out_stream is None:
             raise UnboundLocalError("out_stream required, not defined")
-
-        if default_app is None:
-            raise UnboundLocalError("default_app required, not defined")
 
         self.logger = newLogger(type(self).__name__)
 
