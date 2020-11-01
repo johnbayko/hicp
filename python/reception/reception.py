@@ -337,22 +337,86 @@ class TestAppML:
         # Does nothing yet.
 #        pass
 
+class ButtonAppHandler:
+    def __init__(self, reception_window, app, hicp):
+        self.logger = newLogger(type(self).__name__)
+        self.__reception_window = reception_window
+        self.__app = app
+        self.__hicp = hicp
+
+    def update(self, hicp, event_message, component):
+        self.logger.debug("ButtonLangHandler In update handler")
+        self.__hicp.remove(self.__reception_window)
+        self.__app.connected(self.__hicp)
+
 class Reception:
+    WINDOW_TITLE_ID = 1
+    SELECT_APP_ID = 2
+    TEST_APP_ID = 3
+    TEST_APP_ML_ID = 4
+
+    APP_NAME_SELF = "self"
+    APP_NAME_TEST = "test"
+    APP_NAME_TEST_ML = "test"
+
     def __init__(self, in_stream, out_stream):
         self.in_stream = in_stream
         self.out_stream = out_stream
 
         self.__logger = newLogger(type(self).__name__)
 
+        # Make app list.
+        self.app_list = {
+            self.APP_NAME_SELF: self,
+            self.APP_NAME_TEST: TestApp(),
+            self.APP_NAME_TEST_ML: TestAppML()
+        }
+        self.default_app = self.APP_NAME_SELF
+
+    def connected(self, hicp):
+        self.__logger.debug("TestAppML connected")
+        hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
+#        hicp.set_text_group(self.LANG_EN_CA)
+        hicp.add_all_text({
+            self.WINDOW_TITLE_ID : "App list",
+            self.SELECT_APP_ID : "Select app:",
+            self.TEST_APP_ID : "Test",
+            self.TEST_APP_ML_ID : "Test Multi-language",
+        })
+
+        window = Window()
+        window.set_text_id(self.WINDOW_TITLE_ID)
+        window.set_handle_close(ButtonWindowCloser())
+        hicp.add(window)
+        self.__logger.debug("TestAppML done add window")
+
+        select_app_label = Label()
+        select_app_label.set_text_id(self.SELECT_APP_ID)
+        window.add(select_app_label, 0, 0)
+
+        button_test = Button()
+        button_test.set_text_id(self.TEST_APP_ID)
+        button_test.set_handle_click(
+            ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST], hicp)
+        )
+        window.add(button_test, 0, 1)
+
+        button_test_ml = Button()
+        button_test_ml.set_text_id(self.TEST_APP_ML_ID)
+        button_test_ml.set_handle_click(
+            ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST_ML], hicp)
+        )
+        window.add(button_test_ml, 0, 2)
+
     def start(self):
         self.__logger.debug('start()')
 
         # Make app list.
-        app_list = {
-            "test": TestApp(),
-            "testml": TestAppML()
-        }
-        default_app = list(app_list.keys())[0]
+#        app_list = {
+#            "test": TestApp(),
+#            "testml": TestAppML()
+#        }
+#        default_app = list(app_list.keys())[0]
 
         # Make an authenticator.
         authenticator = Authenticator(os.path.join(sys.path[0], "users"))
@@ -362,8 +426,8 @@ class Reception:
         hicp = HICP(
             in_stream=self.in_stream,
             out_stream=self.out_stream,
-            app_list=app_list,
-            default_app=default_app,
+            app_list=self.app_list,
+            default_app=self.default_app,
             authenticator=authenticator)
 
         self.__logger.debug("about to start HICP")
