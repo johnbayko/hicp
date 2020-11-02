@@ -119,7 +119,7 @@ class TestApp:
     LABEL_CLICK_ID = 4
     LABEL_THANKS_ID = 5
     LABEL_CHANGED_ID = 6
-    EXTRA_ID = 7  # debug
+#    EXTRA_ID = 7  # debug
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -134,7 +134,7 @@ class TestApp:
             self.LABEL_CLICK_ID : "Please click the button.",
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
             self.LABEL_CHANGED_ID : "Text has been changed.",
-            self.EXTRA_ID : "Extra"  # debug
+#            self.EXTRA_ID : "Extra"  # debug
         })
         self.__logger.debug("TestApp done add text")
 
@@ -327,9 +327,7 @@ class TestAppML:
         window.add(text_field, 1, 2)
 
         window.set_visible(True)
-        self.__logger.debug("About to window.update") # debug
         window.update()
-        self.__logger.debug("Done window.update") # debug
 
 
 # Will eventually do authentication (really?).
@@ -357,7 +355,7 @@ class Reception:
 
     APP_NAME_SELF = "self"
     APP_NAME_TEST = "test"
-    APP_NAME_TEST_ML = "test"
+    APP_NAME_TEST_ML = "testml"
 
     def __init__(self, in_stream, out_stream):
         self.in_stream = in_stream
@@ -376,7 +374,6 @@ class Reception:
     def connected(self, hicp):
         self.__logger.debug("TestAppML connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
-#        hicp.set_text_group(self.LANG_EN_CA)
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "App list",
             self.SELECT_APP_ID : "Select app:",
@@ -410,13 +407,6 @@ class Reception:
 
     def start(self):
         self.__logger.debug('start()')
-
-        # Make app list.
-#        app_list = {
-#            "test": TestApp(),
-#            "testml": TestAppML()
-#        }
-#        default_app = list(app_list.keys())[0]
 
         # Make an authenticator.
         authenticator = Authenticator(os.path.join(sys.path[0], "users"))
