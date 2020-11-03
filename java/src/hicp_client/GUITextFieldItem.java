@@ -184,6 +184,7 @@ log("changedEvent.attributes \"" + changedEvent.attributes.toString() + "\"");  
     }
 
     public void dispose() {
+        super.dispose();
         _component = null;
     }
 

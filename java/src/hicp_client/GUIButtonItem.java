@@ -123,6 +123,7 @@ public class GUIButtonItem
     }
 
     public void dispose() {
+        super.dispose();
         _component = null;
     }
 

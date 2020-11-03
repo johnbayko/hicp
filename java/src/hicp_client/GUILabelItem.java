@@ -111,6 +111,7 @@ public class GUILabelItem
     }
 
     public void dispose() {
+        super.dispose();
         _component = null;
     }
 

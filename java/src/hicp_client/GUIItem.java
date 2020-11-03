@@ -148,8 +148,13 @@ public abstract class GUIItem
         down. Items should not remove themselves from parents in this
         case - the parents are being disposed of as well, and all will
         be cleaned up.
+        TODO: Not necessarily? Check.
      */
-    public abstract void dispose();
+    public void dispose() {
+        if (null != _textItem) {
+            _textItem.removeTextListener(this);
+        }
+    }
 
     public abstract GUIItem modify(Modify modifyCmd, TextItem textItem);
 

@@ -3,8 +3,13 @@ package hicp_client;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TextItem {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIWindowItem.class.getName() );
+
     public final int id;
     public final String idString;
 

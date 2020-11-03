@@ -284,17 +284,18 @@ class Message:
     def write(self, out_stream):
         if out_stream is None:
             raise UnboundLocalError("out_stream required, not defined")
-        self.logger.debug("Write type " + self.__type + ": " + self.__type_value) # debug
+        # self.logger.debug("Write: " + self.__type + ": " + self.__type_value) # debug
         out_stream.write(self.__type + ": " + self.__type_value + "\r\n")
 
         # Write all headers
         for header_key in list(self.__headers.keys()):
             header_value = self.__headers[header_key]
-            self.logger.debug("header " + header_key + ": " + header_value) # debug
+            # self.logger.debug("header " + header_key + ": " + header_value) # debug
             # If value has "\r\n" within it, output as data block,
             # otherwise as simple header.
             if -1 == header_value.find("\r\n"):
                 # Simple header field.
+                # self.logger.debug("Write: " + header_key + ": " + header_value + "\r\n") # debug
                 out_stream.write(header_key + ": " + header_value + "\r\n")
             else:
                 # Data block.
@@ -316,7 +317,7 @@ class Message:
                 out_stream.write("\r\n--\r\n")
 
         # Write end of message blank line
-        self.logger.debug(" write:" + "\r\n") # debug
+        # self.logger.debug(" write:" + "\r\n") # debug
         out_stream.write("\r\n")
 
         out_stream.flush()

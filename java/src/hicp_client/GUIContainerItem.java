@@ -144,6 +144,8 @@ public abstract class GUIContainerItem
 
     public void dispose() {
 log("GUIContainerItem.dispose() entered");  // debug
+        super.dispose();
+
         synchronized (_itemList) {
             final Iterator itemIterator = _itemList.iterator();
 log("GUIContainerItem.dispose() got _itemList.iterator()");  // debug
