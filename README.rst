@@ -30,6 +30,7 @@ This repository contains:
 
   docs
     - Documentation for the protocol itself.
+    - An overview of the Python HICP package and how to use it.
 
   java
     - A library of general classes, mainly HICP messages.

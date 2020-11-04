@@ -95,7 +95,7 @@ Message.METHOD
         Message.USER
             Plain text user name.
 
-        Message.PASSWORDE
+        Message.PASSWORD
             Plain text password.
 
 If there is no authenticator specified, then ``authenticate(self, hicp,
@@ -148,8 +148,9 @@ HICP add_text() and add_all_text()
 ``add_text()`` Adds a text string with a sp[ecific ID number to the user agent
 text library, to be used by a component to be added later.
 
-``add_all_text()`` specifies all IDs and values to add to the user agent
-text library.
+``add_all_text()`` specifies multiple IDs and values to add to the user agent
+text library. Text can be added in multiple parts, previously added text is not
+removed.
 
 When using text ID numbers, HICP does not keep track of text group, so they
 should not be mixed. To use the text group, the text and group information is
@@ -292,7 +293,8 @@ Component set_text_id()
   lc.update()
 
 This sets the component displayed text to the text in the user agent text
-library indicated by the ID number.
+library indicated by the ID number (added previously using HICP ``add_text()``
+or ``add_all_text()``).
 
 This doesn't support text group, so shouldn't be mixed with ``set_text()`` or
 ``set_groups_text()``.
