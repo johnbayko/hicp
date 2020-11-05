@@ -183,6 +183,8 @@ HICP add()
 
 ::
 
+  from hicp import Window
+
   w = Window()
   w.set_visible(True)
   hicp.add(w)
@@ -328,6 +330,8 @@ Window
 
 ::
 
+  from hicp import Window, Button
+
   wc = WelcomeCloser()
 
   w = Window()
@@ -392,5 +396,91 @@ When a window's "close" control on the frame is clicked, it sends a "close"
 event. This handler should remove the window (closing it) or make it invisible
 if it might be opened again. Closing the last window can also disconnect the
 application (call ``hicp.disconnect()``).
+
+Label
+=====
+
+::
+
+  l = Label()
+  l.set_text("Welcome")
+
+  w.add(l, 0, 0)
+
+A label just displays text. It must be added to a container component (like a
+window or panel).
+
+Button
+======
+
+::
+
+  from hicp import Button
+
+  hb = ...button click handler...
+
+  b = Button()
+  b.set_text("Activate")
+  b.set_handle_click(hb)
+
+  w.add(b, 0, 1)
+
+A button can be clicked to send an event that the specified handler processes.
+The text is just displayed on the button. It must be added to a container
+component (like a window or panel).
+
+Button set_handle_click()
+-------------------------
+
+::
+
+  class ActivateHandler:
+    def feedback(self, hicp, event_message, component):
+        ...optional event feedback...
+
+    def process(self, event_message, component):
+        ...optional long term processing...
+
+    def update(self, hicp, event_message, component):
+        ...optional update results
+
+  b.set_handle_click(ActivateHandler())
+
+The event handler is called when a button's click event is received, as
+described above.
+
+TextField
+=========
+
+::
+
+  from hicp import TextField
+
+  user = ...an object with a .name string...
+
+  htc = ...handler for text field changed content...
+
+  tf = TextField()
+  tf.set_content(user.name)
+  tf.set_handle_changed(htc)
+
+  w.add(tf, 1, 2)
+
+A text field displays a single line of text content, and allows it to be edited
+by the user. When editing is finished, a changed event is sent.
+
+The text contents of a text field can have various attributes set, but user
+agents typically don't support text with attributes for fields, only for multi
+line text panels, but if there are attributes they are guaranteed to be
+preserved and correct after the text content is changed.
+
+TextField set_content()
+-----------------------
+
+TextField set_attribute()
+-------------------------
+
+TextField set_handle_changed()
+------------------------------
 
 
