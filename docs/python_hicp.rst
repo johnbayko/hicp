@@ -325,6 +325,38 @@ updates user agant with the text for the current group. When the HICP text
 group is changed, the user agent is updated with the correct texts for the new
 group.
 
+Component set_size()
+--------------------
+
+::
+
+  l = Label()
+  l.set_text("Options:")
+  l.set_size(3, 1)  # Label is wide as three option buttons below it
+  w.add(l, 0, 0)
+
+  b1 = Button()
+  b1.set_text("One")
+  b1.set_handle_click(OptionOneHandler())
+  w.add(b1, 0, 1)
+
+  b2 = ...Option 2 button...
+  w.add(b2, 1, 1)
+
+  b3 = ...Option 3 button...
+  w.add(b3, 2, 1)
+
+Components that are contained in another (everything except windows) have a
+size, which is the number of positions it should take up in a specific
+direction, horizontal or vertical.
+
+A component size larger than 1 is only a suggestion, if there is a component
+that this one would cover, the size is shortened (similarly, if adding a
+component would cover part of an existing component, that component's size is
+also shortened). The special case of size 0 means extend the component as far
+as possible without making the window any bigger (limited by the same size
+rules). Default is ``(0, 0)``.
+
 Window
 ======
 
@@ -362,6 +394,8 @@ vertical). Any component at that position is replaced by the new one if
 supported by the user agent. If not supported, the older component is not
 replaced. The window size and other component positions might be shifted
 around automatically.
+
+Positions start at 0 and go up to 255.
 
 There should be a ``remove()``, but I haven't done that yet.
 
@@ -477,10 +511,53 @@ preserved and correct after the text content is changed.
 TextField set_content()
 -----------------------
 
+::
+
+  tf.set_content("0.0")
+
+The content is the text data to edit. Data is not part of the interface so
+isn't handled like component text (no text ID or text group).
+
 TextField set_attribute()
 -------------------------
+
+::
+
+  tf.set_attribute(TextField.UNDERLINE, 5, 2)
+
+Attributes are usually not displayed for text fields, but can still be set and
+will be preserved as the text is edited. They're covered more for text panels,
+which does display attributes normally.
 
 TextField set_handle_changed()
 ------------------------------
 
+::
+
+  class PriceEnteredHandler:
+    def __init__(transaction):
+      self.transaction = transaction
+
+    def feedback(self, hicp, event_message, text_field):
+        ...optional event feedback...
+
+    def process(self, event_message, text_field):
+        ...optional long term processing...
+
+    def update(self, hicp, event_message, text_field):
+        try:
+          price_str = event_message.get_header[Message.CONTENT]
+          self.transaction.price = int(price_str)
+        except:
+          # Not a valid price or content not changed, do not update.
+          pass
+
+  tr = ...an object with a .price field...
+
+  tf.set_handle_changed(PriceEnteredHandler(tr))
+
+Once editing finishes, a changed event is sent which contains the changed text
+and current attributes, if any. This is normally the entire text content once
+editing is complete, not changes character by character.  character by
+character.
 

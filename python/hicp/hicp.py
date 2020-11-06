@@ -30,9 +30,6 @@ class WriteThread(threading.Thread):
 
             message.write(self.out_stream)
 
-    def log(self, msg):
-        self.logger.debug(msg)
-
 
 class ReadThread(threading.Thread):
     def __init__(self, in_stream, event_thread):
@@ -133,10 +130,6 @@ class ProcessThread(threading.Thread):
             self.logger.debug("event_process event handler has no update method")
 
 
-    def log(self, msg):
-        self.logger.debug(msg)
-
-
 class EventThread(threading.Thread):
     def __init__(
         self,
@@ -222,12 +215,12 @@ class EventThread(threading.Thread):
                         self.start_application(event)
                         state = STATE_RUNNING
                     else:
-                        # Can the default application do
+                        # Can the application do
                         # authentication?
                         try:
                             app = self.get_app()
                             if app is not None:
-                                self.default_app.authenticate()
+                                app.authenticate(hicp, event)
                                 state = STATE_RUNNING
                         except AttributeError:
                             # Can't authenticate, send disconnect
@@ -459,9 +452,6 @@ class EventThread(threading.Thread):
         except TypeError:
             # Process handler has wrong number of arguments.
             self.logger.debug("event update handler has wrong number of args")
-
-    def log(self, msg):
-        self.logger.debug(msg)
 
 
 class TextManagerGroup:
@@ -792,7 +782,4 @@ class HICP:
         self.logger.debug("hicp.disconnect() entered") # debug
         self.__event_thread.disconnect()
         self.logger.debug("hicp.disconnect() done") # debug
-
-    def log(self, msg):
-        self.logger.debug(msg)
 
