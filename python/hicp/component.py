@@ -291,7 +291,6 @@ class TextField(ContainedComponent):
     CONTENT_INVALID_RE = re.compile("[\\0-\\037]")
 
     ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *")
-    ATTRIBUTE_VALUE_SPLIT_RE = re.compile(" *(.*) *= *(.*) *")
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -326,7 +325,6 @@ class TextField(ContainedComponent):
         content_invalid_match = self.CONTENT_INVALID_RE.search(content)
         if content_invalid_match is not None:
             content = content[:content_invalid_match.start(0)]
-        self.__old_content = self.__content
         self.__content = content
         self.set_changed_header(Message.CONTENT, self.__content)
 
@@ -335,6 +333,9 @@ class TextField(ContainedComponent):
             self.__attribute_map.clear()
             self.__attributes = ""
             self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+
+    def get_content(self):
+        return self.__content
 
     def set_attribute(
         self,
@@ -640,6 +641,59 @@ class TextField(ContainedComponent):
         self.__attributes = new_attributes
         self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
 
+    def set_attribute_string(self, attribute_list_string):
+        if attribute_list_string is None:
+            raise UnboundLocalError("attribute_string required, not defined")
+
+        new_attribute_map = {}
+        new_attribute_string_map = {}
+
+        for attribute_string in attribute_list_string.split("\r\n"):
+            attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
+            try:
+                (attribute_name, attribute_values_string) = \
+                    attribute_match.group(1, 2)
+
+                # split attribute value string into list of strings.
+                attribute_values_list = attribute_values_string.split(",")
+
+                # If no values, skip attribute.
+                if 0 < len(attribute_values_list):
+                    attribute_list = []
+                    for attribute_value_str in attribute_values_list:
+                        # Try splitting by "=".
+                        attribute_value_str_list = attribute_value_str.split("=")
+                        if 2 == len(attribute_value_str_list):
+                            value = attribute_value_str_list[0].strip()
+                            length = int(attribute_value_str_list[1])
+                        else:
+                            # If actually 0, not valid and can't trust
+                            # attribute list. IndexError will be caught
+                            # below.
+                            value = ""
+                            length = int(attribute_value_str_list[0])
+
+                        is_multivalued = attribute_name in self.MULTIVALUED_ATTRIBUTES
+                        attribute_list.append(
+                            TextFieldAttribute(length, is_multivalued, value) )
+
+                    new_attribute_map[attribute_name] = attribute_list
+                    new_attribute_string_map[attribute_name] = attribute_string
+
+            except IndexError:
+                # No valid attribute list, skip this one.
+                self.logger.debug("attribute list invalid: " + attribute_string)
+                pass
+            
+        self.__attribute_map = new_attribute_map
+        # Maybe should construct strings from attribute map because they
+        # might have had errors?
+        self.__attribute_string_map = new_attribute_string_map
+        self.__attributes = attribute_list_string
+
+    def get_attribute_string(self):
+        return self.__attributes
+
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
         if self.__content is not None:
@@ -654,56 +708,12 @@ class TextField(ContainedComponent):
         # Get content from event
         content = event.get_header(Message.CONTENT)
         if content is not None:
-            self.__old_content = self.__content
             self.__content = content
 
         # Get attributes from event.
         attribute_header = event.get_header(Message.ATTRIBUTES)
         if attribute_header is not None:
-            new_attribute_map = {}
-            new_attribute_string_map = {}
-
-            for attribute_string in attribute_header.split("\r\n"):
-                attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
-                try:
-                    (attribute_name, attribute_values_string) = \
-                        attribute_match.group(1, 2)
-
-                    # split attribute value string into list of strings.
-                    attribute_values_list = attribute_values_string.split(",")
-
-                    # If no values, skip attribute.
-                    if 0 < len(attribute_values_list):
-                        attribute_list = []
-                        for attribute_value_str in attribute_values_list:
-                            # Try splitting by "=".
-                            value_match = self.ATTRIBUTE_VALUE_SPLIT_RE.search(attribute_value_str)
-                            if 2 == value_match.lastindex:
-                                value = value_match.group(1)
-                                length = int(value_match.group(2))
-                            else:
-                                # If actually 0, not valid and can't trust
-                                # attribute list. IndexError will be caught
-                                # below.
-                                value = ""
-                                length = int(value_match.group(1))
-
-                            is_multivalued = attribute_name in MULTIVALUED_ATTRIBUTES
-                            attribute_list.append(
-                                TextFieldAttribute(length, is_multivalued, value) )
-
-                        new_attribute_map[attribute_name] = attribute_list
-                        new_attribute_string_map[attribute_name] = attribute_string
-
-                except IndexError:
-                    # No valid attribute list, skip this one.
-                    pass
-                
-            self.__attribute_map = new_attribute_map
-            # Maybe should construct strings from attribute map because they
-            # might have had errors?
-            self.__attribute_string_map = new_attribute_string_map
-            self.__attributes = attribute_header
+            self.set_attribute_string(attribute_header)
 
         # Return changed event handler.
         return self.__handle_changed

@@ -580,7 +580,7 @@ TextField set_handle_changed()
 
     def update(self, hicp, event_message, text_field):
         try:
-          price_str = event_message.get_header[Message.CONTENT]
+          price_str = text_field.get_content()
           self.transaction.price = int(price_str)
         except:
           # Not a valid price or content not changed, do not update.
@@ -592,6 +592,8 @@ TextField set_handle_changed()
 
 Once editing finishes, a changed event is sent which contains the changed text
 and current attributes, if any. This is normally the entire text content once
-editing is complete, not changes character by character.  character by
-character.
+editing is complete, not individual changes.
+
+The text field is updated with the changed contents and attributes before the
+handler functions are called.
 

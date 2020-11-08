@@ -151,11 +151,14 @@ class Message:
                         # Boundary is either CR LF <text> or <text>.
                         if '' == boundary:
                             # Boundary is CR LF plus next line.
-                            # CR LF always ends a line so this means the header
-                            # value ends when the next complete line matches
-                            # another complete line.
-                            # Unless any character is escaped, of course.
+                            # The boundary excludes the next CR LF in the
+                            # string returned by readline(), but it's
+                            # easier to find the boundary if they are
+                            # included.
                             boundary = self.readline(in_stream)
+
+                            # This lets us compare the full line to the
+                            # boundary string, so indicate that.
                             full_line_boundary = True
                         else:
                             full_line_boundary = False
@@ -187,6 +190,11 @@ class Message:
 
                                     # Found the boundary. header value doesn't
                                     # include this line.
+                                    # The final CR LF is also not included,
+                                    # Remove it from the last header value list
+                                    # string.
+                                    header_value_list[-1] = \
+                                        header_value_list[-1][:-2]
                                     break
                             else:
                                 # Check for boundary. Should always be at end
@@ -213,7 +221,7 @@ class Message:
                             prev_line_eol_esc = \
                                 (after_last_esc_index >= len(header_value_part) - 2)
 
-                        # convert list to single string.
+                        # Convert list to single string.
                         header_value = ''.join(header_value_list)
 
                     else:

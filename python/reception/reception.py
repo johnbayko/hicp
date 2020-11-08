@@ -102,14 +102,15 @@ class TextFieldHandler:
         self.__label = label
         self.__next_text_id = next_text_id
 
-    def update(self, hicp, event_message, component):
+    def update(self, hicp, event_message, text_field):
         self.logger.debug("TextFieldHandler In update handler")
-        self.logger.debug("attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
+        self.logger.debug("content: " + text_field.get_content())  # debug
+        self.logger.debug("attributes: " + text_field.get_attribute_string())  # debug
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
-        component.set_content("Woo-hoo!")
-        component.update()
+        text_field.set_content("Woo-hoo!")
+        text_field.update()
 
 
 class TestApp:
@@ -225,17 +226,15 @@ class TextFieldHandlerML:
         self.__next_group_text = next_group_text
         self.__hicp = hicp
 
-    def update(self, hicp, event_message, component):
+    def update(self, hicp, event_message, text_field):
         self.logger.debug("TextFieldHandler In update handler")
-        self.logger.debug("header content: " + event_message.get_header(Message.CONTENT))  # debug
-        self.logger.debug("component content: " + component.__content)  # debug
-        self.logger.debug("header attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
-        self.logger.debug("component attrbutes: " + component.__attributes)  # debug
+        self.logger.debug("content: " + text_field.get_content())  # debug
+        self.logger.debug("attributes: " + text_field.get_attribute_string())  # debug
         self.__label.set_groups_text(self.__next_group_text, self.__hicp)
         self.__label.update()
 
-        component.set_content("Woo-hoo!")
-        component.update()
+        text_field.set_content("Woo-hoo!")
+        text_field.update()
 
 
 # Test multilingual features.
