@@ -227,7 +227,10 @@ class TextFieldHandlerML:
 
     def update(self, hicp, event_message, component):
         self.logger.debug("TextFieldHandler In update handler")
-        self.logger.debug("attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
+        self.logger.debug("header content: " + event_message.get_header(Message.CONTENT))  # debug
+        self.logger.debug("component content: " + component.__content)  # debug
+        self.logger.debug("header attrbutes: " + event_message.get_header(Message.ATTRIBUTES))  # debug
+        self.logger.debug("component attrbutes: " + component.__attributes)  # debug
         self.__label.set_groups_text(self.__next_group_text, self.__hicp)
         self.__label.update()
 

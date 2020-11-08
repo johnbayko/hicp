@@ -40,15 +40,21 @@ public abstract class Message {
         } else {
             // Value has a CR LF, then send in multiple lines.
             out.write(":: boundary=\r\n--\r\n");
+
             // Escape each occurrence by splitting string with "\r\n--",
             // write out each with ESC prior to "\r\n--".
             final String[] value_array = value.split("\r\n--", -1);
+
+            // Don't include fake boundary in output the first time.
+            String fakeBoundary = "";
             for (int value_idx = 0;
                 value_idx < value_array.length;
                 value_idx++
             ) {
+                out.write(fakeBoundary);
+                fakeBoundary = "\033\r\n--";
+
                 out.write(value_array[value_idx]);
-                out.write("\033\r\n--");
             }
             // Write out terminator sequence and extra "\r\n" as block
             // terminator.

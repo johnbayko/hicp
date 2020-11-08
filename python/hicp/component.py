@@ -254,9 +254,22 @@ class TextField(ContainedComponent):
     BOLD = Message.BOLD
     FONT = Message.FONT
     ITALIC = Message.ITALIC
-    LAYOUT = Message.LAYOUT
+# TODO: Leave layout stuff alone until implemented / designed.
+#    LAYOUT = Message.LAYOUT
     SIZE = Message.SIZE
     UNDERLINE = Message.UNDERLINE
+
+    # Indicate multivalued or not.
+    MULTIVALUED_ATTRIBUTES = {
+            FONT,
+#            LAYOUT,
+            SIZE,
+        }
+    NOT_MULTIVALUED_ATTRIBUTES = {
+            BOLD,
+            ITALIC,
+            UNDERLINE,
+        }
 
     # ATTRIBUTES FONT attributes
     SERIF = Message.SERIF
@@ -265,10 +278,10 @@ class TextField(ContainedComponent):
     SANS_SERIF_FIXED = Message.SANS_SERIF_FIXED
 
     # ATTRIBUTES LAYOUT attributes
-    BLOCK = Message.BLOCK
-    INDENT_FIRST = Message.INDENT_FIRST
-    INDENT_REST = Message.INDENT_REST
-    LIST = Message.LIST
+#    BLOCK = Message.BLOCK
+#    INDENT_FIRST = Message.INDENT_FIRST
+#    INDENT_REST = Message.INDENT_REST
+#    LIST = Message.LIST
 
     # EDITING attributes
     ENABLED = Message.ENABLED
@@ -276,6 +289,9 @@ class TextField(ContainedComponent):
     SERVER = Message.SERVER
 
     CONTENT_INVALID_RE = re.compile("[\\0-\\037]")
+
+    ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *")
+    ATTRIBUTE_VALUE_SPLIT_RE = re.compile(" *(.*) *= *(.*) *")
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -587,7 +603,6 @@ class TextField(ContainedComponent):
                 # For 9, 7, 9, 10 do nothing (discard old).
 
         self.__attribute_map[attribute] = new_attribute_list
-        self.logger.debug("use new_attribute_list")  # debug
 
         # Generate new attributes string for this attribute.
         attribute_string = attribute + ": "
@@ -636,11 +651,61 @@ class TextField(ContainedComponent):
         self.__handle_changed = handle_changed
 
     def get_handle_changed(self, event):
+        # Get content from event
         content = event.get_header(Message.CONTENT)
         if content is not None:
             self.__old_content = self.__content
             self.__content = content
 
+        # Get attributes from event.
+        attribute_header = event.get_header(Message.ATTRIBUTES)
+        if attribute_header is not None:
+            new_attribute_map = {}
+            new_attribute_string_map = {}
+
+            for attribute_string in attribute_header.split("\r\n"):
+                attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
+                try:
+                    (attribute_name, attribute_values_string) = \
+                        attribute_match.group(1, 2)
+
+                    # split attribute value string into list of strings.
+                    attribute_values_list = attribute_values_string.split(",")
+
+                    # If no values, skip attribute.
+                    if 0 < len(attribute_values_list):
+                        attribute_list = []
+                        for attribute_value_str in attribute_values_list:
+                            # Try splitting by "=".
+                            value_match = self.ATTRIBUTE_VALUE_SPLIT_RE.search(attribute_value_str)
+                            if 2 == value_match.lastindex:
+                                value = value_match.group(1)
+                                length = int(value_match.group(2))
+                            else:
+                                # If actually 0, not valid and can't trust
+                                # attribute list. IndexError will be caught
+                                # below.
+                                value = ""
+                                length = int(value_match.group(1))
+
+                            is_multivalued = attribute_name in MULTIVALUED_ATTRIBUTES
+                            attribute_list.append(
+                                TextFieldAttribute(length, is_multivalued, value) )
+
+                        new_attribute_map[attribute_name] = attribute_list
+                        new_attribute_string_map[attribute_name] = attribute_string
+
+                except IndexError:
+                    # No valid attribute list, skip this one.
+                    pass
+                
+            self.__attribute_map = new_attribute_map
+            # Maybe should construct strings from attribute map because they
+            # might have had errors?
+            self.__attribute_string_map = new_attribute_string_map
+            self.__attributes = attribute_header
+
+        # Return changed event handler.
         return self.__handle_changed
 
 

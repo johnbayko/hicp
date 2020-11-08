@@ -23,6 +23,7 @@ class Message:
     DISCONNECT = "disconnect"
 
     # Attributes
+    # TODO: Maybe make individual event classes?
     ATTRIBUTES = "attributes"
     APPLICATION = "application"
     CATEGORY = "category"
@@ -130,7 +131,8 @@ class Message:
 
                     # Length or boundary termination criterion?
                     if 0 <= termination_criterion.find("length"):
-                        length_match = LENGTH_RE.search(termination_criterion)
+                        length_match = \
+                            self.LENGTH_RE.search(termination_criterion)
                         length = int(length_match.group(2), 10)
 
                         # header_value is the next length bytes (unless
@@ -142,82 +144,74 @@ class Message:
                         self.readline(in_stream)
 
                     elif 0 <= termination_criterion.find("boundary"):
-                        boundary_match = BOUNDARY_RE.search(termination_criterion)
+                        boundary_match = \
+                            self.BOUNDARY_RE.search(termination_criterion)
                         boundary = boundary_match.group(2)
 
                         # Boundary is either CR LF <text> or <text>.
                         if '' == boundary:
                             # Boundary is CR LF plus next line.
-                            # The boundary excludes the end CR LF in the
-                            # string returned by readline(), but it's
-                            # easier to find the boundary if they are
-                            # included.
-#                        boundary = "\r\n" + self.readline(in_stream)
+                            # CR LF always ends a line so this means the header
+                            # value ends when the next complete line matches
+                            # another complete line.
+                            # Unless any character is escaped, of course.
                             boundary = self.readline(in_stream)
-                            full_line = True
+                            full_line_boundary = True
                         else:
-                            full_line = False
+                            full_line_boundary = False
 
                         # Read until boundary + CR LF is read.
                         header_value_list = []
-                        found_boundary = False
-                        prev_last_esc_affects_eol = False
+                        prev_line_eol_esc = False
                         while 1:
                             header_value_part = self.readline(in_stream)
+
                             # Remove any escapes, but keep track of
                             # index of last one.
                             (header_value_unescaped, esc_cnt) = \
-                                ESC_RE.subn("\\2", header_value_part)
+                                self.ESC_RE.subn("\\2", header_value_part)
+
                             if 0 < esc_cnt:
                                 # String had escapes.
                                 last_esc_match = \
-                                    LAST_ESC_RE.search(header_value_part)
+                                    self.LAST_ESC_RE.search(header_value_part)
                                 after_last_esc_index = last_esc_match.end(2)
                             else:
                                 # No esc in string.
                                 after_last_esc_index = 0
 
-                            if full_line:
-                                if header_value_part == boundary \
-                                    and False == prev_last_esc_affects_eol:
+                            if full_line_boundary:
+                                if header_value_unescaped == boundary \
+                                    and False == prev_line_eol_esc \
+                                    and 0 == esc_cnt:
 
-                                    boundary_index = 0
-                                else:
-                                    boundary_index = -1
+                                    # Found the boundary. header value doesn't
+                                    # include this line.
+                                    break
                             else:
-                                boundary_index = header_value_part.find(boundary)
+                                # Check for boundary. Should always be at end
+                                # of the line, but accept it if not - discard
+                                # rest of line.
+                                boundary_index = \
+                                    header_value_unescaped.find(boundary)
 
-                            if 0 <= boundary_index:
-                                # Make sure last escape did not affect
-                                # boundary. If it did, it's not the
-                                # boundary we're looking for.
-                                if prev_last_esc_affects_eol \
+                                if 0 <= boundary_index \
                                     and after_last_esc_index <= boundary_index:
 
-                                    found_boundary = True
+                                    # Found end of line boundary. Remove
+                                    # boundary and add to header value list.
+                                    header_value_no_boundary = \
+                                        header_value_unescaped[ : boundary_index]
+                                    header_value_list = \
+                                        header_value_list + [header_value_no_boundary]
+                                    break
 
-                                    # Remove the boundary part from
-                                    # unescaped header value. Remember
-                                    # this boundary string includes the
-                                    # terminating CR LF.
-                                    header_value_unescaped = \
-                                        header_value_unescaped[ : -len(boundary)]
+                            # No boundary found, add to header value list
+                            header_value_list = \
+                                header_value_list + [header_value_unescaped]
 
-                            # Add to list.
-                            header_value_list = header_value_list + header_value_part
-                            if found_boundary:
-                                break
-                            else:
-                                # If sequence is:
-                                # ESC CR LF
-                                # CR ESC LF
-                                # CR LF ESC
-                                # ...then this prevents a full line boundary
-                                # match next time.
-                                if after_last_esc_index >= len(header_value_part) - 2:
-                                    prev_last_esc_affects_eol = True
-                                else:
-                                    prev_last_esc_affects_eol = False
+                            prev_line_eol_esc = \
+                                (after_last_esc_index >= len(header_value_part) - 2)
 
                         # convert list to single string.
                         header_value = ''.join(header_value_list)

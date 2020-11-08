@@ -531,7 +531,11 @@ public class TextAttributes {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
+        String sep = "";
         for (final var attributeKey : attributeTypesMap.keySet()) {
+            sb.append(sep);
+            sep = "\r\n";
+
             final var attributeTypeInfo = attributeTypesMap.get(attributeKey);
             attributeTypeInfo.appendTo(sb);
         }

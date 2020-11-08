@@ -247,7 +247,7 @@ Update
   component contents would be updated, and so on, but there might be rare cases
   where there's no update necessary, so this is also optional.
 
-``feedback()`` an ``update()`` stages are handled in the same thread, while all
+``feedback()`` and ``update()`` stages are handled in the same thread, while all
 ``process()`` stages are in a separate thread. This means:
 
 - All event ``feedback()``, ``process()``, and ``update()`` stages always
@@ -255,7 +255,7 @@ Update
 
 - All event ``feedback()`` stages are run in the order they are received.
 
-- All event ``process() `` stages are run in the order they are received.
+- All event ``process()`` stages are run in the order they are received.
 
 - ``update()`` stages might run in a different order than received.
   Specifically events with no ``process()`` handler will skip directly to
@@ -430,6 +430,40 @@ When a window's "close" control on the frame is clicked, it sends a "close"
 event. This handler should remove the window (closing it) or make it invisible
 if it might be opened again. Closing the last window can also disconnect the
 application (call ``hicp.disconnect()``).
+
+Panel
+=====
+
+::
+
+  # Lights panel.
+  pl = Panel()
+
+  lights = Label()
+  lights.set_text("Lights")
+  pl.add(lights, 0, 0)
+
+  ...Add more things...
+
+  w.add(pl, 0, 0)
+
+  # Sound panel
+  ps = Panel()
+
+  sound = Label()
+  sound.set_text("Sound")
+  ps.add(sound, 9, 0)
+
+  ...Add more things...
+
+  w.add(ps, 1, 0)
+
+  close = Button()
+  ...
+  w.add(close, 1, 1)
+
+A panel provides the same layout as a window, but is added within a window or
+another panel to provide flexible layout options.
 
 Label
 =====
