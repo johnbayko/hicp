@@ -542,18 +542,22 @@ agents typically don't support text with attributes for fields, only for multi
 line text panels, but if there are attributes they are guaranteed to be
 preserved and correct after the text content is changed.
 
-TextField set_content()
------------------------
+TextField set_content() and get_content()
+-----------------------------------------
 
 ::
 
   tf.set_content("0.0")
 
+  price = tf.get_content()
+
 The content is the text data to edit. Data is not part of the interface so
 isn't handled like component text (no text ID or text group).
 
-TextField set_attribute()
--------------------------
+``get_content()`` is mostly useful in the change handler described below.
+
+TextField set_attribute(), get_attribute_string(), set_attribute_string()
+-------------------------------------------------------------------------
 
 ::
 
@@ -562,6 +566,11 @@ TextField set_attribute()
 Attributes are usually not displayed for text fields, but can still be set and
 will be preserved as the text is edited. They're covered more for text panels,
 which does display attributes normally.
+
+``get_attribute_string()`` returns the attributes in a string form that is sent
+in the hicp message protocol, and isn't normally useful except for debugging.
+``set_attribute_strint()`` sets attributes based on the same format of string,
+and is less useful, except maybe for testing.
 
 TextField set_handle_changed()
 ------------------------------
