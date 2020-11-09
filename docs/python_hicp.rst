@@ -6,7 +6,8 @@ Introduction
 ============
 
 This allows HICP messages to be sent and received in Python to produce an
-interactive app.
+interactive app on a client (user agent), either locally on the same sytem, or
+over a network..
 
 HICP
 ====
@@ -63,17 +64,19 @@ can be created from a connected socket by calling ``makefile()``, and used for
 both ``in_stream`` and ``out_stream``.
 
 The apps in ``app_list`` all need to implement ``connected(self, hicp)``. That
-is called after a connection is made and an app is selected. and is where the
+is called after a connection is made and an app is selected, and is where the
 components are created and added together, along with event handlers. The app
 continues to listen for events and call the handlers until one of the handlers
 calls ``hicp.disconnect()``.
 
 An app can also implement ``authenticate(self, hicp, message)``, which is
-called if there is no authenticator specified.
+called if there is no authenticator specified. The app could put up a window to
+log in, though that window would be insecure so is not generally a good idea
+unless no security is needed.
 
 ``text_group`` is optional, and selects the name of a default text group,
 normally, a language code like "en", "en-uk", "fr", "es", etc.. The value is
-only used as a key, so could be used for other things (e.g. a "Stqr Wars" vs.
+only used as a key, so could be used for other things (e.g. a "Star Wars" vs.
 "Star Trek" theme). It's optional if no text group features are used, but
 defaults to a useful but annoying "en-ca" (Canadian English, with some UK and
 some US spellings, but no way to tell which). Text group can be set explicitly
@@ -154,7 +157,7 @@ removed.
 
 When using text ID numbers, HICP does not keep track of text group, so they
 should not be mixed. To use the text group, the text and group information is
-added directly to each component.
+added directly to each component (described below).
 
 You might want to use these if you need to replace text from some external
 source (either a group of text IDs, or all text). Otherwise it's probably
@@ -330,6 +333,8 @@ Component set_size()
 
 ::
 
+  from hicp import Label, Button
+
   l = Label()
   l.set_text("Options:")
   l.set_size(3, 1)  # Label is wide as three option buttons below it
@@ -436,6 +441,8 @@ Panel
 
 ::
 
+  from hicp import Button, Label, Panel
+
   # Lights panel.
   pl = Panel()
 
@@ -469,6 +476,8 @@ Label
 =====
 
 ::
+
+  from hicp import Label
 
   l = Label()
   l.set_text("Welcome")
@@ -560,6 +569,8 @@ TextField set_attribute(), get_attribute_string(), set_attribute_string()
 -------------------------------------------------------------------------
 
 ::
+
+  from hicp import TextField
 
   tf.set_attribute(TextField.UNDERLINE, 5, 2)
 

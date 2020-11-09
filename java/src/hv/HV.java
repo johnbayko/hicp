@@ -115,6 +115,9 @@ public class HV {
                 final ConnectParams cp = new ConnectParams();
                 _hicp_ParamsFrame.fillConnectParams(cp);
 
+                if ( (null == cp.address) || "".equals(cp.address) ) {
+                    cp.address = "localhost";
+                }
                 _socket = new Socket(cp.address, cp.port);
                 
                 // Construct HICP session.
