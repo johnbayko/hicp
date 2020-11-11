@@ -13,7 +13,7 @@ keep track of which items have been changed so they can be sent in
     BUTTON = "button"
     LABEL = "label"
     PANEL = "panel"
-    TEXTAREA = "textarea"
+    TEXTPANEL = "textpanel"
     TEXTFIELD = "textfield"
     WINDOW = "window"
 

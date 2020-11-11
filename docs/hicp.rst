@@ -757,7 +757,7 @@ attributes: <attribute specifiers>
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for all attributes of a "textfield" or "textpanel" component.
 
-    Not all GUI toolkits which support attributes for text areas also
+    Not all GUI toolkits which support attributes for text panel also
     support them for text fields, so it's not a good idea to rely on
     that.
 
@@ -1463,7 +1463,7 @@ content: <text>
     Text is considered changed when it is no longer being actively edited, such
     as if the cursor is moved to another text field (or focus moves away from
     this component), not only from a terminating action such as hitting the
-    "return" key (in most GUI toolkits, hitting "return" in a text area just
+    "return" key (in most GUI toolkits, hitting "return" in a text panel just
     starts a new paragraph).
 
 attributes: <attribute specifiers>

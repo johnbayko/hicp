@@ -143,24 +143,19 @@ public abstract class GUIContainerItem
     }
 
     public void dispose() {
-log("GUIContainerItem.dispose() entered");  // debug
         super.dispose();
 
         synchronized (_itemList) {
             final Iterator itemIterator = _itemList.iterator();
-log("GUIContainerItem.dispose() got _itemList.iterator()");  // debug
             while (itemIterator.hasNext()) {
 //apple.awt.EventQueueExceptionHandler Caught Throwable : java.util.ConcurrentModificationException
                 GUIItem item = (GUIItem)itemIterator.next();
 
                 // Item will tell this object to remove it.
-log("about to dispose item " + item.component);  // debug
                 item.dispose();
-log("done dispose item " + item.component);  // debug
             }
             _itemList.clear();
         }
-log("GUIContainerItem.dispose() done");  // debug
     }
 }
 

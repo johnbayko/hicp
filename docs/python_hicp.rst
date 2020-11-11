@@ -580,7 +580,7 @@ which does display attributes normally.
 
 ``get_attribute_string()`` returns the attributes in a string form that is sent
 in the hicp message protocol, and isn't normally useful except for debugging.
-``set_attribute_strint()`` sets attributes based on the same format of string,
+``set_attribute_string()`` sets attributes based on the same format of string,
 and is less useful, except maybe for testing.
 
 TextField set_handle_changed()
