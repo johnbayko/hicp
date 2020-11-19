@@ -70,6 +70,16 @@ public class TextAttributes {
             setHashCode();
         }
 
+        public AttributeRange(
+            final String newValue,
+            final int newLength
+        ) {
+            value = newValue;
+            length = newLength;
+
+            setHashCode();
+        }
+
         protected void setHashCode() {
             hashCode = Arrays.hashCode(new int[] {value.hashCode(), length});
         }
@@ -132,7 +142,10 @@ public class TextAttributes {
 
         public boolean hasValues = false;
 
-        public AttributeTypeInfo(final String attributeTypeStr)
+        public AttributeTypeInfo(
+            final String attributeTypeStr,
+            final String contentStr
+        )
             throws TextAttributesException
         {
             // For each string, split to attribute and indexes by ":"
@@ -182,6 +195,13 @@ public class TextAttributes {
                     // and it'll get fixed.
                 }
             }
+            if (!hasValues && !hasRanges()) {
+                // Binary attribute, but none specified. Must have at least
+                // "off" attribute for entire string.
+                attributeRangeList.add(
+                    new AttributeRange("", contentStr.length())
+                );
+            }
         }
 
         public AttributeTypeInfo(
@@ -202,8 +222,23 @@ public class TextAttributes {
             hasValues = otherAttributeTypeInfo.hasValues;
         }
 
+        public boolean hasRanges() {
+            return (0 > attributeRangeList.size());
+        }
+
+        public boolean shouldIncludeString() {
+            if (hasValues) {
+                // Include if has any attributes.
+                return (0 > attributeRangeList.size());
+            } else {
+                // Binary attributes start with "off" attribute, if that's the
+                // only one then don't include it.
+                return (1 > attributeRangeList.size());
+            }
+        }
+
         private void insertAtStart(final int len) {
-            if (0 == attributeRangeList.size()) {
+            if (!hasRanges()) {
                 // No attribute range to extend.
                 return;
             }
@@ -266,7 +301,8 @@ public class TextAttributes {
             int deletedLen = 0;
             int rangeStart = 0;
             int attributeIdx = 0;
-            while (attributeIdx < attributeRangeList.size()) {
+            final int attributeIdxLim = attributeRangeList.size();
+            while (attributeIdx < attributeIdxLim) {
                 final var attributeRange = attributeRangeList.get(attributeIdx);
                 final int nextRangeStart = rangeStart + attributeRange.length;
 
@@ -469,7 +505,7 @@ public class TextAttributes {
             font: sans-serif=5, serif-fixed=10, sans-serif=10\r\n
             size: 1=10, 1.1=5, 1=9, 1/2=1\r\n
     */
-    public TextAttributes(final String attributesStr) {
+    public TextAttributes(final String attributesStr, final String contentStr) {
         if (null == attributesStr) {
             // No attributes.
             return;
@@ -483,7 +519,7 @@ public class TextAttributes {
         for (var attributeTypeStr : attributeTypeStrList) {
             try {
                 final var attributeTypeInfo =
-                    new AttributeTypeInfo(attributeTypeStr);
+                    new AttributeTypeInfo(attributeTypeStr, contentStr);
 
                 attributeTypesMap
                     .put(attributeTypeInfo.name, attributeTypeInfo);
@@ -533,11 +569,13 @@ public class TextAttributes {
         final StringBuilder sb = new StringBuilder();
         String sep = "";
         for (final var attributeKey : attributeTypesMap.keySet()) {
-            sb.append(sep);
-            sep = "\r\n";
-
             final var attributeTypeInfo = attributeTypesMap.get(attributeKey);
-            attributeTypeInfo.appendTo(sb);
+            if (attributeTypeInfo.shouldIncludeString()) {
+                sb.append(sep);
+                sep = "\r\n";
+
+                attributeTypeInfo.appendTo(sb);
+            }
         }
         return sb.toString();
     }

@@ -31,8 +31,11 @@ public class Changed
 log(getName() + " send content \"" + content + "\"");  // debug
         }
         if (null != attributes) {
-            writeHeader(out, ATTRIBUTES, attributes.toString());
+            final String attributesStr = attributes.toString();
+            if (0 < attributesStr.length()) {
+                writeHeader(out, ATTRIBUTES, attributes.toString());
 log(getName() + " send attributes \"" + attributes + "\"");  // debug
+            }
         }
 
         writeEndOfMessage(out);

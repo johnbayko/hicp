@@ -41,8 +41,11 @@ public class AttributeTrackDocument
         textAttributes = newTextAttributes;
     }
 
-    public void setTextAttributes(final String attributesStr) {
-        textAttributes = new TextAttributes(attributesStr);
+    public void setTextAttributes(
+        final String attributesStr,
+        final String contentStr
+    ) {
+        textAttributes = new TextAttributes(attributesStr, contentStr);
     }
 
     // Return a copy of internal TextAttributes, because it needs to be mutable

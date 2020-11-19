@@ -351,7 +351,7 @@ class TextField(ContainedComponent):
             is_multivalued = True
             value = str(value)
         else:
-            self.logger.debug("value is None")
+            self.logger.debug("value is None")  # debug
             is_multivalued = False
 
         # New attribute range can't start past end of content.
@@ -648,18 +648,20 @@ class TextField(ContainedComponent):
         new_attribute_map = {}
         new_attribute_string_map = {}
 
-        for attribute_string in attribute_list_string.split("\r\n"):
-            attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
-            try:
-                (attribute_name, attribute_values_string) = \
-                    attribute_match.group(1, 2)
-                if 0 < len(attribute_values_string):
-
-                    # split attribute value string into list of strings.
-                    attribute_values_list = attribute_values_string.split(",")
+        if 0 < len(attribute_list_string):
+            for attribute_string in attribute_list_string.split("\r\n"):
+                attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
+                try:
+                    (attribute_name, attribute_values_string) = \
+                        attribute_match.group(1, 2)
 
                     # If no values, skip attribute.
-                    if 0 < len(attribute_values_list):
+                    # ''.split(',') will create a 1 element list of [''], not a 0
+                    # element list. Easy to forget.
+                    if 0 < len(attribute_values_string):
+                        # split attribute value string into list of strings.
+                        attribute_values_list = attribute_values_string.split(",")
+
                         attribute_list = []
                         for attribute_value_str in attribute_values_list:
                             # Try splitting by "=".
@@ -668,9 +670,6 @@ class TextField(ContainedComponent):
                                 value = attribute_value_str_list[0].strip()
                                 length = int(attribute_value_str_list[1])
                             else:
-                                # If actually 0, not valid and can't trust
-                                # attribute list. IndexError will be caught
-                                # below.
                                 value = ""
                                 length = int(attribute_value_str_list[0])
 
@@ -681,10 +680,10 @@ class TextField(ContainedComponent):
                         new_attribute_map[attribute_name] = attribute_list
                         new_attribute_string_map[attribute_name] = attribute_string
 
-            except IndexError:
-                # No valid attribute list, skip this one.
-                self.logger.debug("attribute list invalid: " + attribute_string)
-                pass
+                except (IndexError, ValueError):
+                    # No valid attribute list, skip this one.
+                    self.logger.debug("attribute list invalid: " + attribute_string)
+                    pass
             
         self.__attribute_map = new_attribute_map
         # Maybe should construct strings from attribute map because they

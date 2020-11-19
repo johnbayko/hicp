@@ -80,6 +80,9 @@ readLoop:   for (;;) {
                 }
                 readField(hicpHeader);
             }
+            if (null != attributes) {
+                textAttributes = new TextAttributes(attributes, content);
+            }
         } catch (NullPointerException ex) {
             // Unexpected end of input - not really an error, so just
             // quietly return with whatever was read.
@@ -97,7 +100,6 @@ readLoop:   for (;;) {
             return true;
         } else if (ATTRIBUTES.equals(hicpHeader.name)) {
             attributes = hicpHeader.value.getString();
-            textAttributes = new TextAttributes(attributes);
             return true;
         } else if (CONTENT.equals(hicpHeader.name)) {
             content = hicpHeader.value.getString();
