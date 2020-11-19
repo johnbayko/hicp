@@ -653,32 +653,33 @@ class TextField(ContainedComponent):
             try:
                 (attribute_name, attribute_values_string) = \
                     attribute_match.group(1, 2)
+                if 0 < len(attribute_values_string):
 
-                # split attribute value string into list of strings.
-                attribute_values_list = attribute_values_string.split(",")
+                    # split attribute value string into list of strings.
+                    attribute_values_list = attribute_values_string.split(",")
 
-                # If no values, skip attribute.
-                if 0 < len(attribute_values_list):
-                    attribute_list = []
-                    for attribute_value_str in attribute_values_list:
-                        # Try splitting by "=".
-                        attribute_value_str_list = attribute_value_str.split("=")
-                        if 2 == len(attribute_value_str_list):
-                            value = attribute_value_str_list[0].strip()
-                            length = int(attribute_value_str_list[1])
-                        else:
-                            # If actually 0, not valid and can't trust
-                            # attribute list. IndexError will be caught
-                            # below.
-                            value = ""
-                            length = int(attribute_value_str_list[0])
+                    # If no values, skip attribute.
+                    if 0 < len(attribute_values_list):
+                        attribute_list = []
+                        for attribute_value_str in attribute_values_list:
+                            # Try splitting by "=".
+                            attribute_value_str_list = attribute_value_str.split("=")
+                            if 2 == len(attribute_value_str_list):
+                                value = attribute_value_str_list[0].strip()
+                                length = int(attribute_value_str_list[1])
+                            else:
+                                # If actually 0, not valid and can't trust
+                                # attribute list. IndexError will be caught
+                                # below.
+                                value = ""
+                                length = int(attribute_value_str_list[0])
 
-                        is_multivalued = attribute_name in self.MULTIVALUED_ATTRIBUTES
-                        attribute_list.append(
-                            TextFieldAttribute(length, is_multivalued, value) )
+                            is_multivalued = attribute_name in self.MULTIVALUED_ATTRIBUTES
+                            attribute_list.append(
+                                TextFieldAttribute(length, is_multivalued, value) )
 
-                    new_attribute_map[attribute_name] = attribute_list
-                    new_attribute_string_map[attribute_name] = attribute_string
+                        new_attribute_map[attribute_name] = attribute_list
+                        new_attribute_string_map[attribute_name] = attribute_string
 
             except IndexError:
                 # No valid attribute list, skip this one.
