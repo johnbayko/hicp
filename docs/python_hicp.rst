@@ -148,6 +148,13 @@ HICP add_text() and add_all_text()
 
   hicp.add_all_text({ 1: "Name:", 2: "Position:" })
 
+There are two ways of setting text in a component that supports it. The first
+way is to add the text and an ID number, then set the component text using
+``set_text_id()``. The other method handles assigning text IDs automatically,
+and is described below. That's an easier way and should be used unless there's
+a need to do it this way. It's important not to mix the two methods unless you
+really know what you're doing.
+
 ``add_text()`` Adds a text string with a sp[ecific ID number to the user agent
 text library, to be used by a component to be added later.
 
@@ -176,10 +183,11 @@ HICP set_text_group()
 
   hicp.set_text_group("es")
 
-When text groups are used (component ``set_text()`` or ``set_groups_text()``,
-instead of ``add_text()`` and ``add_all_text()`` above), this selects the
+This applies only to the second way of setting component text (component
+``set_text()`` or ``set_groups_text()`` described below), this selects the
 specified group, then updates the user agent text library to the new text
-strings. This has the effect of updating all text displayed to the user.
+strings. This has the effect of updating all text displayed to the user.  It's
+important not to mix the two methods unless you really know what you're doing.
 
 HICP add()
 ----------
@@ -289,6 +297,8 @@ Those components are:
 Component set_text_id()
 -----------------------
 
+First way of setting text:
+
 ::
 
   lc.set_text_id(5)
@@ -307,6 +317,8 @@ This doesn't support text group, so shouldn't be mixed with ``set_text()`` or
 Component set_text() and set_groups_text()
 ------------------------------------------
 
+Second (easier) way of setting text:
+
 ::
 
   lc.set_text("Name:", hicp)
@@ -318,8 +330,8 @@ Component set_text() and set_groups_text()
   lc.set_groups_text({ "en": "New Name", "fr": "Nuveau Nom" }, hicp)
   lc.update()
 
-``set_text(t, hicp)`` is the equivalent to ``set_groups_text({ default_group,
-t}, hicp})``, it adds text for the current text group and no others. Can be
+``set_text(t, hicp)`` is the equivalent to ``set_groups_text( {default_group,
+t, hicp} )``, it adds text for the current text group and no others. Can be
 used if there is no multilingual support needed.
 
 In ``set_groups_text()``, "groups" is plural, don't forget. It stores the given
