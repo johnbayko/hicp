@@ -1,0 +1,2 @@
+python3 setup_hicp.py sdist
+python3 setup_hicp.py bdist_wheel

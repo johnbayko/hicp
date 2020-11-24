@@ -26,6 +26,11 @@ closed, which has additional overhead.
 Contents
 ========
 
+This is meant to be a quick-and-dirty sample implementation, it's not error
+tolerant, doesn't have proper unit testing, and is not really maintainable. So
+please don't use it as an example of my best work, it's not (though there is
+some good stuff in there).
+
 This repository contains:
 
   docs
