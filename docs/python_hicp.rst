@@ -34,11 +34,11 @@ HICP
 
       return True
 
-  in_stream = ...from socket or some other steam
-  out_stream = ...from socket or some other steam
+  in_stream = ...from socket or some other stream
+  out_stream = ...from socket or some other stream
 
   app_list = { "One": App1(), "two": App2() }
-  default+app = "One"
+  default_app = "One"
 
   authenticator = Authenticator()
 

@@ -56,7 +56,7 @@ Requires:
 - ant
 
 On MacOS these are easiest to install with Homebrew. Install Homebrew first,
-obviously, but since it can be installed without Homebrew, it's not in the
+obviously, but since these can be installed without Homebrew, it's not in the
 "requires" list.
 
 To run the sample server and client:
@@ -76,3 +76,4 @@ To run the sample server and client:
     blank to run the default application, which will let you choose which
     application to run.
 
+A python distribution package for hicp can be created with the makedist script.

@@ -13,5 +13,6 @@ setup(
     author='John Bayko',
     author_email='jbayko@sasktel.net',
     packages=find_packages(where="python", include=["hicp"]),
-    package_dir={'':'python'}
+    package_dir={'':'python'},
+    license='MIT',
 )
