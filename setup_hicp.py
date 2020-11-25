@@ -12,6 +12,6 @@ setup(
     url='https://github.com/johnbayko/hicp',
     author='John Bayko',
     author_email='jbayko@sasktel.net',
-    packages=find_packages(where='python/hicp'),
-    package_dir={'':'python/hicp'}
+    packages=find_packages(where="python", include=["hicp"]),
+    package_dir={'':'python'}
 )
