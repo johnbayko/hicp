@@ -51,7 +51,8 @@ Usage
 
 Requires:
 
-- Python 3.
+- Python 3
+  - Python 3 pip (pip3)
 - Java (14 works for sure)
 - ant
 
@@ -63,12 +64,12 @@ To run the sample server and client:
 
 - Compile hv with "ant dist". Run using the "hv" script. A window will open to
   accept connection parameters.
-- Run the receptionx.py server with the "go" script. It will print the socket
-  port number allocated to it.
+- Run the receptionx.py server with the "go" script (MacOS, Linux, Unix). It
+  will print the socket port number allocated to it.
 - Add parameters to the hv window.
 
-  - Host of the system receptionx.py is being run on, "localhost" if it's the
-    same host. If blank then "localhost" is used.
+  - Host of the system receptionx.py is being run on, "localhost" or blank if
+    it's the same host.
   - Port number printed by receptionx.py.
   - Test users and passwords are in the very low security
     python/reception/users file. Default is "user1"/"password1".
