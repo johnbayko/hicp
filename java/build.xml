@@ -4,8 +4,27 @@
   </description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
+  <property name="resource" location="resource"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
+  <property name="package"  location="package"/>
+  <property name="package.work"  location="package.work"/>
+
+  <condition property="is.macos">
+      <os family="mac"/>
+  </condition>
+  <condition property="is.windows">
+      <os family="windows"/>
+  </condition>
+  <condition property="is.linux">
+      <and>
+          <!-- A more precise test would be nice, Linux packages don't work on BSD -->
+          <os family="unix"/>
+          <not>
+              <os family="mac"/>
+          </not>
+      </and>
+  </condition>
 
   <target name="init">
     <!-- Create the time stamp -->
@@ -33,9 +52,71 @@
     </jar>
   </target>
 
-  <target name="clean" description="clean up" >
+  <target name="prepare.macos" if="is.macos" description="Do MacOS preparation for making package" >
+    <exec executable="echo">
+      <arg value="prepare.macos"/>
+    </exec>
+    <!-- Create the package working directory -->
+    <mkdir dir="${package.work}"/>
+
+    <!-- Need to make .icns from .png icon file -->
+    <property name="resource.work"  location="package.work/resource"/>
+    <mkdir dir="${resource.work}"/>
+
+  </target>
+
+  <target name="clean.macos" if="is.macos" description="Clean up MacOS preparation for making package" >
+    <exec executable="echo">
+      <arg line="clean prepare.macos"/>
+    </exec>
+    <delete dir="${package.work}"/>
+  </target>
+
+  <target name="prepare.windows" if="is.windows" description="Do Windows preparation for making package" >
+    <exec executable="echo">
+      <arg value="prepare.windows"/>
+    </exec>
+  </target>
+
+  <target name="clean.windows" if="is.windows" description="Clean up Windows preparation for making package" >
+    <exec executable="echo">
+      <arg line="clean prepare.windows"/>
+    </exec>
+  </target>
+
+  <target name="prepare.linux" if="is.linux" description="Do Linux preparation for making package" >
+    <exec executable="echo">
+      <arg value="prepare.linux"/>
+    </exec>
+  </target>
+
+  <target name="clean.linux" if="is.linux" description="Clean up Linux preparation for making package" >
+    <exec executable="echo">
+      <arg line="clean prepare.linux"/>
+    </exec>
+  </target>
+
+  <target name="package" depends="dist,prepare.macos,prepare.windows,prepare.linux" description="Create an installation package" >
+    <!-- Create the package directory -->
+    <mkdir dir="${package}"/>
+
+    <!-- Package everything in ${dist} into the platform dependent package -->
+    <exec executable="jpackage">
+        <arg line="--input ${dist}/"/>
+        <arg line="--dest ${package}/"/>
+        <arg line="--name HV"/>
+        <arg value="--description"/>
+            <arg value="Holistic Interface Control Protocol Viewer."/>
+        <arg line="--main-jar HV.jar"/>
+        <arg line="--main-class hv.HV"/>
+        <arg line="--icon ${resource}/HICPviewer.png"/>
+    </exec>
+  </target>
+
+  <target name="clean" depends="clean.macos,clean.windows,clean.linux" description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+    <delete dir="${package}"/>
   </target>
 </project>
