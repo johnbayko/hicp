@@ -89,7 +89,7 @@ Python
 ~~~~~~
 
 A python distribution package for hicp can be created with the ``makedist``
-script.
+script (MacOS and Linux).
 
 Java
 ~~~~
@@ -101,3 +101,4 @@ The ``ant`` build script can make an installation package using ``jpackage``
   MacOS
     - ``iconutil`` utility installed wth Xcode.
 
+Use the ``ant package`` target for all platforms (I've only tested MacOS).
