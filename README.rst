@@ -49,10 +49,15 @@ This repository contains:
 Usage
 =====
 
+Run from repository
+-------------------
+
 Requires:
 
 - Python 3
+
   - Python 3 pip (pip3)
+
 - Java (14 works for sure)
 - ant
 
@@ -77,4 +82,22 @@ To run the sample server and client:
     blank to run the default application, which will let you choose which
     application to run.
 
-A python distribution package for hicp can be created with the makedist script.
+Installation packages
+---------------------
+
+Python
+~~~~~~
+
+A python distribution package for hicp can be created with the ``makedist``
+script.
+
+Java
+~~~~
+
+The ``ant`` build script can make an installation package using ``jpackage``
+[https://openjdk.java.net/jeps/343]. The requirements are the same as for
+``jpackage`` (e.g. for Windows, the "Wix" utility), plus:
+
+  MacOS
+    - ``iconutil`` utility installed wth Xcode.
+

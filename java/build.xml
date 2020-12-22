@@ -7,8 +7,8 @@
   <property name="resource" location="resource"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-  <property name="package"  location="package"/>
   <property name="package.work"  location="package.work"/>
+  <property name="package"  location="package"/>
 
   <condition property="is.macos">
       <os family="mac"/>
@@ -60,9 +60,71 @@
     <mkdir dir="${package.work}"/>
 
     <!-- Need to make .icns from .png icon file -->
-    <property name="resource.work"  location="package.work/resource"/>
+    <property name="resource.work" location="${package.work}/resource"/>
     <mkdir dir="${resource.work}"/>
 
+    <!-- First, make multiple scale versions of the .png icon in iconset dir -->
+    <!-- Note existing icon is 512x512 -->
+    <property name="icnsrc" location="${resource}/HICPviewer.png"/>
+    <property name="icndir" location="${resource.work}/HICPviewer.iconset"/>
+    <property name="icnloc" location="${resource.work}/HICPviewer.icns"/>
+    <mkdir dir="${icndir}"/>
+    <exec executable="sips">
+      <arg line="-z 16 16"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_16x16.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 32 32"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_16x16@2x.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 32 32"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_32x32.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 64 64"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_32x32@2x.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 128 128"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_128x128.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 256 256"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_128x128@2x.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 256 256"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_256x256.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 512 512"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_256x256@2x.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 512 512"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_512x512.png"/>
+    </exec>
+    <exec executable="sips">
+      <arg line="-z 1024 1024"/>
+      <arg value="${icnsrc}"/>
+      <arg line="--out ${icndir}/icon_512x512@2x.png"/>
+    </exec>
+
+    <!-- Convert iconset dir to .icns file -->
+    <exec executable="iconutil">
+      <arg line="-c icns"/>
+      <arg value="${icndir}"/>
+    </exec>
   </target>
 
   <target name="clean.macos" if="is.macos" description="Clean up MacOS preparation for making package" >
@@ -76,6 +138,7 @@
     <exec executable="echo">
       <arg value="prepare.windows"/>
     </exec>
+    <property name="icnloc" location="${resource}/HICPviewer.png"/>
   </target>
 
   <target name="clean.windows" if="is.windows" description="Clean up Windows preparation for making package" >
@@ -88,6 +151,7 @@
     <exec executable="echo">
       <arg value="prepare.linux"/>
     </exec>
+    <property name="icnloc" location="${resource}/HICPviewer.png"/>
   </target>
 
   <target name="clean.linux" if="is.linux" description="Clean up Linux preparation for making package" >
@@ -109,7 +173,7 @@
             <arg value="Holistic Interface Control Protocol Viewer."/>
         <arg line="--main-jar HV.jar"/>
         <arg line="--main-class hv.HV"/>
-        <arg line="--icon ${resource}/HICPviewer.png"/>
+        <arg line="--icon ${icnloc}"/>
     </exec>
   </target>
 
