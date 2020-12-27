@@ -4,4 +4,4 @@ rm reception.log
 touch reception.log
 tail -f reception.log &
 
-python3 reception/receptionx.py
+python3 reception/hicpd.py

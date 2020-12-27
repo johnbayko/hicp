@@ -1,8 +1,8 @@
 import logging
 import os
-import os.path
+#import os.path
 import sys
-import threading
+#import threading
 
 from hicp import HICP, Message, Panel, Window, Label, Button, TextField
 
