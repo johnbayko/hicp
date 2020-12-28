@@ -1,7 +1,5 @@
 export PYTHONPATH=.
 
 rm reception.log
-touch reception.log
-tail -f reception.log &
 
 python3 reception/hicpd.py
