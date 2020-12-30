@@ -38,7 +38,10 @@ class HICPd(threading.Thread):
             reception_app.start()
 
             cs.close()
-        self.socket.close()  # No longer neded?
+        # There is a possibility that the loop will exit before the socket
+        # is closed. Not important since this will exit anyway, but clean up
+        # properly anyway.
+        self.socket.close()
 
     def stop(self):
         # If waiting for socket connection, interrupt.
