@@ -1,8 +1,9 @@
 # Test framework to open server port and start recep[tion app.
+import importlib
 import socket
 import threading
 
-import reception
+#import reception
 
 class HICPd(threading.Thread):
     def __init__(self):
@@ -19,6 +20,8 @@ class HICPd(threading.Thread):
         self.port = addr[1]
         print(f"Server socket: {addr[1]}") # debug
 
+        self.find_apps()
+
         while not self.is_stopped:
             # Wait for socket connect
             try:
@@ -34,7 +37,7 @@ class HICPd(threading.Thread):
             # start actual reception app.
             f = cs.makefile(mode='rw', encoding='utf-8', newline='\n')
 
-            reception_app = reception.Reception(f, f)
+            reception_app = self.reception.Reception(f, f)
             reception_app.start()
 
             cs.close()
@@ -47,6 +50,12 @@ class HICPd(threading.Thread):
         # If waiting for socket connection, interrupt.
         self.is_stopped = True
         self.socket.close()
+
+    def find_apps(self):
+        print('start find_apps()')  # debug
+        # See if reception can be found.
+        self.reception = importlib.import_module('reception')
+        print('reception: ' + str(self.reception))  # debug
 
     def get_port(self):
         return self.port
