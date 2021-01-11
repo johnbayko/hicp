@@ -6,7 +6,7 @@ def newLogger(name):
     if not logger.hasHandlers():
         lf = logging.Formatter('%(name)s:%(funcName)s %(lineno)d: %(message)s')
 
-        lh = logging.FileHandler('reception.log')
+        lh = logging.FileHandler('hicpd.log')
         lh.setFormatter(lf)
 
         logger.addHandler(lh)

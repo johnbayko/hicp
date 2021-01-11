@@ -1,4 +1,5 @@
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from hicpd_app import App
 
 class ButtonWindowCloser:
     def __init__(self):
@@ -50,7 +51,7 @@ class TextFieldHandler:
         text_field.update()
 
 
-class TestApp:
+class TestApp(App):
     WINDOW_TITLE_ID = 1
     AMAZING_ID = 2
     BUTTON_ID = 3

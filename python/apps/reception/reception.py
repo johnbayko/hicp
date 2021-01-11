@@ -2,53 +2,9 @@ import os
 import sys
 
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
-from test import TestApp
-from testml import TestAppML
-
-class Authenticator:
-    "A simple authenticator, uses plain text file with 'user, password' lines"
-
-    def __init__(self, user_password_path):
-        self.__user_password = {}
-        self.__logger = newLogger(type(self).__name__)
-
-        user_password_file = open(user_password_path, "r")
-        for user_password_line in user_password_file:
-            # split on comma
-            user_password_split = user_password_line.find(",")
-            # Ignore lines in wrong format.
-            if 0 < user_password_split:
-                user = user_password_line[0:user_password_split].strip()
-                password = user_password_line[user_password_split + 1:].strip()
-                self.__user_password[user] = password
-            else:
-                self.__logger.error("Wrong format in file: " + user_password_line)
-
-    def authenticate(self, message):
-        method = message.get_header(Message.METHOD)
-        if method is None:
-            # No authentication method, fails.
-            return False
-
-        if method != Message.PLAIN:
-            # This only handles plain passwords.
-            return False
-
-        check_user = message.get_header(Message.USER)
-        check_password = message.get_header(Message.PASSWORD)
-
-        try:
-            if check_password == self.__user_password[check_user]:
-                return True
-            else:
-                return False
-        except KeyError:
-            # No such user
-            return False
-
-    def get_methods(self):
-        return ["plain"]
-
+from hicpd_app import App
+from apps.test.test import TestApp
+from apps.testml.testml import TestAppML
 
 class ButtonWindowCloser:
     def __init__(self):
@@ -70,12 +26,6 @@ class ButtonWindowCloser:
         hicp.disconnect()
         self.logger.debug("ButtonWindowCloser Done disconnect")
 
-
-# Will eventually do authentication (really?).
-#    def authenticate(self):
-        # Does nothing yet.
-#        pass
-
 class ButtonAppHandler:
     def __init__(self, reception_window, app, hicp):
         self.logger = newLogger(type(self).__name__)
@@ -88,7 +38,7 @@ class ButtonAppHandler:
         self.__hicp.remove(self.__reception_window)
         self.__app.connected(self.__hicp)
 
-class Reception:
+class Reception(App):
     WINDOW_TITLE_ID = 1
     SELECT_APP_ID = 2
     TEST_APP_ID = 3
@@ -98,9 +48,7 @@ class Reception:
     APP_NAME_TEST = "test"
     APP_NAME_TEST_ML = "testml"
 
-    def __init__(self, in_stream, out_stream):
-        self.in_stream = in_stream
-        self.out_stream = out_stream
+    def __init__(self):
 
         self.__logger = newLogger(type(self).__name__)
 
@@ -113,7 +61,7 @@ class Reception:
         self.default_app = self.APP_NAME_SELF
 
     def connected(self, hicp):
-        self.__logger.debug("TestAppML connected")
+        self.__logger.debug("reception connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "App list",
@@ -126,7 +74,7 @@ class Reception:
         window.set_text_id(self.WINDOW_TITLE_ID)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
-        self.__logger.debug("TestAppML done add window")
+        self.__logger.debug("recetion done add window")
 
         select_app_label = Label()
         select_app_label.set_text_id(self.SELECT_APP_ID)
@@ -145,23 +93,4 @@ class Reception:
             ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST_ML], hicp)
         )
         window.add(button_test_ml, 0, 2)
-
-    def start(self):
-        self.__logger.debug('start()')
-
-        # Make an authenticator.
-        authenticator = Authenticator(os.path.join(sys.path[0], "users"))
-
-        # Make an HICP object.
-        self.__logger.debug("about to make HICP")
-        hicp = HICP(
-            in_stream=self.in_stream,
-            out_stream=self.out_stream,
-            app_list=self.app_list,
-            default_app=self.default_app,
-            authenticator=authenticator)
-
-        self.__logger.debug("about to start HICP")
-        hicp.start()
-        self.__logger.debug("done HICP")
 

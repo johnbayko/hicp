@@ -1,4 +1,5 @@
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from hicpd_app import App
 
 class ButtonWindowCloser:
     def __init__(self):
@@ -64,7 +65,7 @@ class TextFieldHandlerML:
 
 
 # Test multilingual features.
-class TestAppML:
+class TestAppML(App):
     LANG_EN_CA = "en-ca"
     LANG_FR_CA = "fr-ca"
 
