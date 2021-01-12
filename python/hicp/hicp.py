@@ -149,7 +149,6 @@ class EventThread(threading.Thread):
         self.write_thread = write_thread
         self.default_app = default_app
         self.app_cls_list = app_cls_list
-        self.app_list = {}
         self.authenticator = authenticator
 
         self.event_queue = queue.Queue()
@@ -341,13 +340,8 @@ class EventThread(threading.Thread):
             # No default, pick first app in list.
             app_name = next(iter(self.app_cls_list))
 
-        # See if app was already instantiated.
-        app = self.app_list.get(app_name, None)
-        if app is None:
-            # No, get class and make an app instance
-            app_cls = self.app_cls_list[app_name]
-            app = app_cls()
-            self.app_list[app_name] = app
+        app_cls = self.app_cls_list[app_name]
+        app = app_cls()
 
         return app
 
