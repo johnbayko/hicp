@@ -2,7 +2,7 @@ import os
 import sys
 
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
-from hicpd_app import App
+from hicpd_app import App, AppInfo
 from apps.test.test import TestApp
 from apps.testml.testml import TestAppML
 
@@ -59,6 +59,17 @@ class Reception(App):
             self.APP_NAME_TEST_ML: TestAppML()
         }
         self.default_app = self.APP_NAME_SELF
+
+    @classmethod
+    def get_app_name(cls):
+        return 'reception'
+
+    @classmethod
+    def get_app_info(cls):
+        name = cls.get_app_name()
+        desc = 'List apps for user to choose.'
+
+        return AppInfo(name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("reception connected")

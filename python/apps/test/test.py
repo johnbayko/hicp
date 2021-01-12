@@ -1,5 +1,5 @@
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
-from hicpd_app import App
+from hicpd_app import App, AppInfo
 
 class ButtonWindowCloser:
     def __init__(self):
@@ -62,6 +62,17 @@ class TestApp(App):
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
+
+    @classmethod
+    def get_app_name(cls):
+        return 'test'
+
+    @classmethod
+    def get_app_info(cls):
+        name = cls.get_app_name()
+        desc = 'Test some components.'
+
+        return AppInfo(name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("TestApp connected")

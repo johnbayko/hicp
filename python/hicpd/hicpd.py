@@ -62,7 +62,7 @@ class HICPd(threading.Thread):
 
         self.socket = None
         self.port = None
-        self.default_app = 'Reception' # debug
+        self.default_app = 'reception'
         self.app_cls_list = {}
         self.is_stopped = False
 

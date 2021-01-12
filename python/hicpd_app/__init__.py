@@ -1,1 +1,1 @@
-from hicpd_app.app import App
+from hicpd_app.app import App, AppInfo
