@@ -152,7 +152,7 @@ class HICPd(threading.Thread):
                     if issubclass(cls, App):
                         app = cls()  # debug
                         # TODO: Store class, instantiate apps as needed.
-                        new_app_list[app.get_app_name()] = app
+                        new_app_list[cls.get_app_name()] = app
 
             # Not practical to unload a module with no apps found, just leave
             # it around as garbage.

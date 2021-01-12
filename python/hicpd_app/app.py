@@ -4,12 +4,14 @@ class AppInfo:
         self.description = description
 
 class App:
-    def get_app_name(self):
-        # Without knowing the desirec name, return the class name.
-        return type(self).__name__
+    @classmethod
+    def get_app_name(cls):
+        # Without knowing the desired name, return the class name.
+        return cls.__name__
 
-    def get_app_info(self):
-        name = self.get_app_name()
+    @classmethod
+    def get_app_info(cls):
+        name = cls.get_app_name()
 
         # If no description, use name.
         desc = name
