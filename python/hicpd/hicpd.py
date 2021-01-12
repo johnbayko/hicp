@@ -63,7 +63,7 @@ class HICPd(threading.Thread):
         self.socket = None
         self.port = None
         self.default_app = 'Reception' # debug
-        self.app_list = {}
+        self.app_cls_list = {}
         self.is_stopped = False
 
     def run(self):
@@ -99,7 +99,7 @@ class HICPd(threading.Thread):
             hicp = HICP(
                 in_stream=f,
                 out_stream=f,
-                app_list=self.app_list,
+                app_cls_list=self.app_cls_list,
                 default_app=self.default_app,
                 authenticator=authenticator)
 
@@ -130,7 +130,7 @@ class HICPd(threading.Thread):
         reloading modules and tracking down and killing active apps.
         """
         print('start find_apps()')  # debug
-        new_app_list = {}
+        new_app_cls_list = {}
 
         app_path = self.__get_app_path()
         app_dirs_list = \
@@ -150,14 +150,12 @@ class HICPd(threading.Thread):
                 if inspect.getmodule(cls) == module:
                     app = None
                     if issubclass(cls, App):
-                        app = cls()  # debug
-                        # TODO: Store class, instantiate apps as needed.
-                        new_app_list[cls.get_app_name()] = app
+                        new_app_cls_list[cls.get_app_name()] = cls
 
             # Not practical to unload a module with no apps found, just leave
             # it around as garbage.
 
-        self.app_list = new_app_list
+        self.app_cls_list = new_app_cls_list
 
     def get_port(self):
         return self.port

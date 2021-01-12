@@ -138,7 +138,7 @@ class EventThread(threading.Thread):
         event_handler_list,
         write_thread,
         default_app,
-        app_list=None,
+        app_cls_list=None,
         authenticator=None):
 
         self.logger = newLogger(type(self).__name__)
@@ -148,7 +148,8 @@ class EventThread(threading.Thread):
         self.event_handler_list = event_handler_list
         self.write_thread = write_thread
         self.default_app = default_app
-        self.app_list = app_list
+        self.app_cls_list = app_cls_list
+        self.app_list = {}
         self.authenticator = authenticator
 
         self.event_queue = queue.Queue()
@@ -322,7 +323,7 @@ class EventThread(threading.Thread):
         self.write_thread.write(message)
 
     def get_app(self):
-        if self.app_list is None:
+        if self.app_cls_list is None:
             # Nothing to start, so done.
             return
 
@@ -336,11 +337,19 @@ class EventThread(threading.Thread):
             # Connection event didn't specify one, use default.
             app_name = self.default_app
 
-        if app_name is None or app_name not in self.app_list.keys():
+        if app_name is None or app_name not in self.app_cls_list.keys():
             # No default, pick first app in list.
-            app_name = (self.app_list.keys())[0]
+            app_name = next(iter(self.app_cls_list))
 
-        return self.app_list[app_name]
+        # See if app was already instantiated.
+        app = self.app_list.get(app_name, None)
+        if app is None:
+            # No, get class and make an app instance
+            app_cls = self.app_cls_list[app_name]
+            app = app_cls()
+            self.app_list[app_name] = app
+
+        return app
 
     def start_application(self, event):
         # select app and start running.
@@ -566,7 +575,7 @@ class HICP:
         self,
         in_stream,
         out_stream,
-        app_list,
+        app_cls_list,
         default_app=None,
         text_group=None,
         authenticator=None):
@@ -583,7 +592,7 @@ class HICP:
         self.in_stream = in_stream
         self.out_stream = out_stream
         self.__default_app = default_app
-        self.__app_list = app_list
+        self.__app_cls_list = app_cls_list
         if text_group is None:
             # Default language. If they don't specify, make it awkward enough
             # so they make the effort.
@@ -611,7 +620,7 @@ class HICP:
             self.__event_handler_list,
             self.__write_thread,
             self.__default_app,
-            self.__app_list,
+            self.__app_cls_list,
             self.__authenticator)
         self.__event_thread.start()
 
