@@ -9,7 +9,7 @@ import sys
 import threading
 
 from hicp import HICP, newLogger, Message
-from hicpd_app import App
+from hicp import App
 
 class Authenticator:
     "A simple authenticator, uses plain text file with 'user, password' lines"

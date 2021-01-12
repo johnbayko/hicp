@@ -1,5 +1,5 @@
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
-from hicpd_app import App, AppInfo
+from hicp import App, AppInfo
 
 class ButtonWindowCloser:
     def __init__(self):
