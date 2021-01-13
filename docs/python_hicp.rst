@@ -652,7 +652,7 @@ hicpd
 =====
 
 A test server ``hicpd.py`` (in the ``hicpd`` directory) allows testing of apps.
-It reads the environment variable `HICPPATH`` for the base directory (or the
+It reads the environment variable ``HICPPATH`` for the base directory (or the
 current directory where it is run if that's not set), and looks for any
 application classes in the ``apps`` subdirectory. Any classes extending the
 ``App`` classs will be loaded and made available to a connecting client.
