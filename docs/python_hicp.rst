@@ -14,13 +14,21 @@ HICP
 
 ::
 
-  from hicp import HICP
+  import os
+  import pathlib
+  from hicp import HICP, App, AppSpec
 
-  class App1:
+  class App1(App):
+    @classmethod
+    def get_app_name(cls):
+      return 'one'
     def connected(self, hicp):
       # Create GUI objects and add to hicp.
 
-  class App2:
+  class App2(App):
+    @classmethod
+    def get_app_name(cls):
+      return 'two'
     def connected(self, hicp):
       ...
 
@@ -37,8 +45,12 @@ HICP
   in_stream = ...from socket or some other stream
   out_stream = ...from socket or some other stream
 
-  app_list = { "One": App1(), "two": App2() }
-  default_app = "One"
+  app_path = pathlib.Path(os.getcwd())
+  app_list = {
+      App1.get_app_name(): AppSpec(App1, app_path),
+      App2.get_app_name(): AppSpec(App2, app_path) 
+  }
+  default_app = App1.get_app_name()
 
   authenticator = Authenticator()
 
@@ -63,8 +75,9 @@ file object that implements ``write()``. Typically using sockets, a file object
 can be created from a connected socket by calling ``makefile()``, and used for
 both ``in_stream`` and ``out_stream``.
 
-The apps in ``app_list`` all need to implement ``connected(self, hicp)``. That
-is called after a connection is made and an app is selected, and is where the
+The apps in ``app_list`` should extend ``App``, and all need to implement
+``connected(self, hicp)``. That is called after a connection is made and an app
+is selected, and is where the
 components are created and added together, along with event handlers. The app
 continues to listen for events and call the handlers until one of the handlers
 calls ``hicp.disconnect()``.
@@ -73,6 +86,10 @@ An app can also implement ``authenticate(self, hicp, message)``, which is
 called if there is no authenticator specified. The app could put up a window to
 log in, though that window would be insecure so is not generally a good idea
 unless no security is needed.
+
+The ``AppSpec`` objects in the app list include the app class, and a path which
+where the app will be run, to allow the app to bundle other resources that it
+needs.
 
 ``text_group`` is optional, and selects the name of a default text group,
 normally, a language code like "en", "en-uk", "fr", "es", etc.. The value is
@@ -109,6 +126,8 @@ hicp)``).
 HICP provides the general interface to the user agent (the client process
 that receives commands to display the user interfafce, and sends events based
 on user actions).
+
+For testing, this is all handled by the ``hicpd`` server described below.
 
 HICP start()
 ------------
@@ -628,4 +647,18 @@ editing is complete, not individual changes.
 
 The text field is updated with the changed contents and attributes before the
 handler functions are called.
+
+hicpd
+=====
+
+A test server ``hicpd.py`` (in the ``hicpd`` directory) allows testing of apps.
+It reads the environment variable `HICPPATH`` for the base directory (or the
+current directory where it is run if that's not set), and looks for any
+application classes in the ``apps`` subdirectory. Any classes extending the
+``App`` classs will be loaded and made available to a connecting client.
+
+A new app can be added into a new directory under ``apps``, and can be run by
+including the app name in the initial ``CONNECT`` message.
+
+Details on using the server is in the hicpd README file.
 

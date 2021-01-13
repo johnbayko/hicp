@@ -78,9 +78,11 @@ To run the sample server and client:
   - Port number printed by receptionx.py.
   - Test users and passwords are in the very low security
     python/reception/users file. Default is "user1"/"password1".
-  - The example server has "test" and "testml", or leave the application field
-    blank to run the default application, which will let you choose which
-    application to run.
+  - The example server has "reception" (default), "test", and "testml", or
+    leave the application field blank to run the default application, which
+    will let you choose which application to run.
+
+- Server will allow one connection at a time, until the 'x' command is entered.
 
 Installation packages
 ---------------------
