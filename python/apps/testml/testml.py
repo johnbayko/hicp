@@ -1,3 +1,5 @@
+import os
+
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
@@ -165,6 +167,17 @@ class TestAppML(App):
             }, hicp)
         )
         window.add(text_field, 1, 2)
+
+        path_label = Label()
+        path_label.set_groups_text({
+                self.LANG_EN_CA : "Current Path",
+                self.LANG_FR_CA : "Path actuel"
+            }, hicp)
+        window.add(path_label, 0, 3)
+
+        path_field = TextField()
+        path_field.set_content(os.getcwd())
+        window.add(path_field, 1, 3)
 
         window.set_visible(True)
         window.update()

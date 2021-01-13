@@ -1,3 +1,5 @@
+import os
+
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
@@ -58,7 +60,7 @@ class TestApp(App):
     LABEL_CLICK_ID = 4
     LABEL_THANKS_ID = 5
     LABEL_CHANGED_ID = 6
-#    EXTRA_ID = 7  # debug
+    LABEL_PATH_ID = 7
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -84,7 +86,7 @@ class TestApp(App):
             self.LABEL_CLICK_ID : "Please click the button.",
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
             self.LABEL_CHANGED_ID : "Text has been changed.",
-#            self.EXTRA_ID : "Extra"  # debug
+            self.LABEL_PATH_ID : "Current path.",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -128,11 +130,16 @@ class TestApp(App):
         )
         window.add(text_field, 1, 2)
 
-#        extra_label = Label()  # debug
-#        extra_label.set_text_id(self.EXTRA_ID)  # debug
-#        window.add(extra_label, 4, 0)  # debug
+        path_label = Label()
+        path_label.set_text_id(self.LABEL_PATH_ID)
+        window.add(path_label, 0, 3)
+
+        path_field = TextField()
+        path_field.set_content(os.getcwd())
+        window.add(path_field, 1, 3)
 
         window.set_visible(True)
         self.__logger.debug("About to window.update") # debug
         window.update()
         self.__logger.debug("Done window.update") # debug
+

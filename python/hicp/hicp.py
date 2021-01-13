@@ -1,8 +1,7 @@
 import os
 import os.path
+import pathlib
 import queue
-import re
-import sys
 import threading
 
 from hicp.logger import newLogger
@@ -138,7 +137,7 @@ class EventThread(threading.Thread):
         event_handler_list,
         write_thread,
         default_app,
-        app_cls_list=None,
+        app_list=None,
         authenticator=None):
 
         self.logger = newLogger(type(self).__name__)
@@ -148,8 +147,11 @@ class EventThread(threading.Thread):
         self.event_handler_list = event_handler_list
         self.write_thread = write_thread
         self.default_app = default_app
-        self.app_cls_list = app_cls_list
+        self.app_list = app_list
         self.authenticator = authenticator
+
+        # Used later before starting an app.
+        self.start_path = pathlib.Path(os.getcwd())
 
         self.event_queue = queue.Queue()
         self.connect_event = None
@@ -304,6 +306,9 @@ class EventThread(threading.Thread):
                 self.logger.debug("Invalid state: " + str(state))
                 state = STATE_WAIT_CONNECT
 
+        # Fix current directory. See start_application() for why.
+        os.chdir(self.start_path)
+
         self.logger.debug("Wait for process thread")
         self.process_thread.join()
         self.logger.debug("Done wait for process thread")
@@ -321,8 +326,8 @@ class EventThread(threading.Thread):
 
         self.write_thread.write(message)
 
-    def get_app(self):
-        if self.app_cls_list is None:
+    def get_app_spec(self):
+        if self.app_list is None:
             # Nothing to start, so done.
             return
 
@@ -336,22 +341,30 @@ class EventThread(threading.Thread):
             # Connection event didn't specify one, use default.
             app_name = self.default_app
 
-        if app_name is None or app_name not in self.app_cls_list.keys():
+        if app_name is None or app_name not in self.app_list.keys():
             # No default, pick first app in list.
-            app_name = next(iter(self.app_cls_list))
+            app_name = next(iter(self.app_list))
 
-        app_cls = self.app_cls_list[app_name]
-        app = app_cls()
-
-        return app
+        app_spec = self.app_list[app_name]
+        return app_spec
 
     def start_application(self, event):
-        # select app and start running.
-        application = self.get_app()
+        # I want to run apps in their own directory, but have to change back to
+        # the start directory to instantiate an app from its class.
+        os.chdir(self.start_path)
 
-        # Notify application that it's connected so it can send messages
+        # select app and start running.
+        app_spec = self.get_app_spec()
+        app_cls = app_spec.app_cls
+        app = app_cls()
+
+        # App runs in the app directory, in case there are things like resource
+        # files needed.
+        os.chdir(app_spec.app_path)
+
+        # Notify app that it's connected so it can send messages
         # to define the user interface.
-        application.connected(self.hicp)
+        app.connected(self.hicp)
 
     def disconnect(self):
         message = Message()
@@ -569,7 +582,7 @@ class HICP:
         self,
         in_stream,
         out_stream,
-        app_cls_list,
+        app_list,
         default_app=None,
         text_group=None,
         authenticator=None):
@@ -586,12 +599,14 @@ class HICP:
         self.in_stream = in_stream
         self.out_stream = out_stream
         self.__default_app = default_app
-        self.__app_cls_list = app_cls_list
+        self.__app_list = app_list
+
         if text_group is None:
             # Default language. If they don't specify, make it awkward enough
             # so they make the effort.
             # Canadian English: Remember the "our"s, but not the "ise"s.
             text_group = "en-ca"
+
         self.__text_group = text_group
         self.text_manager = TextManager(text_group)
         self.__authenticator = authenticator
@@ -614,7 +629,7 @@ class HICP:
             self.__event_handler_list,
             self.__write_thread,
             self.__default_app,
-            self.__app_cls_list,
+            self.__app_list,
             self.__authenticator)
         self.__event_thread.start()
 

@@ -22,3 +22,10 @@ class App:
         # By default, do nothing.
         hicp.disconnect()
 
+class AppSpec:
+    def __init__(self, app_cls, app_path):
+        # If app instance needs to ba cached, can be done here.
+        self.app_cls = app_cls
+
+        # For change directory before calling app.connect()
+        self.app_path = app_path

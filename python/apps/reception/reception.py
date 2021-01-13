@@ -1,6 +1,3 @@
-import os
-import sys
-
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 from apps.test.test import TestApp
@@ -85,7 +82,6 @@ class Reception(App):
         window.set_text_id(self.WINDOW_TITLE_ID)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
-        self.__logger.debug("recetion done add window")
 
         select_app_label = Label()
         select_app_label.set_text_id(self.SELECT_APP_ID)

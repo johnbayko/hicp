@@ -3,13 +3,14 @@ import importlib
 import inspect
 import os
 import os.path
+import pathlib
 import pkgutil
 import socket
 import sys
 import threading
 
 from hicp import HICP, newLogger, Message
-from hicp import App
+from hicp import AppSpec, App
 
 class Authenticator:
     "A simple authenticator, uses plain text file with 'user, password' lines"
@@ -63,7 +64,7 @@ class HICPd(threading.Thread):
         self.socket = None
         self.port = None
         self.default_app = 'reception'
-        self.app_cls_list = {}
+        self.app_list = {}
         self.is_stopped = False
 
     def run(self):
@@ -99,7 +100,7 @@ class HICPd(threading.Thread):
             hicp = HICP(
                 in_stream=f,
                 out_stream=f,
-                app_cls_list=self.app_cls_list,
+                app_list=self.app_list,
                 default_app=self.default_app,
                 authenticator=authenticator)
 
@@ -129,15 +130,13 @@ class HICPd(threading.Thread):
         If source files are changed, restart the server, it's not worth
         reloading modules and tracking down and killing active apps.
         """
-        print('start find_apps()')  # debug
-        new_app_cls_list = {}
+        new_app_list = {}
 
         app_path = self.__get_app_path()
         app_dirs_list = \
             [os.path.join(app_path, f) for f
                 in os.listdir(app_path)
                 if os.path.isdir(os.path.join(app_path, f)) ]
-        print(app_dirs_list)  # debug
 
         for importer, package_name, _ in pkgutil.iter_modules(app_dirs_list):
             full_package_name = '%s.%s' % (app_path, package_name)
@@ -150,12 +149,16 @@ class HICPd(threading.Thread):
                 if inspect.getmodule(cls) == module:
                     app = None
                     if issubclass(cls, App):
-                        new_app_cls_list[cls.get_app_name()] = cls
+                        module_path = \
+                            pathlib.Path(os.path.dirname(module_spec.origin))
+
+                        new_app_list[cls.get_app_name()] = \
+                            AppSpec(cls, module_path)
 
             # Not practical to unload a module with no apps found, just leave
             # it around as garbage.
 
-        self.app_cls_list = new_app_cls_list
+        self.app_list = new_app_list
 
     def get_port(self):
         return self.port
