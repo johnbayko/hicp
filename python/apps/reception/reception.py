@@ -64,7 +64,7 @@ class Reception(App):
     @classmethod
     def get_app_info(cls):
         name = cls.get_app_name()
-        desc = 'List apps for user to choose.'
+        desc = {'en':'List apps for user to choose.'}
 
         return AppInfo(name, desc)
 

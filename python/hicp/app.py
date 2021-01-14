@@ -1,7 +1,9 @@
 class AppInfo:
+    # Description must be a dict that can be passed to set_groups_text()
+    description={}
     def __init__(self, name, description):
         self.name = name
-        self.description = description
+        self.description.update(description)
 
 class App:
     @classmethod
@@ -14,7 +16,7 @@ class App:
         name = cls.get_app_name()
 
         # If no description, use name.
-        desc = name
+        desc = {'en-ca':name}
 
         return AppInfo(name, desc)
 

@@ -72,7 +72,7 @@ class TestApp(App):
     @classmethod
     def get_app_info(cls):
         name = cls.get_app_name()
-        desc = 'Test some components.'
+        desc = {'en':'Test some components.'}
 
         return AppInfo(name, desc)
 

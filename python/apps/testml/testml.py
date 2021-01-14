@@ -81,8 +81,10 @@ class TestAppML(App):
     @classmethod
     def get_app_info(cls):
         name = cls.get_app_name()
-        desc = 'Test some components with multiple languages.'
-
+        desc = {
+            self.LANG_EN_CA: "Test some components with multiple languages.",
+            self.LANG_FR_CA: "Testez quelques pièces avec multiple langues."
+        }
         return AppInfo(name, desc)
 
     def connected(self, hicp):
