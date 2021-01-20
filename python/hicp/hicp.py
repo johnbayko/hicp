@@ -470,104 +470,160 @@ class EventThread(threading.Thread):
             self.logger.debug("event update handler has wrong number of args")
 
 
-class TextManagerGroup:
-    "Contains id to string mapping for a text manager group"
+class TextSelector:
+    "Selects text based on specified (optional) groups and subgroups."
 
-    def __init__(self):
+    def __init__(self, text_group_list = [('', '', '')]):
+        """Initialise with optional list of texts for groups (text, group, subgroup)."""
+
+        self.text_list = []
+        self.add_all_text(text_group_list)
+
+    def get_text_item_exact(self, group='', subgroup=''):
+        """Get the text for the exact group and subgroup specified."""
+
+        for text_item in self.text_list:
+            (chk_group, chk_subgroup, chk_text) = text_item
+            if chk_group == group and chk_subgroup == subgroup:
+                return text_item
+        # Nothing found.
+        return None
+
+    def add_text(self, text, group='', subgroup=''):
+        "Replace or add text for the given group and subgroup."
+
+        old_text_item = self.get_text_item_exact(group, subgroup)
+        if old_text_item is not None:
+            # Remove the old one.
+            self.text_list.remove(old_text_item)
+        self.text_list.append((group, subgroup, text))
+
+    def add_all_text(self, text_group_list = [('', '', '')] ):
+        # Tuples of (text, group, subgroup) (same as parameters for add_text()).
+        # Default is '' for omitted values.
+        for text_group in text_group_list:
+            text = ''
+            group = ''
+            subgroup = ''
+            if 3 == len(text_group):
+                (text, group, subgroup) = text_group
+            elif 2 == len(text_group):
+                (text, group) = text_group
+            elif 1 == len(text_group):
+                (text) = text_group
+            self.add_text(text, group, subgroup)
+
+    def get_text(self, group='', subgroup=''):
+        "Get text that matches the group and subgroup reasonably close."
+
+        # Always return a valid text.
+        match_text = ''
+
+        match_strength = 0
+        for text_item in self.text_list:
+            (chk_group, chk_subgroup, chk_text) = text_item
+            if chk_group == group and chk_subgroup == subgroup:
+                chk_match_strength = 3
+            elif chk_group == group and subgroup == '':
+                # Subgroup not specified
+                chk_match_strength = 2
+            elif chk_group == group:
+                # subgroup specified, but not matched
+                chk_match_strength = 1
+            else:
+                chk_match_strength = 0
+
+            if chk_match_strength > match_strength:
+                match_text = chk_text
+                match_strength = chk_match_strength
+
+        return match_text
+
+class TextManager:
+    def __init__(self, new_group, new_subgroup):
         self.logger = newLogger(type(self).__name__)
 
         # Doesn't need to know what group it's in, just the text info.
-        self.id_to_text = {}
-        self.text_to_id = {}
+        self.id_to_selector = {}
 
-    def add_text(self, text_id, text):
-        self.text_to_id[text] = text_id
-        self.id_to_text[text_id] = text
+        self.set_group(new_group, new_subgroup)
+
+    def validate_group(self, group=None, subgroup=None):
+        if subgroup is None:
+            if group is None:
+                subgroup = self.subgroup
+            else:
+                # Group specified but sub group intentionally not, use ''
+                subgroup = ''
+
+        if group is None:
+            group = self.group
+
+        return (group, subgroup)
+
+    def set_group(self, new_group='', new_subgroup=''):
+        self.group = new_group
+        self.subgroup = new_subgroup
+
+    def add_text(self, text_id, text, group = None, subgroup = None):
+        (group, subgroup) = self.validate_group(group, subgroup)
+
+        selector = self.id_to_selector.get(text_id)
+        if selector is None:
+            # No text for this ID yet.
+            selector = TextSelector()
+            self.id_to_selector[text_id] = selector
+
+        selector.add_text(text, group, subgroup)
 
     def find_free_id(self):
-        keys = self.id_to_text.keys()
-        if 0 == len(keys):
+        text_ids = self.id_to_selector.keys()
+        if 0 == len(text_ids):
             # Nothing, any ID will do.
             return 0
-        ks = sorted(keys)
+        sorted_text_ids = sorted(text_ids)
 
         # Start at lowest key value
-        prev_key = ks[0]
-        for key in ks:
-            if (key - prev_key) > 1:
+        prev_text_id = sorted_text_ids[0]
+        for text_id in sorted_text_ids:
+            if (text_id - prev_text_id) > 1:
                 # There was a gap in keys
-                return prev_key + 1
-            prev_key = key
+                return prev_text_id + 1
+            prev_text_id = text_id
         # No gap found, next key is end of list
-        return prev_key + 1
+        return prev_text_id + 1
 
-    def add_text_get_id(self, text: str):
-        if text in self.text_to_id:
-            # Already there.
-            return self.text_to_id[text]
+    def add_text_get_id(self, text, group = None, subgroup = None):
+        (group, subgroup) = self.validate_group(group, subgroup)
 
-        free_id = self.find_free_id()
-        self.add_text(free_id, text)
-        return free_id
+        # Don't want two ids for the same text, group, subgroup values, so
+        # see if it's alreay been added.
+        # Can't use TextSelector as key because two different selectors can
+        # have identical values. So scan through id_to_selector list.
+        # Can be sped up a lot with more complex data structures, but don't
+        # bother unless needed.
+        for text_id, selector in self.id_to_selector.items():
+            if text == selector.get_text(group, subgroup):
+                # Found it, return the id for it.
+                return text_id
 
-    def get_id(self, text: str):
-        # None if not there.
-        return self.text_to_id.get(text)
+        # Is new text, group, subgroup, so add it and return new id.
+        text_id = self.find_free_id()
+        self.add_text(text_id, text, group, subgroup)
+        return text_id
+
+    # TODO: needed?
+    def get_text_selector(self, text_id):
+        selector = self.id_to_selector.get(text_id)
 
     def get_text(self, text_id):
-        # None if not there.
-        return self.id_to_text.get(text_id)
+        selector = self.id_to_selector.get(text_id)
+        if selector is not None:
+            return selector.get_text(self.group, self.subgroup)
+        return None
 
-    def get_all_text(self):
-        "Return a copy of id/text dictionary."
-        return self.id_to_text.copy()
-
-class TextManager:
-    "Manage text groups, IDs, and strings"
-
-    def __init__(self, current_group: str):
-        if current_group is None or '' == current_group:
-            raise UnboundLocalError("current_group required, not defined")
-
-        self.groups: Dict[str, TextManagerGroup] = {}
-        self.deault_group = None
-
-        self.set_group(current_group)
-
-    def get_group(self, group: str = None):
-        if group is None:
-            group = self.current_group
-
-        if group in self.groups:
-            return self.groups[group]
-
-        tmg = TextManagerGroup()
-        self.groups[group] = tmg
-        return tmg
-
-    def set_group(self, new_group: str):
-        if new_group is None or '' == new_group:
-            raise UnboundLocalError("group required and not '', not defined")
-
-        # Creates group as side effect.
-        self.get_group(new_group)
-        self.current_group = new_group
-
-    def add_text(self, text_id, text, group: str = None):
-        self.get_group(group).add_text(text_id, text)
-
-    def add_text_get_id(self, text, group: str = None):
-        return self.get_group(group).add_text_get_id(text)
-
-    def get_text(self, text_id, group: str = None):
-        return self.get_group(group).get_text(text_id)
-
-    def get_id(self, text, group=None):
-        return self.get_group(group).get_id(text)
-
-    def get_all_text(self, group:str = None):
-        "Return a dict of id/text that can be passed to HICP.add_all_text()"
-        return self.get_group(group).get_all_text()
+    def keys(self):
+        return self.id_to_selector.keys()
 
 
 class HICP:
@@ -585,6 +641,7 @@ class HICP:
         app_list,
         default_app=None,
         text_group=None,
+        text_subgroup=None,
         authenticator=None):
 
         # These must be specified for this to work.
@@ -608,7 +665,7 @@ class HICP:
             text_group = "en-ca"
 
         self.__text_group = text_group
-        self.text_manager = TextManager(text_group)
+        self.text_manager = TextManager(text_group, text_subgroup)
         self.__authenticator = authenticator
 
     def start(self):
@@ -648,14 +705,15 @@ class HICP:
         self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
 
-    def set_text_group(self, text_group):
+    def set_text_group(self, text_group, text_subgroup = None):
         "Define what text group to use."
         if text_group != self.__text_group:
             self.__text_group = text_group
-            self.text_manager.set_group(text_group)
+            self.text_manager.set_group(text_group, text_subgroup)
 
             # Group is changed, send all text from new group to client.
-            for text_id, text in self.text_manager.get_all_text().items():
+            for text_id in self.text_manager.keys():
+                text = self.text_manager.get_text(text_id)
                 self.send_add_text_message(text_id, text)
 
     def add_all_text(self, text_dict):

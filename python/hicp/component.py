@@ -161,8 +161,8 @@ class ComponentText():
             self.__text_id = text_id_str
             self.control.set_changed_header(Message.TEXT, self.__text_id)
 
-    def set_text_get_id(self, text, hicp, group = None):
-        text_id = hicp.text_manager.add_text_get_id(text)
+    def set_text_get_id(self, text, hicp, group = None, subgroup = None):
+        text_id = hicp.text_manager.add_text_get_id(text, group, subgroup)
 
         # Make sure text is added to client before setting here.
         hicp.add_text(text_id, text)
@@ -170,6 +170,7 @@ class ComponentText():
 
         return text_id
 
+    # TODO Change to (text, group, subgroup) tuple list
     def set_groups_text(self, group_text_dict, hicp):
         "Set text strings for a bunch of groups."
         # Find the ID for the text in the current group (either exisitng, or
@@ -179,7 +180,7 @@ class ComponentText():
         # been added in a consistent way. Caveat emptor.
 
         tm = hicp.text_manager
-        cg = tm.current_group
+        cg = tm.group
 
         # Is text being added for the current group?
         if cg not in group_text_dict:
