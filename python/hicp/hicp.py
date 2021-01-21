@@ -516,8 +516,7 @@ class TextSelector:
     def get_text(self, group='', subgroup=''):
         "Get text that matches the group and subgroup reasonably close."
 
-        # Always return a valid text.
-        match_text = ''
+        match_text = None
 
         match_strength = 0
         for text_item in self.text_list:
@@ -540,13 +539,13 @@ class TextSelector:
         return match_text
 
 class TextManager:
-    def __init__(self, new_group, new_subgroup):
+    def __init__(self, start_group, start_subgroup):
         self.logger = newLogger(type(self).__name__)
 
         # Doesn't need to know what group it's in, just the text info.
         self.id_to_selector = {}
 
-        self.set_group(new_group, new_subgroup)
+        self.set_group(start_group, start_subgroup)
 
     def validate_group(self, group=None, subgroup=None):
         if subgroup is None:
@@ -564,6 +563,22 @@ class TextManager:
     def set_group(self, new_group='', new_subgroup=''):
         self.group = new_group
         self.subgroup = new_subgroup
+
+    def get_group(self):
+        return (self.group, self.subgroup)
+
+    def is_group(self, chk_group=None, chk_subgroup=None):
+        if chk_group is None and chk_subgroup is None:
+            # None means default group, so true.
+            return True
+        if chk_group != self.group:
+            return False
+        if chk_subgroup is None:
+            # group matched, no subgroup to check
+            return True
+        if chk_subgroup != self.subgroup:
+            return False
+        return True
 
     def add_text(self, text_id, text, group = None, subgroup = None):
         (group, subgroup) = self.validate_group(group, subgroup)
@@ -612,9 +627,17 @@ class TextManager:
         self.add_text(text_id, text, group, subgroup)
         return text_id
 
-    # TODO: needed?
-    def get_text_selector(self, text_id):
-        selector = self.id_to_selector.get(text_id)
+    def add_text_group_get_id(self, text_group_list):
+        """Add a text group list of the form used for TextSelector() -
+        [(text, group, subgroup), ...]
+        Allows duplicates if alrteady exists."""
+
+        text_selector = TextSelector(text_group_list)
+
+        text_id = self.find_free_id()
+        self.id_to_selector[text_id] = text_selector
+
+        return text_id
 
     def get_text(self, text_id):
         selector = self.id_to_selector.get(text_id)
@@ -716,20 +739,18 @@ class HICP:
                 text = self.text_manager.get_text(text_id)
                 self.send_add_text_message(text_id, text)
 
-    def add_all_text(self, text_dict):
-        # Add each id/string entry in the dictionary
-        for text_id, text in text_dict.items():
-            self.add_text(text_id, text)
-
-    def add_text(self, text_id, text_string):
+    def add_text(self, text_id, text, group=None, subgroup=None):
         if text_id is None:
             raise UnboundLocalError("text_id required, not defined")
 
-        if text_string is None:
-            raise UnboundLocalError("text_string required, not defined")
+        if text is None:
+            raise UnboundLocalError("text required, not defined")
 
-        self.send_add_text_message(text_id, text_string)
-        self.text_manager.add_text(text_id, text_string)
+        # Send text down if group and subgroup match.
+        if self.text_manager.is_group(group, subgroup):
+            self.send_add_text_message(text_id, text)
+
+        self.text_manager.add_text(text_id, text, group, subgroup)
 
     def send_add_text_message(self, text_id, text_string):
         message = Message()

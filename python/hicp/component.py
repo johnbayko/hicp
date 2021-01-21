@@ -170,29 +170,14 @@ class ComponentText():
 
         return text_id
 
-    # TODO Change to (text, group, subgroup) tuple list
-    def set_groups_text(self, group_text_dict, hicp):
-        "Set text strings for a bunch of groups."
-        # Find the ID for the text in the current group (either exisitng, or
-        # new ID when added).
-        # For each other group, add the text for that group using the same ID.
-        # This has the potential to really screw up text IDs if they haven't
-        # been added in a consistent way. Caveat emptor.
-
+    def set_groups_text(self, text_group_list, hicp):
         tm = hicp.text_manager
-        cg = tm.group
+        text_id = tm.add_text_group_get_id(text_group_list)
 
-        # Is text being added for the current group?
-        if cg not in group_text_dict:
-            # Don't know what ID to use for the new text,
-            raise ValueError("Setting group text but missing text for current group " + cg)
-
-        cg_text_to_add = group_text_dict[cg]
-        text_id = self.set_text_get_id(cg_text_to_add, hicp, cg)
-
-        # Don't need to filter out group already added, tm has no side effects,
-        for group, text_to_add in group_text_dict.items():
-            tm.add_text(text_id, text_to_add, group)
+        # Whatever text for current text manager group is, forward it to hicp.
+        text = tm.get_text(text_id)
+        hicp.add_text(text_id, text)
+        self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
         if self.__text_id is not None:
@@ -211,8 +196,8 @@ class Label(ContainedComponent):
     def set_text(self, text, hicp):
         self.component_text.set_text_get_id(text, hicp)
 
-    def set_groups_text(self, group_text_dict, hicp):
-        self.component_text.set_groups_text(group_text_dict, hicp)
+    def set_groups_text(self, text_group_list, hicp):
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -230,8 +215,8 @@ class Button(ContainedComponent):
     def set_text(self, text, hicp):
         self.component_text.set_text_get_id(text, hicp)
 
-    def set_groups_text(self, group_text_dict, hicp):
-        self.component_text.set_groups_text(group_text_dict, hicp)
+    def set_groups_text(self, text_group_list, hicp):
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
@@ -752,8 +737,8 @@ class Window(Container):
     def set_text(self, text, hicp):
         self.component_text.set_text_get_id(text, hicp)
 
-    def set_groups_text(self, group_text_dict, hicp):
-        self.component_text.set_groups_text(group_text_dict, hicp)
+    def set_groups_text(self, text_group_list, hicp):
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def set_visible(self, visible):
         self.__visible = visible
