@@ -60,6 +60,7 @@ HICP
       app_list=app_list,
       [default_app = default_app,]
       [text_group = ...default text group,]
+      [text_subgroup = ...default text subgroup,]
       [authenticator = authenticator] )
 
   hicp.start()
@@ -91,11 +92,12 @@ The ``AppSpec`` objects in the app list include the app class, and a path which
 where the app will be run, to allow the app to bundle other resources that it
 needs.
 
-``text_group`` is optional, and selects the name of a default text group,
-normally, a language code like "en", "en-uk", "fr", "es", etc.. The value is
+``text_group`` and ``text_subgroup`` are optional, and selects the name of a
+default text group, normally, a language code like "en", "en"+"uk", "fr",
+"fr"+"ca", "es", etc.. The value is
 only used as a key, so could be used for other things (e.g. a "Star Wars" vs.
 "Star Trek" theme). It's optional if no text group features are used, but
-defaults to a useful but annoying "en-ca" (Canadian English, with some UK and
+defaults to a useful but annoying "en"+"ca" (Canadian English, with some UK and
 some US spellings, but no way to tell which). Text group can be set explicitly
 within ``connected()`` instead.
 
@@ -343,15 +345,15 @@ Second (easier) way of setting text:
   lc.set_text("Name:", hicp)
   window.add(lc, 2, 3)
 
-  lc.set_groups_text({ "en": "Name", "fr": "Nom" }, hicp)
+  lc.set_groups_text([("Name", "en"), ("Nom", "fr")], hicp)
   window.add(lc, 2, 3)
 
-  lc.set_groups_text({ "en": "New Name", "fr": "Nuveau Nom" }, hicp)
+  lc.set_groups_text([("New Name", "en"), ("Nuveau Nom", "fr")], hicp)
   lc.update()
 
-``set_text(t, hicp)`` is the equivalent to ``set_groups_text( {default_group,
-t, hicp} )``, it adds text for the current text group and no others. Can be
-used if there is no multilingual support needed.
+``set_text(t, hicp)`` is the equivalent to ``set_groups_text( [(t)], hicp )``,
+it adds text for the current text group and no others. Can be used if there is
+no multilingual support needed.
 
 In ``set_groups_text()``, "groups" is plural, don't forget. It stores the given
 texts for all text groups (automatically assigns the same ID for them all), and
