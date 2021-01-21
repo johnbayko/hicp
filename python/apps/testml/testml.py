@@ -38,7 +38,7 @@ class ButtonHandlerML:
 
 
 class ButtonLangHandler:
-    def __init__(self, group, subgroup, hicp):
+    def __init__(self, hicp, group, subgroup=None):
         self.logger = newLogger(type(self).__name__)
         self.__group = group
         self.__subgroup = subgroup
@@ -69,9 +69,11 @@ class TextFieldHandlerML:
 
 # Test multilingual features.
 class TestAppML(App):
+    # Using http://www.lingoes.net/en/translator/langcode.htm
     LANG_EN = "en"
     LANG_FR = "fr"
     LANG__CA = "ca"
+    LANG__GB = "gb"
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -86,8 +88,12 @@ class TestAppML(App):
         desc = [
             (
                 "Test some components with multiple languages.",
+                self.LANG_EN
+            ),
+            (
+                "Test some components with multiple languages.",
                 self.LANG_EN,
-                self.LANG__CA
+                self.LANG__GB
             ),
             (
                 "Testez quelques pièces avec multiple langues.",
@@ -100,11 +106,12 @@ class TestAppML(App):
     def connected(self, hicp):
         self.__logger.debug("TestAppML connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
-        hicp.set_text_group(self.LANG_EN, self.LANG__CA)
+        hicp.set_text_group(self.LANG_EN)
 
         window = Window()
         window.set_groups_text( [
-                ("Window", self.LANG_EN, self.LANG__CA),
+                ("Window", self.LANG_EN),
+                ("Window", self.LANG_EN, self.LANG__GB),
                 ("Fenȇtre", self.LANG_FR, self.LANG__CA)
             ], hicp)
         window.set_handle_close(ButtonWindowCloser())
@@ -117,34 +124,49 @@ class TestAppML(App):
 
         amazing_label = Label()
         amazing_label.set_groups_text( [
-                ( "Amazing!", self.LANG_EN, self.LANG__CA),
+                ( "Amazing!", self.LANG_EN),
+                ( "Brilliant!", self.LANG_EN, self.LANG__GB),
                 ( "Sensationnel!", self.LANG_FR, self.LANG__CA)
             ], hicp)
         amazing_panel.add(amazing_label, 0, 0)
 
         button_en = Button()
         button_en.set_groups_text( [
-                ( "English", self.LANG_EN, self.LANG__CA),
+                ( "English", self.LANG_EN),
+                ( "English", self.LANG_EN, self.LANG__GB),
                 ( "English", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button_en.set_handle_click(
-            ButtonLangHandler(self.LANG_EN, self.LANG__CA, hicp)
+            ButtonLangHandler(hicp, self.LANG_EN)
         )
         amazing_panel.add(button_en, 0, 1)
 
-        button_fr = Button()
-        button_fr.set_groups_text( [
-                ( "Français", self.LANG_EN, self.LANG__CA),
+        button_en_gb = Button()
+        button_en_gb.set_groups_text( [
+                ( "English (UK)", self.LANG_EN, self.LANG__CA),
+                ( "English (UK)", self.LANG_EN, self.LANG__GB),
+                ( "English (UK)", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        button_en_gb.set_handle_click(
+            ButtonLangHandler(hicp, self.LANG_EN, self.LANG__GB)
+        )
+        amazing_panel.add(button_en_gb, 0, 2)
+
+        button_fr_ca = Button()
+        button_fr_ca.set_groups_text( [
+                ( "Français", self.LANG_EN),
+                ( "Français", self.LANG_EN, self.LANG__GB),
                 ( "Français", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        button_fr.set_handle_click(
-            ButtonLangHandler(self.LANG_FR, self.LANG__CA, hicp)
+        button_fr_ca.set_handle_click(
+            ButtonLangHandler(hicp, self.LANG_FR, self.LANG__CA)
         )
-        amazing_panel.add(button_fr, 0, 2)
+        amazing_panel.add(button_fr_ca, 0, 3)
 
         click_label = Label()
         click_label.set_groups_text( [
-                ( "Please click the button.", self.LANG_EN, self.LANG__CA),
+                ( "Please click the button.", self.LANG_EN),
+                ( "Please click the button.", self.LANG_EN, self.LANG__GB),
                 ( "Veuillez cliquer sur le bouton.", self.LANG_FR, self.LANG__CA)
             ], hicp)
         click_label.set_size(1, 1)  # debug
@@ -152,14 +174,17 @@ class TestAppML(App):
 
         button = Button()
         button.set_groups_text( [
-                ( "Button", self.LANG_EN, self.LANG__CA),
+                ( "Button", self.LANG_EN),
+                ( "Button", self.LANG_EN, self.LANG__GB),
                 ( "Bouton", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button.set_size(1, 1)  # debug
         button.set_handle_click(
             ButtonHandlerML(click_label, [
                 ( "Thank you. Don't click the button again.",
-                    self.LANG_EN, self.LANG__CA),
+                    self.LANG_EN),
+                ( "Thank you. Don't click the button again.",
+                    self.LANG_EN, self.LANG__GB),
                 ( "Merci. Ne cliquez plus sur le bouton.",
                     self.LANG_FR, self.LANG__CA)
             ], hicp)
@@ -176,7 +201,8 @@ class TestAppML(App):
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
         text_field.set_handle_changed(
             TextFieldHandlerML(click_label, [
-                ( "Text has been changed.", self.LANG_EN, self.LANG__CA),
+                ( "Text has been changed.", self.LANG_EN),
+                ( "Text has been changed.", self.LANG_EN, self.LANG__GB),
                 ( "Le texte a été modifié.", self.LANG_FR, self.LANG__CA)
             ], hicp)
         )
@@ -184,7 +210,8 @@ class TestAppML(App):
 
         path_label = Label()
         path_label.set_groups_text( [
-                ( "Current Path", self.LANG_EN, self.LANG__CA),
+                ( "Current Path", self.LANG_EN),
+                ( "Current Path", self.LANG_EN, self.LANG__GB),
                 ( "Path actuel", self.LANG_FR, self.LANG__CA)
             ], hicp)
         window.add(path_label, 0, 3)

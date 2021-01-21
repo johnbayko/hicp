@@ -561,6 +561,8 @@ class TextManager:
         return (group, subgroup)
 
     def set_group(self, new_group='', new_subgroup=''):
+        (new_group, new_subgroup) = self.validate_group(new_group, new_subgroup)
+
         self.group = new_group
         self.subgroup = new_subgroup
 
@@ -688,6 +690,7 @@ class HICP:
             text_group = "en-ca"
 
         self.__text_group = text_group
+        self.__text_subgroup = text_subgroup
         self.text_manager = TextManager(text_group, text_subgroup)
         self.__authenticator = authenticator
 
@@ -730,8 +733,9 @@ class HICP:
 
     def set_text_group(self, text_group, text_subgroup = None):
         "Define what text group to use."
-        if text_group != self.__text_group:
+        if text_group != self.__text_group or text_subgroup != self.__text_subgroup:
             self.__text_group = text_group
+            self.__text_subgroup = text_subgroup
             self.text_manager.set_group(text_group, text_subgroup)
 
             # Group is changed, send all text from new group to client.
