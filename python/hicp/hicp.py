@@ -739,6 +739,12 @@ class HICP:
                 text = self.text_manager.get_text(text_id)
                 self.send_add_text_message(text_id, text)
 
+    def add_all_text(self, text_dict):
+        """Add a dictionary of ID:text pairs - no group/subgroup support."""
+        # Add each id/string entry in the dictionary
+        for text_id, text in text_dict.items():
+            self.add_text(text_id, text)
+
     def add_text(self, text_id, text, group=None, subgroup=None):
         if text_id is None:
             raise UnboundLocalError("text_id required, not defined")
