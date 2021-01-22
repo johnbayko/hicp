@@ -172,11 +172,6 @@ class ComponentText():
 
     def set_groups_text(self, text_group_list, hicp):
         text_id = hicp.add_text_group_get_id(text_group_list)
-
-        # Whatever text for current text manager group is, forward it to hicp.
-        text = hicp.get_text(text_id)
-        hicp.add_text(text_id, text)
-        # TODO: check, is the above actually needed? Don't think so.
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):

@@ -778,13 +778,26 @@ class HICP:
         if text is None:
             raise UnboundLocalError("text required, not defined")
 
-        return self.text_manager.add_text_get_id(text, group, subgroup)
+        text_id = self.text_manager.add_text_get_id(text, group, subgroup)
+
+        # Send text down if group and subgroup match.
+        if self.text_manager.is_group(group, subgroup):
+            self.send_add_text_message(text_id, text)
+
+        return text_id
 
     def add_text_group_get_id(self, text_group_list):
         if text_group_list is None:
             raise UnboundLocalError("text_group_list required, not defined")
 
-        return self.text_manager.add_text_group_get_id(text_group_list)
+        text_id = self.text_manager.add_text_group_get_id(text_group_list) 
+
+        # Send text down if there is one for current group and subgroup.
+        text = self.text_manager.get_text(text_id)
+        if text is not None:
+            self.send_add_text_message(text_id, text)
+
+        return text_id
 
     def get_text(self, text_id):
         if text_id is None:
