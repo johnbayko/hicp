@@ -545,7 +545,9 @@ class TextManager:
         # Doesn't need to know what group it's in, just the text info.
         self.id_to_selector = {}
 
-        self.set_group(start_group, start_subgroup)
+        # set groups without validating (can't use set_group() yet)
+        self.group = start_group
+        self.subgroup = start_subgroup
 
     def validate_group(self, group=None, subgroup=None):
         if subgroup is None:
@@ -677,6 +679,7 @@ class HICP:
             raise UnboundLocalError("out_stream required, not defined")
 
         self.logger = newLogger(type(self).__name__)
+        self.text_manager = TextManager(text_group, text_subgroup)
 
         self.in_stream = in_stream
         self.out_stream = out_stream
@@ -691,7 +694,6 @@ class HICP:
 
         self.__text_group = text_group
         self.__text_subgroup = text_subgroup
-        self.text_manager = TextManager(text_group, text_subgroup)
         self.__authenticator = authenticator
 
     def start(self):
@@ -771,6 +773,24 @@ class HICP:
         message.add_header(Message.TEXT, text_string)
 
         self.__write_thread.write(message)
+
+    def add_text_get_id(self, text, group, subgroup):
+        if text is None:
+            raise UnboundLocalError("text required, not defined")
+
+        return self.text_manager.add_text_get_id(text, group, subgroup)
+
+    def add_text_group_get_id(self, text_group_list):
+        if text_group_list is None:
+            raise UnboundLocalError("text_group_list required, not defined")
+
+        return self.text_manager.add_text_group_get_id(text_group_list)
+
+    def get_text(self, text_id):
+        if text_id is None:
+            raise UnboundLocalError("text_id required, not defined")
+
+        return self.text_manager.get_text(text_id)
 
     def get_gui_id(self):
         gui_id = self.__gui_id

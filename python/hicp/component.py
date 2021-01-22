@@ -162,7 +162,7 @@ class ComponentText():
             self.control.set_changed_header(Message.TEXT, self.__text_id)
 
     def set_text_get_id(self, text, hicp, group = None, subgroup = None):
-        text_id = hicp.text_manager.add_text_get_id(text, group, subgroup)
+        text_id = hicp.add_text_get_id(text, group, subgroup)
 
         # Make sure text is added to client before setting here.
         hicp.add_text(text_id, text)
@@ -171,12 +171,12 @@ class ComponentText():
         return text_id
 
     def set_groups_text(self, text_group_list, hicp):
-        tm = hicp.text_manager
-        text_id = tm.add_text_group_get_id(text_group_list)
+        text_id = hicp.add_text_group_get_id(text_group_list)
 
         # Whatever text for current text manager group is, forward it to hicp.
-        text = tm.get_text(text_id)
+        text = hicp.get_text(text_id)
         hicp.add_text(text_id, text)
+        # TODO: check, is the above actually needed? Don't think so.
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
