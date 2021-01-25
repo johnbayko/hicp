@@ -36,11 +36,6 @@ class ButtonAppHandler:
         self.__app.connected(self.__hicp)
 
 class Reception(App):
-    WINDOW_TITLE_ID = 1
-    SELECT_APP_ID = 2
-    TEST_APP_ID = 3
-    TEST_APP_ML_ID = 4
-
     APP_NAME_SELF = "self"
     APP_NAME_TEST = "test"
     APP_NAME_TEST_ML = "testml"
@@ -64,40 +59,67 @@ class Reception(App):
     @classmethod
     def get_app_info(cls):
         name = cls.get_app_name()
-        desc = {'en':'List apps for user to choose.'}
+        desc = [('List apps for user to choose.', 'en')]
 
         return AppInfo(name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("reception connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
-        hicp.add_all_text({
-            self.WINDOW_TITLE_ID : "App list",
-            self.SELECT_APP_ID : "Select app:",
-            self.TEST_APP_ID : "Test",
-            self.TEST_APP_ML_ID : "Test Multi-language",
-        })
+
+        WINDOW_TITLE_ID = hicp.add_text_get_id("App list")
+        SELECT_APP_ID = hicp.add_text_get_id("Select app:")
+        TEST_APP_ID = hicp.add_text_get_id("Test")
+        TEST_APP_ML_ID = hicp.add_text_get_id("Test Multi-language")
 
         window = Window()
-        window.set_text_id(self.WINDOW_TITLE_ID)
+        window.set_text_id(WINDOW_TITLE_ID)
         window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
 
         select_app_label = Label()
-        select_app_label.set_text_id(self.SELECT_APP_ID)
+        select_app_label.set_text_id(SELECT_APP_ID)
         window.add(select_app_label, 0, 0)
 
+        select_panel = Panel()
+        window.add(select_panel, 0, 1)
+
         button_test = Button()
-        button_test.set_text_id(self.TEST_APP_ID)
+        button_test.set_text_id(TEST_APP_ID)
         button_test.set_handle_click(
             ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST], hicp)
         )
-        window.add(button_test, 0, 1)
+        select_panel.add(button_test, 0, 0)
 
         button_test_ml = Button()
-        button_test_ml.set_text_id(self.TEST_APP_ML_ID)
+        button_test_ml.set_text_id(TEST_APP_ML_ID)
         button_test_ml.set_handle_click(
             ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST_ML], hicp)
         )
-        window.add(button_test_ml, 0, 2)
+        select_panel.add(button_test_ml, 0, 1)
+
+        # Show found apps
+        app_panel = Panel()
+        window.add(app_panel, 1, 1)
+
+        all_app_info = hicp.get_all_app_info()
+
+        app_pos_y = 0
+        for app_info in all_app_info.values():
+            app_name_id = hicp.add_text_get_id(app_info.name)
+
+            app_button = Button()
+            app_button.set_text_id(app_name_id)
+            app_panel.add(app_button, 0, app_pos_y)
+
+            (group, subgroup) = hicp.get_text_group()
+            app_desc = app_info.description.get_text(group, subgroup)
+            app_desc_id = hicp.add_text_get_id(app_desc)
+
+            app_label = Label()
+            app_label.set_text_id(app_desc_id)
+            app_panel.add(app_label, 1, app_pos_y)
+
+            app_pos_y += 1
+
 

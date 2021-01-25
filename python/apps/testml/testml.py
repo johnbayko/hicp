@@ -88,17 +88,17 @@ class TestAppML(App):
         desc = [
             (
                 "Test some components with multiple languages.",
-                self.LANG_EN
+                cls.LANG_EN
             ),
             (
                 "Test some components with multiple languages.",
-                self.LANG_EN,
-                self.LANG__GB
+                cls.LANG_EN,
+                cls.LANG__GB
             ),
             (
                 "Testez quelques pièces avec multiple langues.",
-                self.LANG_FR,
-                self.LANG__CA
+                cls.LANG_FR,
+                cls.LANG__CA
             ),
         ]
         return AppInfo(name, desc)

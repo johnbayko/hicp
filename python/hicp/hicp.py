@@ -522,15 +522,15 @@ class TextSelector:
         for text_item in self.text_list:
             (chk_group, chk_subgroup, chk_text) = text_item
             if chk_group == group and chk_subgroup == subgroup:
-                chk_match_strength = 3
+                chk_match_strength = 4
             elif chk_group == group and subgroup == '':
                 # Subgroup not specified
-                chk_match_strength = 2
+                chk_match_strength = 3
             elif chk_group == group:
                 # subgroup specified, but not matched
-                chk_match_strength = 1
+                chk_match_strength = 2
             else:
-                chk_match_strength = 0
+                chk_match_strength = 1
 
             if chk_match_strength > match_strength:
                 match_text = chk_text
@@ -690,7 +690,8 @@ class HICP:
             # Default language. If they don't specify, make it awkward enough
             # so they make the effort.
             # Canadian English: Remember the "our"s, but not the "ise"s.
-            text_group = "en-ca"
+            text_group = "en"
+            text_subgroup = "ca"
 
         self.__text_group = text_group
         self.__text_subgroup = text_subgroup
@@ -733,6 +734,16 @@ class HICP:
         self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
 
+    def get_all_app_info(self):
+        # Return a copy of the app info from app list.
+        app_info_dict = {}
+        for app_spec in self.__app_list.values():
+            app_cls = app_spec.app_cls
+            app_info = app_cls.get_app_info()
+            app_info_dict[app_info.name] = app_info
+
+        return app_info_dict
+
     def set_text_group(self, text_group, text_subgroup = None):
         "Define what text group to use."
         if text_group != self.__text_group or text_subgroup != self.__text_subgroup:
@@ -744,6 +755,9 @@ class HICP:
             for text_id in self.text_manager.keys():
                 text = self.text_manager.get_text(text_id)
                 self.send_add_text_message(text_id, text)
+
+    def get_text_group(self):
+        return self.text_manager.get_group()
 
     def add_all_text(self, text_dict):
         """Add a dictionary of ID:text pairs - no group/subgroup support."""
@@ -774,7 +788,7 @@ class HICP:
 
         self.__write_thread.write(message)
 
-    def add_text_get_id(self, text, group, subgroup):
+    def add_text_get_id(self, text, group=None, subgroup=None):
         if text is None:
             raise UnboundLocalError("text required, not defined")
 
