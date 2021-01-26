@@ -63,7 +63,7 @@ class HICPd(threading.Thread):
 
         self.socket = None
         self.port = None
-        self.default_app = 'reception'
+        self.default_app = None
         self.app_list = {}
         self.is_stopped = False
 
@@ -124,6 +124,11 @@ class HICPd(threading.Thread):
         app_path = os.path.join(hicp_path, 'apps')
         return app_path
 
+    def __get_default_app_path(self):
+        hicp_path = os.getenv('HICPPATH', default='.')
+        app_path = os.path.join(hicp_path, 'default_app')
+        return app_path
+
     def find_apps(self):
         """Find and load apps in the app path.
 
@@ -131,12 +136,18 @@ class HICPd(threading.Thread):
         reloading modules and tracking down and killing active apps.
         """
         new_app_list = {}
+        new_default_app = None
 
         app_path = self.__get_app_path()
         app_dirs_list = \
             [os.path.join(app_path, f) for f
                 in os.listdir(app_path)
                 if os.path.isdir(os.path.join(app_path, f)) ]
+
+        # Add default app dir to beginning of list, if it exists.
+        default_app_path = self.__get_default_app_path()
+        if os.path.isdir(default_app_path):
+            app_dirs_list.insert(0, default_app_path)
 
         for importer, package_name, _ in pkgutil.iter_modules(app_dirs_list):
             full_package_name = '%s.%s' % (app_path, package_name)
@@ -149,16 +160,28 @@ class HICPd(threading.Thread):
                 if inspect.getmodule(cls) == module:
                     app = None
                     if issubclass(cls, App):
-                        module_path = \
-                            pathlib.Path(os.path.dirname(module_spec.origin))
+                        module_dirname = os.path.dirname(module_spec.origin)
+                        module_path = pathlib.Path(module_dirname)
 
-                        new_app_list[cls.get_app_name()] = \
-                            AppSpec(cls, module_path)
+                        app_name = cls.get_app_name()
+                        if module_dirname == default_app_path:
+                            new_default_app = app_name
+
+                        new_app_list[app_name] = AppSpec(cls, module_path)
 
             # Not practical to unload a module with no apps found, just leave
             # it around as garbage.
 
         self.app_list = new_app_list
+
+        if new_default_app is not None:
+            self.default_app = new_default_app
+        else:
+            # None found, default to first app in list - might not be the same
+            # each time, so probably won't work normally.
+            # Take one iteration of new_app_list (will iterate keys, which are
+            # app names).
+            self.default_app = next(iter(new_app_list))
 
     def get_port(self):
         return self.port
