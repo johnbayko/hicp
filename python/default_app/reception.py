@@ -106,20 +106,21 @@ class Reception(App):
 
         app_pos_y = 0
         for app_info in all_app_info.values():
-            app_name_id = hicp.add_text_get_id(app_info.name)
+            # Skip adding button for this app.
+            if app_info.name != self.get_app_name():
+                app_name_id = hicp.add_text_get_id(app_info.name)
 
-            app_button = Button()
-            app_button.set_text_id(app_name_id)
-            app_panel.add(app_button, 0, app_pos_y)
+                app_button = Button()
+                app_button.set_text_id(app_name_id)
+                app_panel.add(app_button, 0, app_pos_y)
 
-            (group, subgroup) = hicp.get_text_group()
-            app_desc = app_info.description.get_text(group, subgroup)
-            app_desc_id = hicp.add_text_get_id(app_desc)
+                (group, subgroup) = hicp.get_text_group()
+                app_desc = app_info.description.get_text(group, subgroup)
+                app_desc_id = hicp.add_text_get_id(app_desc)
 
-            app_label = Label()
-            app_label.set_text_id(app_desc_id)
-            app_panel.add(app_label, 1, app_pos_y)
+                app_label = Label()
+                app_label.set_text_id(app_desc_id)
+                app_panel.add(app_label, 1, app_pos_y)
 
-            app_pos_y += 1
-
+                app_pos_y += 1
 
