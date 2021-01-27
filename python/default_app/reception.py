@@ -31,9 +31,18 @@ class ButtonAppHandler:
         self.__hicp = hicp
 
     def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonLangHandler In update handler")
+        self.logger.debug("ButtonAppHandler In update handler")
         self.__hicp.remove(self.__reception_window)
         self.__app.connected(self.__hicp)
+
+class ButtonSwitchAppHandler:
+    def __init__(self, app_name):
+        self.logger = newLogger(type(self).__name__)
+        self.__app_name = app_name
+
+    def update(self, hicp, event_message, component):
+        print("ButtonSwitchAppHandler In update handler")
+        hicp.switch_app(self.__app_name)
 
 class Reception(App):
     APP_NAME_SELF = "self"
@@ -112,6 +121,9 @@ class Reception(App):
 
                 app_button = Button()
                 app_button.set_text_id(app_name_id)
+                app_button.set_handle_click(
+                    ButtonSwitchAppHandler(app_info.name)
+                )
                 app_panel.add(app_button, 0, app_pos_y)
 
                 (group, subgroup) = hicp.get_text_group()

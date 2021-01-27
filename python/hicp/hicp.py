@@ -40,18 +40,13 @@ class ReadThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        self.logger.debug("Read thread started")  # debug
-
         while True:
             event = Event(in_stream=self.in_stream)
 
             self.event_thread.add(event)
 
             if event.disconnected:
-                self.logger.debug("ReadThread End of file input")
                 break
-
-        self.logger.debug("Read thread ended")  # debug
 
 
 class ProcessThread(threading.Thread):
@@ -153,6 +148,7 @@ class EventThread(threading.Thread):
         # Used later before starting an app.
         self.start_path = pathlib.Path(os.getcwd())
 
+        self.suspend_app = False
         self.event_queue = queue.Queue()
         self.connect_event = None
 
@@ -174,7 +170,6 @@ class EventThread(threading.Thread):
         state = STATE_WAIT_CONNECT
         self.logger.debug("Initial state STATE_WAIT_CONNECT") # debug
         while True:
-            self.logger.debug("EventThread about to get Event")  # debug
             event = self.event_queue.get()
 
             if event is None or event.disconnected:
@@ -214,7 +209,7 @@ class EventThread(threading.Thread):
                     # Check authentication
                     if self.authenticator.authenticate(event):
                         # Authenticated, start app running
-                        self.start_application(event)
+                        self.start_application()
                         state = STATE_RUNNING
                     else:
                         # Can the application do
@@ -242,7 +237,10 @@ class EventThread(threading.Thread):
                     pass
                 else:
                     # Real event.
-                    if Event.STAGE_FEEDBACK == event.stage:
+                    if self.suspend_app:
+                        # Ignore all app events - app is being shutdown.
+                        pass
+                    elif Event.STAGE_FEEDBACK == event.stage:
                         self.logger.debug("Feedback stage: " + str(event.stage)) # debug
                         self.set_event_component(event)
 
@@ -270,7 +268,6 @@ class EventThread(threading.Thread):
                             except AttributeError:
                                 # Component does not respond to close
                                 # message, handler is incorrect.
-                                self.logger.debug("click no handler found")  # debug
                                 event.handler = None
 
 # here
@@ -284,7 +281,6 @@ class EventThread(threading.Thread):
                             except AttributeError:
                                 # Component does not respond to changed
                                 # message, handler is incorrect.
-                                self.logger.debug("changed no handler found")  # debug
                                 event.handler = None
 
                         if event.handler is not None:
@@ -296,7 +292,6 @@ class EventThread(threading.Thread):
                         # just call event_update()
                         self.logger.debug("Update stage: " + str(event.stage))
                         self.event_update(event)
-                        pass
                     else:
                         # Shouldn't happen. Maybe log it?
                         self.logger.debug("Unidentified stage: " + str(event.stage))
@@ -326,14 +321,14 @@ class EventThread(threading.Thread):
 
         self.write_thread.write(message)
 
-    def get_app_spec(self):
+    def get_app_name_to_start(self):
         if self.app_list is None:
             # Nothing to start, so done.
-            return
+            return None
 
         if self.connect_event is None:
             # Not conected.
-            return
+            return None
 
         app_name = self.connect_event.get_header(Message.APPLICATION)
 
@@ -345,16 +340,28 @@ class EventThread(threading.Thread):
             # No default, pick first app in list.
             app_name = next(iter(self.app_list))
 
-        app_spec = self.app_list[app_name]
-        return app_spec
+        return app_name
 
-    def start_application(self, event):
+    def start_application(self):
+        # select app and start running.
+        app_name = self.get_app_name_to_start()
+
+        self.start_app_by_name(app_name)
+
+    def start_app_by_name(self, app_name):
         # I want to run apps in their own directory, but have to change back to
         # the start directory to instantiate an app from its class.
         os.chdir(self.start_path)
 
-        # select app and start running.
-        app_spec = self.get_app_spec()
+        if app_name is None:
+            # No app found to start.
+            return
+
+        app_spec = self.app_list.get(app_name)
+        if app_spec is None:
+            # No app found to start.
+            return
+
         app_cls = app_spec.app_cls
         app = app_cls()
 
@@ -365,6 +372,9 @@ class EventThread(threading.Thread):
         # Notify app that it's connected so it can send messages
         # to define the user interface.
         app.connected(self.hicp)
+
+    def set_suspend_app(self, suspend_flag):
+        self.suspend_app = suspend_flag
 
     def disconnect(self):
         message = Message()
@@ -697,13 +707,12 @@ class HICP:
         self.__text_subgroup = text_subgroup
         self.__authenticator = authenticator
 
-    def start(self):
         # Things for this object
-        # TODO: Maybe should be in __init__()?
         self.__gui_id = 0
         self.__component_list = {}
         self.__event_handler_list = {}
 
+    def start(self):
         self.logger.debug("about to make WriteThread()")  # debug
         self.__write_thread = WriteThread(self.out_stream)
         self.__write_thread.start()
@@ -733,6 +742,24 @@ class HICP:
         self.__write_thread.write(None)
         self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
+
+    def switch_app(self, app_name):
+        # Set event thread to discard event processing
+        self.__event_thread.set_suspend_app(True)
+
+        # Remove all components in self.__component_list.
+        # __component_list will be modified, so make copy of keys() and iterate
+        # through that instead.
+        component_id_list = list(self.__component_list.keys())
+        for component_id in component_id_list:
+            component = self.__component_list[component_id]
+            self.remove(component)
+
+        # Resume event thread processing
+        self.__event_thread.set_suspend_app(False)
+
+        # start new ap
+        self.__event_thread.start_app_by_name(app_name)
 
     def get_all_app_info(self):
         # Return a copy of the app info from app list.
@@ -933,7 +960,6 @@ class HICP:
         self.__write_thread.write(message)
 
     def disconnect(self):
-        self.logger.debug("hicp.disconnect() entered") # debug
         self.__event_thread.disconnect()
         self.logger.debug("hicp.disconnect() done") # debug
 

@@ -660,8 +660,8 @@ application classes in any subdirectories under the ``apps`` directory, and the
 specific ``default_app`` directory. Any classes extending the ``App`` classs
 will be loaded and made available to a connecting client, and any app class in ``default_app`` will be used as the default app.
 
-A new app can be added into a new subdirectory under ``apps``, and can be run by
-including the app name in the initial ``CONNECT`` message.
+A new app can be added into a new subdirectory under ``apps``, and can be run
+by including the app name in the initial ``CONNECT`` message.
 
 Details on using the server is in the hicpd README file.
 
