@@ -41,7 +41,6 @@ class ButtonSwitchAppHandler:
         self.__app_name = app_name
 
     def update(self, hicp, event_message, component):
-        print("ButtonSwitchAppHandler In update handler")
         hicp.switch_app(self.__app_name)
 
 class Reception(App):
