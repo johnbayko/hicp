@@ -233,6 +233,17 @@ HICP remove()
 
 Remove a component that was added using ``add()``.
 
+HICP switch_app()
+-----------------
+
+::
+
+  hicp.switch_app('calc')
+
+Stops the current app, and starts a new one with the given name. If the name is
+not an actual app, this is treated as a disconnect request.
+
+
 HICP disconect()
 ----------------
 

@@ -355,12 +355,12 @@ class EventThread(threading.Thread):
 
         if app_name is None:
             # No app found to start.
-            return
+            return False
 
         app_spec = self.app_list.get(app_name)
         if app_spec is None:
             # No app found to start.
-            return
+            return False
 
         app_cls = app_spec.app_cls
         app = app_cls()
@@ -372,6 +372,8 @@ class EventThread(threading.Thread):
         # Notify app that it's connected so it can send messages
         # to define the user interface.
         app.connected(self.hicp)
+
+        return True
 
     def set_suspend_app(self, suspend_flag):
         self.suspend_app = suspend_flag
@@ -759,7 +761,9 @@ class HICP:
         self.__event_thread.set_suspend_app(False)
 
         # start new ap
-        self.__event_thread.start_app_by_name(app_name)
+        if not self.__event_thread.start_app_by_name(app_name):
+            # if fails, disconnect
+            self.disconnect()
 
     def get_all_app_info(self):
         # Return a copy of the app info from app list.
