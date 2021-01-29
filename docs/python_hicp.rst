@@ -76,18 +76,7 @@ file object that implements ``write()``. Typically using sockets, a file object
 can be created from a connected socket by calling ``makefile()``, and used for
 both ``in_stream`` and ``out_stream``.
 
-The apps in ``app_list`` should extend ``App``, and all need to implement
-``connected(self, hicp)``. That is called after a connection is made and an app
-is selected, and is where the
-components are created and added together, along with event handlers. The app
-continues to listen for events and call the handlers until one of the handlers
-calls ``hicp.disconnect()``.
-
-An app can also implement ``authenticate(self, hicp, message)``, which is
-called if there is no authenticator specified. The app could put up a window to
-log in, though that window would be insecure so is not generally a good idea
-unless no security is needed.
-
+The apps in ``app_list`` are described below.
 The ``AppSpec`` objects in the app list include the app class, and a path which
 where the app will be run, to allow the app to bundle other resources that it
 needs.
@@ -254,6 +243,51 @@ HICP disconect()
 Sends a disconnect command to the user agent. Does not preemptively close the
 connection, this allows the user agent time to do any cleanup it wants to, then
 send a disconnect event when it's ready.
+
+Apps
+====
+
+An ``App`` class is just a class which extendcs ``hicp.App``, and overrides the
+methods it specifies. Those are:
+
+``get_app_name(cls)``
+  A class method which returns the name that the app expects to be referred to
+  in the initial ``CONNECT`` message. If not overridden, this will return the
+  class name. Generally not visible to the user.
+
+``get_app_info(cls)``
+  A class method which returns an ``AppInfo`` object. ``AppInfo.__init__()``
+  method takes a name, and a description parameter, and contains these fields:
+
+  ``name``
+    The app name, from the ``name`` parameter.
+
+  ``description``
+    A TextSelector with the description of the all. This allows multiple
+    descriptions identified by group and subgroup (usually language codes).
+    Constructed from the ``description`` parameter, which can be a string, a
+    tuple (text, group, subgroup), a list of tuples, or an actual
+    ``TextSelector`` object.
+
+  If not overridden, this will use the result of ``get_app_name()`` for both
+  name and description.
+
+``connected(self, hicp)``
+  Called after a connection is created and the app to run is identified and
+  instantiated. This is where components are created and added to form a
+  hierarchy that ends in windows added to the ``hicp`` object. Components must
+  have event handlers to respond to use events, or the app won't do anything
+  except display whatever is added here.
+
+  Normally one handler (e.g. a "Quit" button, ot the window close handler) will
+  call ``hicp.disconnect()`` to exit the app.
+
+  If not overridden, this just calls ``hicp.disconnects()``.
+
+An app can also implement ``authenticate(self, hicp, message)``, which is
+called if there is no authenticator specified. The app could put up a window to
+log in, though that window would be insecure so is not generally a good idea
+unless no security is needed.
 
 Event handling
 ==============
