@@ -257,17 +257,27 @@ methods it specifies. Those are:
 
 ``get_app_info(cls)``
   A class method which returns an ``AppInfo`` object. ``AppInfo.__init__()``
-  method takes a name, and a description parameter, and contains these fields:
+  parameters are:
 
-  ``name``
-    The app name, from the ``name`` parameter.
+  - app_name
+  - display_name
+  - description
+
+  It contains these fields:
+
+  ``app_name``
+    The app name.
+
+  ``display_name``
+    A TextSelector with the name to display to users, if needed.
 
   ``description``
-    A TextSelector with the description of the all. This allows multiple
-    descriptions identified by group and subgroup (usually language codes).
-    Constructed from the ``description`` parameter, which can be a string, a
-    tuple (text, group, subgroup), a list of tuples, or an actual
-    ``TextSelector`` object.
+    A TextSelector with the description of the app.
+
+  ``display_name`` and ``description`` are ``TextSelector`` objects to allow
+  strings identified by group and subgroup (usually language codes). The
+  parameters can be a string, a tuple (text, group, subgroup), a list of
+  tuples, or an actual ``TextSelector`` object.
 
   If not overridden, this will use the result of ``get_app_name()`` for both
   name and description.

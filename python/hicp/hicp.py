@@ -771,7 +771,7 @@ class HICP:
         for app_spec in self.__app_list.values():
             app_cls = app_spec.app_cls
             app_info = app_cls.get_app_info()
-            app_info_dict[app_info.name] = app_info
+            app_info_dict[app_info.app_name] = app_info
 
         return app_info_dict
 

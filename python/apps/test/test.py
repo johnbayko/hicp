@@ -71,10 +71,11 @@ class TestApp(App):
 
     @classmethod
     def get_app_info(cls):
-        name = cls.get_app_name()
+        app_name = cls.get_app_name()
+        display_name = [('Test', 'en')]
         desc = [('Test some components.', 'en')]
 
-        return AppInfo(name, desc)
+        return AppInfo(app_name, display_name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("TestApp connected")

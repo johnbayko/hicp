@@ -12,7 +12,9 @@ An app consists of any class found either in the ``default_app`` direcrory, or
 any subdirectory of ``apps`` directory, which extends the ``App`` hicp class
 (as expected, any app in ``detault_app`` is used as the default, if there is
 none then another is chosen arbitrarily). It's possible to have more than one
-app in a directory by having more than one class extending ``App``.
+app in a directory by having more than one class extending ``App``, but if
+that's done in the ``default_app`` directory then an arbutraty app is chosen as
+the default.
 
 When an app is added to the ``apps`` directory, the server needs to be
 restarted to find and load the new app.

@@ -66,10 +66,11 @@ class Reception(App):
 
     @classmethod
     def get_app_info(cls):
-        name = cls.get_app_name()
+        app_name = cls.get_app_name()
+        display_name = [('Reception', 'en')]
         desc = [('List apps for user to choose.', 'en')]
 
-        return AppInfo(name, desc)
+        return AppInfo(app_name, display_name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("reception connected")
@@ -112,20 +113,21 @@ class Reception(App):
 
         all_app_info = hicp.get_all_app_info()
 
+        (group, subgroup) = hicp.get_text_group()
         app_pos_y = 0
         for app_info in all_app_info.values():
             # Skip adding button for this app.
-            if app_info.name != self.get_app_name():
-                app_name_id = hicp.add_text_get_id(app_info.name)
+            if app_info.app_name != self.get_app_name():
+                app_name = app_info.display_name.get_text(group, subgroup)
+                app_name_id = hicp.add_text_get_id(app_name)
 
                 app_button = Button()
                 app_button.set_text_id(app_name_id)
                 app_button.set_handle_click(
-                    ButtonSwitchAppHandler(app_info.name)
+                    ButtonSwitchAppHandler(app_info.app_name)
                 )
                 app_panel.add(app_button, 0, app_pos_y)
 
-                (group, subgroup) = hicp.get_text_group()
                 app_desc = app_info.description.get_text(group, subgroup)
                 app_desc_id = hicp.add_text_get_id(app_desc)
 

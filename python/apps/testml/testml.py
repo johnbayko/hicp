@@ -84,7 +84,23 @@ class TestAppML(App):
 
     @classmethod
     def get_app_info(cls):
-        name = cls.get_app_name()
+        app_name = cls.get_app_name()
+        display_name = [
+            (
+                "Test ML",
+                cls.LANG_EN
+            ),
+            (
+                "Test ML",
+                cls.LANG_EN,
+                cls.LANG__GB
+            ),
+            (
+                "Test ML",
+                cls.LANG_FR,
+                cls.LANG__CA
+            ),
+        ]
         desc = [
             (
                 "Test some components with multiple languages.",
@@ -101,7 +117,7 @@ class TestAppML(App):
                 cls.LANG__CA
             ),
         ]
-        return AppInfo(name, desc)
+        return AppInfo(app_name, display_name, desc)
 
     def connected(self, hicp):
         self.__logger.debug("TestAppML connected")
