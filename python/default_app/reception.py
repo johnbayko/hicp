@@ -3,26 +3,6 @@ from hicp import App, AppInfo
 from apps.test.test import TestApp
 from apps.testml.testml import TestAppML
 
-class ButtonWindowCloser:
-    def __init__(self):
-        self.logger = newLogger(type(self).__name__)
-
-    def feedback(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In feedback handler")
-
-    def process(self, event_message, component):
-        self.logger.debug("ButtonWindowCloser In process handler")
-
-    def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In update handler")
-
-        hicp.remove(component)
-        self.logger.debug("ButtonWindowCloser Done remove component")
-
-        # Next, disconnect.
-        hicp.disconnect()
-        self.logger.debug("ButtonWindowCloser Done disconnect")
-
 class ButtonAppHandler:
     def __init__(self, reception_window, app, hicp):
         self.logger = newLogger(type(self).__name__)
@@ -81,9 +61,8 @@ class Reception(App):
         TEST_APP_ID = hicp.add_text_get_id("Test")
         TEST_APP_ML_ID = hicp.add_text_get_id("Test Multi-language")
 
-        window = Window()
+        window = self.new_app_window()
         window.set_text_id(WINDOW_TITLE_ID)
-        window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
 
         select_app_label = Label()

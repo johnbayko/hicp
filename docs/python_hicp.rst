@@ -299,6 +299,12 @@ called if there is no authenticator specified. The app could put up a window to
 log in, though that window would be insecure so is not generally a good idea
 unless no security is needed.
 
+The ``App`` class also has the convenience method:
+
+``new_app_window()``
+  This creates a ``Window`` with a close handler that disconnects the app when
+  closed.
+
 Event handling
 ==============
 

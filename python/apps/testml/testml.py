@@ -3,27 +3,6 @@ import os
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
-class ButtonWindowCloser:
-    def __init__(self):
-        self.logger = newLogger(type(self).__name__)
-
-    def feedback(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In feedback handler")
-
-    def process(self, event_message, component):
-        self.logger.debug("ButtonWindowCloser In process handler")
-
-    def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In update handler")
-
-        hicp.remove(component)
-        self.logger.debug("ButtonWindowCloser Done remove component")
-
-        # Next, disconnect.
-        hicp.disconnect()
-        self.logger.debug("ButtonWindowCloser Done disconnect")
-
-
 class ButtonHandlerML:
     def __init__(self, label, next_group_text, hicp):
         self.logger = newLogger(type(self).__name__)
@@ -124,13 +103,12 @@ class TestAppML(App):
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
         hicp.set_text_group(self.LANG_EN)
 
-        window = Window()
+        window = self.new_app_window()
         window.set_groups_text( [
                 ("Window", self.LANG_EN),
                 ("Window", self.LANG_EN, self.LANG__GB),
                 ("Fenȇtre", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
         self.__logger.debug("TestAppML done add window")
 

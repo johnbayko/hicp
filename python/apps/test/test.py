@@ -3,27 +3,6 @@ import os
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
-class ButtonWindowCloser:
-    def __init__(self):
-        self.logger = newLogger(type(self).__name__)
-
-    def feedback(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In feedback handler")
-
-    def process(self, event_message, component):
-        self.logger.debug("ButtonWindowCloser In process handler")
-
-    def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonWindowCloser In update handler")
-
-        hicp.remove(component)
-        self.logger.debug("ButtonWindowCloser Done remove component")
-
-        # Next, disconnect.
-        hicp.disconnect()
-        self.logger.debug("ButtonWindowCloser Done disconnect")
-
-
 class ButtonHandler:
     def __init__(self, label, next_text_id):
         self.logger = newLogger(type(self).__name__)
@@ -91,13 +70,10 @@ class TestApp(App):
         })
         self.__logger.debug("TestApp done add text")
 
-        window = Window()
+        window = self.new_app_window()
         window.set_text_id(self.WINDOW_TITLE_ID)
-        window.set_handle_close(ButtonWindowCloser())
         hicp.add(window)
-        self.__logger.debug("TestApp done add window")
 
-        # TODO: Make amazing panel, add amazing label.
         amazing_panel = Panel()
         window.add(amazing_panel, 0, 0)
 

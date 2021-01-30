@@ -1,4 +1,5 @@
 from hicp.hicp import TextSelector
+from hicp.component import Window
 
 class AppInfo:
     # Description must be a dict that can be passed to set_groups_text()
@@ -39,6 +40,11 @@ class AppInfo:
         # Anything else is a type error.
         raise TypeError("parameter type is unsupported: " + str(type(text_param)))
 
+class AppWindowCloser:
+    def update(self, hicp, event_message, component):
+        hicp.remove(component)
+        hicp.disconnect()
+
 class App:
     @classmethod
     def get_app_name(cls):
@@ -56,7 +62,14 @@ class App:
 
     def connected(self):
         # By default, do nothing.
+        print('default connected() method, disconnecting')  # debug
         hicp.disconnect()
+
+    def new_app_window(self):
+        """Create a window with a close handler that disconnects when window is closed."""
+        app_window = Window()
+        app_window.set_handle_close(AppWindowCloser())
+        return app_window
 
 class AppSpec:
     def __init__(self, app_cls, app_path):
