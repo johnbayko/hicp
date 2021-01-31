@@ -98,7 +98,7 @@ public class GUITextFieldItem
         final TextAttributes attributes =
             _document.getTextAttributes();
         final boolean hasAttributesChanged =
-            !attributes.equals(_attributes);
+            (null != attributes) && !attributes.equals(_attributes);
 
         if (hasContentChanged || hasAttributesChanged) {
             // Content has changed.
@@ -109,11 +109,9 @@ public class GUITextFieldItem
             changedEvent.id = idString;
             if (hasContentChanged) {
                 changedEvent.content = content;
-log("changedEvent.content \"" + changedEvent.content + "\"");  // debug
             }
             if (hasAttributesChanged) {
                 changedEvent.attributes = attributes;
-log("changedEvent.attributes \"" + changedEvent.attributes.toString() + "\"");  // debug
             }
             _messageExchange.send(changedEvent);
 
