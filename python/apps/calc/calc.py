@@ -1,44 +1,68 @@
-from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from enum import Enum
+
+from hicp import HICP, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
-class CalcOp:
-    NONE = 0
-    ADD = 1
-    SUB = 2
-    MUL = 3
-    DIV = 4
+class CalcOp(Enum):
+    EQ = (1, '=')
+    ADD = (2, '+')
+    SUB = (2, '-')
+    MUL = (3, '*')
+    DIV = (3, '/')
+    def __init__(self, precedence, text):
+        self.precedence = precedence
+        self.text = text
 
 class CalcData:
     def __init__(self):
-        self.current_value = 0.0
         self.memory_value = 0.0
-        self.next_op = CalcOp.NONE
+        self.reset()
+
+    def reset(self):
+        self.current_value = 0.0
+
+        self.value_stack = []
+        self.op_stack = [CalcOp.EQ] # EQ placeholder avoids checking len() == 0
 
         # Keep track of external display state
         # TODO Maybe should subclass TextField and put this in there?
         self.new_value = True
 
-    def set_next_op(self, value_string, next_op):
-        # Any pending op?
+    def perform_op(self, value_string, op):
         try:
             value = float(value_string)
-
-            if CalcOp.NONE != self.next_op:
-                # TODO: Work out precedence later
-                if CalcOp.ADD == self.next_op:
-                    self.current_value += value
-                elif CalcOp.SUB == self.next_op:
-                    self.current_value -= value
-                elif CalcOp.MUL == self.next_op:
-                    self.current_value *= value
-                elif CalcOp.DIV == self.next_op:
-                    self.current_value /= value
-            else:
-                self.current_value = value
         except ValueError:
-            # Canot apply value_string to current value, so skip.
-            pass
-        self.next_op = next_op
+            # Cannot apply value_string to current value, so skip.
+            return
+        self.value_stack.append(value)
+
+        # Evaluate any ops on stack
+        while self.op_stack[-1].precedence >= op.precedence:
+            if CalcOp.EQ == self.op_stack[-1]:
+                break
+
+            stack_op = self.op_stack.pop()
+            # Remember stack reverses things, left was pushed earlier so
+            # comes off after right.
+            right_value = self.value_stack.pop()
+            left_value = self.value_stack.pop()
+
+            if CalcOp.ADD == stack_op:
+                new_value = left_value + right_value
+            elif CalcOp.SUB == stack_op:
+                new_value = left_value - right_value
+            elif CalcOp.MUL == stack_op:
+                new_value = left_value * right_value
+            elif CalcOp.DIV == stack_op:
+                new_value = left_value / right_value
+
+            self.value_stack.append(new_value)
+
+        if self.op_stack[-1].precedence < op.precedence:
+            self.op_stack.append(op)
+
+        # For display
+        self.current_value = self.value_stack[-1]
 
 class DigitClickHandler:
     def __init__(self, calc_data, digit, display_field):
@@ -94,7 +118,7 @@ class OpClickHandler:
     def update(self, hicp, event_message, op_button):
         content = self.display_field.get_content()
 
-        self.calc_data.set_next_op(content, self.op)
+        self.calc_data.perform_op(content, self.op)
 
         self.display_field.set_content(str(self.calc_data.current_value))
         self.calc_data.new_value = True
@@ -129,7 +153,8 @@ class ClrClickHandler:
         self.calc_data = calc_data
 
     def update(self, hicp, event_message, op_button):
-        self.calc_data.current_value = 0.0
+        self.calc_data.reset()
+
         self.display_field.set_content('0')
         self.display_field.update()
 
@@ -235,31 +260,31 @@ class Calc(App):
         # Buttons tend to go most common op at the bottom
         op = CalcOp.DIV
         button = Button()
-        button.set_text('/', hicp)
+        button.set_text(op.text, hicp)
         button.set_handle_click(OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 1)
 
         op = CalcOp.MUL
         button = Button()
-        button.set_text('*', hicp)
+        button.set_text(op.text, hicp)
         button.set_handle_click(OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 2)
 
         op = CalcOp.SUB
         button = Button()
-        button.set_text('-', hicp)
+        button.set_text(op.text, hicp)
         button.set_handle_click(OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 3)
 
         op = CalcOp.ADD
         button = Button()
-        button.set_text('+', hicp)
+        button.set_text(op.text, hicp)
         button.set_handle_click(OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 4)
 
-        op = CalcOp.NONE
+        op = CalcOp.EQ
         button = Button()
-        button.set_text('=', hicp)
+        button.set_text(op.text, hicp)
         button.set_handle_click(OpClickHandler(op, display_field, calc_data))
         window.add(button, 4, 4)
 
