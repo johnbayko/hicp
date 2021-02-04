@@ -106,7 +106,6 @@ class TestAppML(App):
         window = self.new_app_window()
         window.set_groups_text( [
                 ("Window", self.LANG_EN),
-                ("Window", self.LANG_EN, self.LANG__GB),
                 ("Fenȇtre", self.LANG_FR, self.LANG__CA)
             ], hicp)
         hicp.add(window)
@@ -127,7 +126,6 @@ class TestAppML(App):
         button_en = Button()
         button_en.set_groups_text( [
                 ( "English", self.LANG_EN),
-                ( "English", self.LANG_EN, self.LANG__GB),
                 ( "English", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button_en.set_handle_click(
@@ -137,8 +135,7 @@ class TestAppML(App):
 
         button_en_gb = Button()
         button_en_gb.set_groups_text( [
-                ( "English (UK)", self.LANG_EN, self.LANG__CA),
-                ( "English (UK)", self.LANG_EN, self.LANG__GB),
+                ( "English (UK)", self.LANG_EN),
                 ( "English (UK)", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button_en_gb.set_handle_click(
@@ -149,7 +146,6 @@ class TestAppML(App):
         button_fr_ca = Button()
         button_fr_ca.set_groups_text( [
                 ( "Français", self.LANG_EN),
-                ( "Français", self.LANG_EN, self.LANG__GB),
                 ( "Français", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button_fr_ca.set_handle_click(
@@ -160,7 +156,6 @@ class TestAppML(App):
         click_label = Label()
         click_label.set_groups_text( [
                 ( "Please click the button.", self.LANG_EN),
-                ( "Please click the button.", self.LANG_EN, self.LANG__GB),
                 ( "Veuillez cliquer sur le bouton.", self.LANG_FR, self.LANG__CA)
             ], hicp)
         click_label.set_size(1, 1)  # debug
@@ -169,7 +164,6 @@ class TestAppML(App):
         button = Button()
         button.set_groups_text( [
                 ( "Button", self.LANG_EN),
-                ( "Button", self.LANG_EN, self.LANG__GB),
                 ( "Bouton", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button.set_size(1, 1)  # debug
@@ -177,8 +171,6 @@ class TestAppML(App):
             ButtonHandlerML(click_label, [
                 ( "Thank you. Don't click the button again.",
                     self.LANG_EN),
-                ( "Thank you. Don't click the button again.",
-                    self.LANG_EN, self.LANG__GB),
                 ( "Merci. Ne cliquez plus sur le bouton.",
                     self.LANG_FR, self.LANG__CA)
             ], hicp)
@@ -196,7 +188,6 @@ class TestAppML(App):
         text_field.set_handle_changed(
             TextFieldHandlerML(click_label, [
                 ( "Text has been changed.", self.LANG_EN),
-                ( "Text has been changed.", self.LANG_EN, self.LANG__GB),
                 ( "Le texte a été modifié.", self.LANG_FR, self.LANG__CA)
             ], hicp)
         )
@@ -205,7 +196,6 @@ class TestAppML(App):
         path_label = Label()
         path_label.set_groups_text( [
                 ( "Current Path", self.LANG_EN),
-                ( "Current Path", self.LANG_EN, self.LANG__GB),
                 ( "Path actuel", self.LANG_FR, self.LANG__CA)
             ], hicp)
         window.add(path_label, 0, 3)
