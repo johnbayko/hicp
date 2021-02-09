@@ -111,7 +111,6 @@ class TestAppML(App):
         hicp.add(window)
         self.__logger.debug("TestAppML done add window")
 
-        # TODO: Make amazing panel, add amazing label.
         amazing_panel = Panel()
         window.add(amazing_panel, 0, 0)
 

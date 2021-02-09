@@ -75,6 +75,7 @@ class DigitClickHandler:
         if self.calc_data.new_value:
             # displayed value gets replaced with digit being entered.
             content = ''
+            self.calc_data.new_value = False
         content += self.digit
         self.display_field.set_content(content)
         self.display_field.update()

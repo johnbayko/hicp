@@ -708,9 +708,23 @@ class Container(ContainedComponent):
     def add(self, component, horizontal, vertical):
         component.set_parent(self)
         component.set_position(horizontal, vertical)
-        if self.added_to_hicp is not None:
-            self.added_to_hicp.add(component)
+        self.add_to_hicp(component)
         self.__component_list.append(component)
+
+    def add_to_hicp(self, component):
+        if self.added_to_hicp is None:
+            return
+        self.added_to_hicp.add(component)
+        # If that's a Container, add it's components too (it wouldn't have
+        # self.added_to_hicp set, so would have skipped the above step).
+        if isinstance(component, Container):
+            component.add_component_list_to_hicp()
+
+    def add_component_list_to_hicp(self):
+        for component in self.__component_list:
+            component.set_parent(self)
+            self.added_to_hicp.add(component)
+
 
 class Panel(Container):
     def __init__(self):
