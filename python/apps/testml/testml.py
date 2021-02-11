@@ -46,6 +46,29 @@ class TextFieldHandlerML:
         text_field.update()
 
 
+class AbleButtonHandler:
+    def __init__(self, other_button, enabled_text_id, disabled_text_id):
+        self.__other_button = other_button
+        self.__other_button_events = Button.ENABLED
+
+        self.__enabled_text_id = enabled_text_id
+        self.__disabled_text_id = disabled_text_id
+
+    def update(self, hicp, event_message, button):
+        if Button.ENABLED == self.__other_button_events:
+            self.__other_button_events = Button.DISABLED
+            new_text_id = self.__enabled_text_id
+        else:
+            self.__other_button_events = Button.ENABLED
+            new_text_id = self.__disabled_text_id
+
+        self.__other_button.set_events(self.__other_button_events)
+        self.__other_button.update()
+
+        button.set_text_id(new_text_id)
+        button.update()
+
+
 # Test multilingual features.
 class TestAppML(App):
     # Using http://www.lingoes.net/en/translator/langcode.htm
@@ -102,6 +125,15 @@ class TestAppML(App):
         self.__logger.debug("TestAppML connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
         hicp.set_text_group(self.LANG_EN)
+
+        self.ENABLE_ID = hicp.add_groups_text_get_id( [
+                ("Enable", self.LANG_EN),
+                ("Activer", self.LANG_FR, self.LANG__CA)
+            ])
+        self.DISABLE_ID = hicp.add_groups_text_get_id( [
+                ("Disable", self.LANG_EN),
+                ("Désactiver", self.LANG_FR, self.LANG__CA)
+            ])
 
         window = self.new_app_window()
         window.set_groups_text( [
@@ -192,16 +224,25 @@ class TestAppML(App):
         )
         window.add(text_field, 1, 2)
 
+        able_button = Button()
+        able_button.set_text_id(self.DISABLE_ID)
+        able_button.set_handle_click(
+            AbleButtonHandler(
+                button, self.ENABLE_ID, self.DISABLE_ID
+            )
+        )
+        window.add(able_button, 1, 3)
+
         path_label = Label()
         path_label.set_groups_text( [
                 ( "Current Path", self.LANG_EN),
                 ( "Path actuel", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        window.add(path_label, 0, 3)
+        window.add(path_label, 0, 4)
 
         path_field = TextField()
         path_field.set_content(os.getcwd())
-        window.add(path_field, 1, 3)
+        window.add(path_field, 1, 4)
 
         window.set_visible(True)
         window.update()

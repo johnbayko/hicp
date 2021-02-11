@@ -15,6 +15,20 @@ class ButtonHandler:
         self.__label.update()
 
 
+class TextFieldHandler:
+    def __init__(self, label, next_text_id):
+        self.logger = newLogger(type(self).__name__)
+        self.__label = label
+        self.__next_text_id = next_text_id
+
+    def update(self, hicp, event_message, text_field):
+        self.__label.set_text_id(self.__next_text_id)
+        self.__label.update()
+
+        text_field.set_content("Woo-hoo!")
+        text_field.update()
+
+
 class AbleButtonHandler:
     def __init__(self, other_button, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
@@ -36,20 +50,6 @@ class AbleButtonHandler:
 
         button.set_text_id(new_text_id)
         button.update()
-
-
-class TextFieldHandler:
-    def __init__(self, label, next_text_id):
-        self.logger = newLogger(type(self).__name__)
-        self.__label = label
-        self.__next_text_id = next_text_id
-
-    def update(self, hicp, event_message, text_field):
-        self.__label.set_text_id(self.__next_text_id)
-        self.__label.update()
-
-        text_field.set_content("Woo-hoo!")
-        text_field.update()
 
 
 class TestApp(App):
@@ -118,15 +118,6 @@ class TestApp(App):
         )
         window.add(button, 1, 1)
 
-        able_button = Button()
-        able_button.set_text_id(self.DISABLE_BUTTON_ID)
-        able_button.set_handle_click(
-            AbleButtonHandler(
-                button, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
-            )
-        )
-        window.add(able_button, 1, 2)
-
         text_field = TextField()
         text_field.set_content("This is text.")
         # debug - test binary attribute - underline "is"
@@ -138,7 +129,16 @@ class TestApp(App):
         text_field.set_handle_changed(
             TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
         )
-        window.add(text_field, 1, 3)
+        window.add(text_field, 1, 2)
+
+        able_button = Button()
+        able_button.set_text_id(self.DISABLE_BUTTON_ID)
+        able_button.set_handle_click(
+            AbleButtonHandler(
+                button, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
+            )
+        )
+        window.add(able_button, 1, 3)
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)

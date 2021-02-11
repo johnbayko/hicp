@@ -643,7 +643,7 @@ class TextManager:
         self.add_text(text_id, text, group, subgroup)
         return text_id
 
-    def add_text_group_get_id(self, text_group_list):
+    def add_groups_text_get_id(self, text_group_list):
         """Add a text group list of the form used for TextSelector() -
         [(text, group, subgroup), ...]
         Allows duplicates if alrteady exists."""
@@ -831,11 +831,11 @@ class HICP:
 
         return text_id
 
-    def add_text_group_get_id(self, text_group_list):
+    def add_groups_text_get_id(self, text_group_list):
         if text_group_list is None:
             raise UnboundLocalError("text_group_list required, not defined")
 
-        text_id = self.text_manager.add_text_group_get_id(text_group_list) 
+        text_id = self.text_manager.add_groups_text_get_id(text_group_list) 
 
         # Send text down if there is one for current group and subgroup.
         text = self.text_manager.get_text(text_id)

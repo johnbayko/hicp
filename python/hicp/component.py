@@ -184,7 +184,7 @@ class ComponentText():
         return text_id
 
     def set_groups_text(self, text_group_list, hicp):
-        text_id = hicp.add_text_group_get_id(text_group_list)
+        text_id = hicp.add_groups_text_get_id(text_group_list)
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
