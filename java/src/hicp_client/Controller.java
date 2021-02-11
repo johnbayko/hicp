@@ -184,20 +184,16 @@ public class Controller
                         }
                     }
                     {
-                        final GUIItem guiItem;
+                        // Find text item for text ID if specified.
+                        final TextItem textItem =
+                            (null != addCmd.text)
+                                ? (TextItem)_textMap.get(addCmd.text)
+                                : null;
 
-                        // Set text.
-                        {
-                            final TextItem textItem =
-                                (null != addCmd.text)
-                                    ? (TextItem)_textMap.get(addCmd.text)
-                                    : null;
-
-                            guiItem =
-                                GUIItem.newGUIItem(
-                                    addCmd, textItem, _messageExchange
+                        final GUIItem guiItem =
+                            GUIItem.newGUIItem(
+                                addCmd, textItem, _messageExchange
                                 );
-                        }
 
                         if (null != guiItem) {
                             _guiMap.put(addCmd.id, guiItem);

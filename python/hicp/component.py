@@ -60,8 +60,13 @@ class ContainedComponent(Component):
     """Contained within a container, needs to keep track of parent and
 position."""
 
+    # Indexes to __position and __size
     HORIZONTAL = 0
     VERTICAL = 1
+
+    # Convenience copies.
+    ENABLED = Message.ENABLED
+    DISABLED = Message.DISABLED
 
     def __init__(self):
         Component.__init__(self)
@@ -69,6 +74,7 @@ position."""
         self.__parent_id = None  # Number
         self.__position = [None, None] # [Number, Number]
         self.__size = [None, None] # [Number, Number]
+        self.__events = None
 
     def set_parent(self, component):
         if component is None:
@@ -134,6 +140,10 @@ position."""
             field = ","
         self.set_changed_header(Message.SIZE, field)
 
+    def set_events(self, field):
+        self.__events = field
+        self.set_changed_header(Message.EVENTS, field)
+
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
         if self.__parent_id is not None:
@@ -146,6 +156,9 @@ position."""
         field = self.__size_field()
         if field is not None:
             message.add_header(Message.SIZE, field)
+
+        if self.__events is not None:
+            message.add_header(Message.EVENTS, self.__events)
 
 
 class ComponentText():

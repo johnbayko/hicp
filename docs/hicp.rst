@@ -108,7 +108,7 @@ things). The headers differ from RFC822 in the following ways:
   have any value apart from end-of-line), both followed by end-of-line. This
   ensures that there is no unterminated data block in a message.
 
-  A length delimite block contains all and only the number of bytes following
+  A length delimited block contains all and only the number of bytes following
   the end-of-line, but an additional end-of-line sequence is required, and
   discarded, for human readability. For example:: 
 
@@ -182,7 +182,7 @@ things). The headers differ from RFC822 in the following ways:
 
 A header can always be read as a sequence of bytes terminated by an
 end-of-line, then decoded as US-ASCII, UTF-8, or binary parts as
-indicated by the header name of value contents.  Data blocks can always
+indicated by the header name or value contents.  Data blocks can always
 be read as a sequence of bytes terminated by length or by boundary
 bytes, followed by an end-of-line.
 
@@ -453,10 +453,10 @@ When a new connection occurs, normally the user agent sends a CONNECT
 event first. The server may respond with an AUTHENTICATE command to request
 additional identifying information.
 
-The user agent must always respond with an AUTHENTICATE event. If the user
-agent sends an event other than AUTHENTICATE, that message is discarded by
-the server and another AUTHENTICATE command is sent. Extra AUTHENTICATE events
-must be ignored by the server.
+The user agent must always respond with an AUTHENTICATE or DISCONNECT event. If
+the user agent sends an event other than AUTHENTICATE or DISCONNECT, that
+message is discarded by the server and another AUTHENTICATE command is sent.
+Extra AUTHENTICATE events must be ignored by the server.
 
 The user agent may retrieve authentication information from a file, directory,
 database, etc., or may present a dialog to the user, or may send an
@@ -647,7 +647,7 @@ component: <keyword>
     when editing is finished, which is usually when "return" or "enter" is
     typed, or editing focus changes to some other component.
 
-"gui" "add" non-"window" optional headers
+"gui" "add" non-"window" required headers
 '''''''''''''''''''''''''''''''''''''''''
 
 position: <integer> "," <integer>
@@ -658,7 +658,7 @@ position: <integer> "," <integer>
   the message, or assume the missing integer is 0, or do something else.
   Additional integers should be ignored.
   
-  The allowed values for a position is arbitrarily 0-255.
+  The user agent must support values for a position between 0-255.
 
     Q: Why a limit at all?
 
@@ -744,7 +744,7 @@ attributes: <attribute specifiers>
   Big caution - if the component is editable, then the text contents may
   be different from what is expected, and the attributes will be applied
   incorrectly. This should only be part of a "modify" message if the
-  complete text contents are also being replaced, or the "editing"
+  complete text contents are also being replaced, or the "events"
   attribute is "disabled" or "server". The user agent is allowed to
   discard the attribute information otherwise.
 
@@ -854,18 +854,18 @@ attributes: <attribute specifiers>
 
       A: The user agent is free to remove any 0 length attributes and join
       adjacent attributes that are the same value, even those at the end of
-      the content, so don't count on it. Either use "server" editing mode to
+      the content, so don't count on it. Either use "server" events mode to
       update the content and attributes at the same time, or wait for a
       "changed" event and set the attributes then.
 
-    The application must send all attributes which it supports, even
+    The application should send all attributes which it supports, even
     if none of them are applied to the content, in order to allow the
     user agent to identify which attributes the application will accept,
     and provide mechanisms for changing those which are supported
     (buttons, menu items, etc.). This also prevents the user agent from
     enabling unwanted attributes.  For example, a login text field
     normally wouldn't allow multiple fonts or colours (though if you
-    want to, go ahead).
+    want to, go ahead, that would make passwords more interesting).
 
     Defined attributes are:
 
@@ -959,17 +959,18 @@ attributes: <attribute specifiers>
         integer indicates how many levels of indentation, if supported. The
         list indicator character may be different for different indent levels.
 
-editing: [ "enabled" | "disabled" | "server" ]
+events: [ "enabled" | "disabled" | "server" ]
   If specified, this is used by these components:
 
   "textfield", "textpanel":
     Indicates the editing behaviour of the component:
 
-    "disabled":
-      The user input does not change the content. This is the default
-
     "enabled":
       The user agent will modify the content and attributes from user input.
+      This is the default
+
+    "disabled":
+      The user input does not change the content.
 
     "server":
       Like "disabled", but content changing events like key presses, text
@@ -979,6 +980,16 @@ editing: [ "enabled" | "disabled" | "server" ]
 
       Cursor position changes are not sent, cursor positioning is
       exclusively a client function.
+
+  "button":
+    Indicates whether the button will generate events.
+
+    "enabled":
+      The user agent will generate events from user actions. This is the
+      default
+
+    "disabled":
+      The user agent will not generate events from user actions.
 
 textwidth: <string>
   If specified, this is used by these components:
@@ -1057,7 +1068,7 @@ delta-list: <content/attribute changes>
     the component cursor position (sometimes called the caret). If the
     character count is 0, then attribute changes are applied to the next
     text inserted (for example "bold: on(0)" would affect the next
-    character typed if editing is "enabled", or the text added by
+    character typed if events is "enabled", or the text added by
     "content: add(Hi)"). Once text has been inserted with that
     attribute, text changes follow the normal rules.
 

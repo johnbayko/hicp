@@ -73,6 +73,8 @@ public class GUIButtonItem
             if (null != _textItem) {
                 setTextItemInvoked(_textItem);
             }
+            // Button enable/disable.
+            setEventsInvoked(_addCmd.events);
         }
     }
 
@@ -127,6 +129,15 @@ public class GUIButtonItem
         _component = null;
     }
 
+    protected GUIItem setEventsInvoked(final String eventsValue) {
+        final boolean enabled = eventsValue.equals(Add.ENABLED);
+
+        if (_component.isEnabled() != enabled) {
+            _component.setEnabled(enabled);
+        }
+        return this;
+    }
+
     public GUIItem modify(Modify modifyCmd, TextItem textItem) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd, textItem)
@@ -156,8 +167,7 @@ log("Modifying label, component is "
             if (null != _textItem) {
                 setTextItemInvoked(_textItem);
             }
-
-            // Enable/disable?
+            setEventsInvoked(_modifyCmd.events);
 
             // Changed parent ID is handled by Controller.
         }

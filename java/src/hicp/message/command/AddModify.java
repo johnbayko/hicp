@@ -38,6 +38,12 @@ public abstract class AddModify
     public final static String SIZE = "size";
     public final static String TEXT_DIRECTION = "text-direction";
     public final static String VISIBLE = "visible";
+    public final static String EVENTS = "events";
+
+    // Values for events header.
+    public final static String ENABLED = "enabled";
+    public final static String DISABLED = "disabled";
+    public final static String SERVER = "server";
 
     public String attributes = null;
     public TextAttributes textAttributes = null;
@@ -47,6 +53,7 @@ public abstract class AddModify
     public String parent = null;
     public String text = null;
     public boolean visible = false;
+    public String events = ENABLED;
 
     public TextDirection firstTextDirection = null;
     public TextDirection secondTextDirection = null;
@@ -172,6 +179,9 @@ readLoop:   for (;;) {
             return true;
         } else if (VISIBLE.equals(hicpHeader.name)) {
             visible = Message.TRUE.equals(hicpHeader.value.getString());
+            return true;
+        } else if (EVENTS.equals(hicpHeader.name)) {
+            events = hicpHeader.value.getString();
             return true;
         }
 

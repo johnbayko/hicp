@@ -15,6 +15,29 @@ class ButtonHandler:
         self.__label.update()
 
 
+class AbleButtonHandler:
+    def __init__(self, other_button, enabled_text_id, disabled_text_id):
+        self.__other_button = other_button
+        self.__other_button_events = Button.ENABLED
+
+        self.__enabled_text_id = enabled_text_id
+        self.__disabled_text_id = disabled_text_id
+
+    def update(self, hicp, event_message, button):
+        if Button.ENABLED == self.__other_button_events:
+            self.__other_button_events = Button.DISABLED
+            new_text_id = self.__enabled_text_id
+        else:
+            self.__other_button_events = Button.ENABLED
+            new_text_id = self.__disabled_text_id
+
+        self.__other_button.set_events(self.__other_button_events)
+        self.__other_button.update()
+
+        button.set_text_id(new_text_id)
+        button.update()
+
+
 class TextFieldHandler:
     def __init__(self, label, next_text_id):
         self.logger = newLogger(type(self).__name__)
@@ -22,9 +45,6 @@ class TextFieldHandler:
         self.__next_text_id = next_text_id
 
     def update(self, hicp, event_message, text_field):
-        self.logger.debug("TextFieldHandler In update handler")
-        self.logger.debug("content: " + text_field.get_content())  # debug
-        self.logger.debug("attributes: " + text_field.get_attribute_string())  # debug
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
@@ -40,6 +60,8 @@ class TestApp(App):
     LABEL_THANKS_ID = 5
     LABEL_CHANGED_ID = 6
     LABEL_PATH_ID = 7
+    DISABLE_BUTTON_ID = 8
+    ENABLE_BUTTON_ID = 9
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -67,6 +89,8 @@ class TestApp(App):
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
             self.LABEL_CHANGED_ID : "Text has been changed.",
             self.LABEL_PATH_ID : "Current path.",
+            self.DISABLE_BUTTON_ID : "Disable",
+            self.ENABLE_BUTTON_ID : "Enable",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -94,6 +118,15 @@ class TestApp(App):
         )
         window.add(button, 1, 1)
 
+        able_button = Button()
+        able_button.set_text_id(self.DISABLE_BUTTON_ID)
+        able_button.set_handle_click(
+            AbleButtonHandler(
+                button, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
+            )
+        )
+        window.add(able_button, 1, 2)
+
         text_field = TextField()
         text_field.set_content("This is text.")
         # debug - test binary attribute - underline "is"
@@ -105,18 +138,16 @@ class TestApp(App):
         text_field.set_handle_changed(
             TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
         )
-        window.add(text_field, 1, 2)
+        window.add(text_field, 1, 3)
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)
-        window.add(path_label, 0, 3)
+        window.add(path_label, 0, 4)
 
         path_field = TextField()
         path_field.set_content(os.getcwd())
-        window.add(path_field, 1, 3)
+        window.add(path_field, 1, 4)
 
         window.set_visible(True)
-        self.__logger.debug("About to window.update") # debug
         window.update()
-        self.__logger.debug("Done window.update") # debug
 

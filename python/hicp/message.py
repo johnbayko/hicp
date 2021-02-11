@@ -28,7 +28,7 @@ class Message:
     APPLICATION = "application"
     CATEGORY = "category"
     CONTENT = "content"
-    EDITING = "editing"
+    EVENTS = "events"
     GUI = "gui"
     ID = "id"
     METHOD = "method"
@@ -65,7 +65,7 @@ class Message:
     INDENT_REST = "indent-rest"
     LIST = "list"
 
-    # EDITING attributes
+    # EVENTS attributes
     ENABLED = "enabled"
     DISABLED = "disabled"
     SERVER = "server"
