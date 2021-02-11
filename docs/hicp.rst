@@ -745,7 +745,7 @@ attributes: <attribute specifiers>
   be different from what is expected, and the attributes will be applied
   incorrectly. This should only be part of a "modify" message if the
   complete text contents are also being replaced, or the "events"
-  attribute is "disabled" or "server". The user agent is allowed to
+  attribute is "disabled". The user agent is allowed to
   discard the attribute information otherwise.
 
   If specified, this is used by these components:
@@ -764,10 +764,7 @@ attributes: <attribute specifiers>
       Q: Wait, isn't this the sort of thing XML is for?
 
       A: Attributes are meant to indicate how text is to be displayed, it is
-      not meant as a document model. More complex document models can be
-      supported by disabling direct editing by the component, and processing
-      events (key presses, cursor movements, etc.) on the server side, and
-      sending document update commands to the user agent.
+      not meant as a document model.
 
       In addition, the user agent has the option of not supporting the given
       attributes. This format allows even attributes which are not recognized
@@ -854,9 +851,8 @@ attributes: <attribute specifiers>
 
       A: The user agent is free to remove any 0 length attributes and join
       adjacent attributes that are the same value, even those at the end of
-      the content, so don't count on it. Either use "server" events mode to
-      update the content and attributes at the same time, or wait for a
-      "changed" event and set the attributes then.
+      the content, so don't count on it. 
+      Wait for a "changed" event and set the attributes then.
 
     The application should send all attributes which it supports, even
     if none of them are applied to the content, in order to allow the
@@ -951,35 +947,25 @@ attributes: <attribute specifiers>
       "indent-rest(" <integer> ")":
         A paragraph where the following lines are indented one level more than
         the rest.  The integer indicates how many levels of indentation, if
-        supported. This can be used with server side processing of editing
-        events to display numbered lists or definition lists.
+        supported.
 
       "list(" <integer> ")":
         A paragraph with a list indicator (such as a bullet or dash). The
         integer indicates how many levels of indentation, if supported. The
         list indicator character may be different for different indent levels.
 
-events: [ "enabled" | "disabled" | "server" ]
+events: [ "enabled" | "disabled" ]
   If specified, this is used by these components:
 
   "textfield", "textpanel":
     Indicates the editing behaviour of the component:
 
     "enabled":
-      The user agent will modify the content and attributes from user input.
-      This is the default
+      The user agent will modify the content and attributes from user input,
+      and send a changed event when done. This is the default.
 
     "disabled":
       The user input does not change the content.
-
-    "server":
-      Like "disabled", but content changing events like key presses, text
-      insertion or deletion and attribute changes are sent to the server. The
-      server application may use them for updating an internal document model,
-      sending change commands back to the user agent.
-
-      Cursor position changes are not sent, cursor positioning is
-      exclusively a client function.
 
   "button":
     Indicates whether the button will generate events.
