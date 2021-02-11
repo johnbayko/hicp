@@ -186,6 +186,22 @@ used everywhere the text is specified.
 See the "Components supporting text" section for more on using text IDs and
 text groups.
 
+HICP add_groups_text_get_id()
+-----------------------------
+
+::
+
+  NAME_ID = hicp.add_groups_text_get_id([("Name", "en"), ("Nom", "fr")])
+
+"groups" is plural in this name. It stores the given texts for all text groups,
+and returns the ID to refer to all of them. That ID can then be used with a
+components ``set_text_id()`` method.  When the HICP text group is changed, the
+user agent is updated with the correct texts for the new group.
+
+The ID is set based on the text for the current group. If the same text appears
+in another call to this method, the other strings in the new call will replace
+the previously added strings.
+
 HICP set_text_group()
 ---------------------
 
@@ -390,11 +406,12 @@ First way of setting text:
   lc.update()
 
 This sets the component displayed text to the text in the user agent text
-library indicated by the ID number (added previously using HICP ``add_text()``
-or ``add_all_text()``).
+library indicated by the ID number, which can be a static number added
+previously using HICP ``add_text()`` or ``add_all_text()``, or a dynamically
+assigned number from ``add_groups_text_get_id()``.
 
-This doesn't support text group, so shouldn't be mixed with ``set_text()`` or
-``set_groups_text()``.
+A static ID doesn't support text groups, so shouldn't be mixed with
+``set_text()`` or ``set_groups_text()``, but an assigned ID will work.
 
 Component set_text() and set_groups_text()
 ------------------------------------------
@@ -421,6 +438,8 @@ texts for all text groups (automatically assigns the same ID for them all), and
 updates user agant with the text for the current group. When the HICP text
 group is changed, the user agent is updated with the correct texts for the new
 group.
+
+See HICP ``set_groups_text_get_id()`` for more information.
 
 Component set_size()
 --------------------
@@ -619,6 +638,16 @@ Button set_handle_click()
 
 The event handler is called when a button's click event is received, as
 described above.
+
+Button set_events()
+-------------------------
+
+::
+
+  b.set_events(Button.DISABLED)
+
+When set to Button.DISABLED, button events are not sent, events are sent when
+set to Button.ENABLED (default).
 
 TextField
 =========
