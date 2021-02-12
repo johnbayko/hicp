@@ -81,6 +81,8 @@ public class GUITextFieldItem
                 }
             );
 
+            // Text editing enable/disable.
+            setEventsInvoked(_addCmd.events);
         }
     }
 
@@ -186,6 +188,15 @@ public class GUITextFieldItem
         _component = null;
     }
 
+    protected GUIItem setEventsInvoked(final String eventsValue) {
+        final boolean enabled = eventsValue.equals(Add.ENABLED);
+
+        if (_component.isEditable() != enabled) {
+            _component.setEditable(enabled);
+        }
+        return this;
+    }
+
     public GUIItem modify(Modify modifyCmd, TextItem textItem) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
@@ -204,28 +215,22 @@ public class GUITextFieldItem
         }
 
         public void run() {
-log("Modifying textfield, component is "
-    + _component.getClass().getName()
-);  // debug
             // See what's changed.
-            {
-                final String modifyContent =
-                    (null != _modifyCmd.content) ? _modifyCmd.content : "";
+            if (null != _modifyCmd.content) {
+                final String modifyContent = _modifyCmd.content;
 
                 if (!modifyContent.equals(_component.getText())) {
                     setContentInvoked(modifyContent, _modifyCmd.textAttributes);
                 }
             }
-            {
-                final String modifyAttributes =
-                    (null != _modifyCmd.attributes ) ?  _modifyCmd.attributes : "";
+            if (null != _modifyCmd.attributes ) {
+                final String modifyAttributes = _modifyCmd.attributes;
 
 // handle attributes.
 // To start, just log the string.
 log("modifyAttributes: " + modifyAttributes);  // debug
             }
-
-            // Enable/disable?
+            setEventsInvoked(_modifyCmd.events);
 
             // Changed parent ID is handled by Controller.
         }
