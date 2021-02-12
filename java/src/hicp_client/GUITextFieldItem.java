@@ -82,7 +82,13 @@ public class GUITextFieldItem
             );
 
             // Text editing enable/disable.
-            setEventsInvoked(_addCmd.events);
+            {
+                // Default is enable.
+                final String eventsValue =
+                    (null != _addCmd.events) ? _addCmd.events : Add.ENABLED;
+
+                setEventsInvoked(eventsValue);
+            }
         }
     }
 
@@ -189,10 +195,6 @@ public class GUITextFieldItem
     }
 
     protected GUIItem setEventsInvoked(final String eventsValue) {
-        if (null == eventsValue) {
-            // No events value in command message.
-            return this;
-        }
         final boolean enabled = eventsValue.equals(Add.ENABLED);
 
         if (_component.isEditable() != enabled) {
@@ -234,8 +236,9 @@ public class GUITextFieldItem
 // To start, just log the string.
 log("modifyAttributes: " + modifyAttributes);  // debug
             }
-            setEventsInvoked(_modifyCmd.events);
-
+            if (null != _modifyCmd.events) {
+                setEventsInvoked(_modifyCmd.events);
+            }
             // Changed parent ID is handled by Controller.
         }
     }

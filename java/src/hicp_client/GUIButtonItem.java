@@ -74,7 +74,13 @@ public class GUIButtonItem
                 setTextItemInvoked(_textItem);
             }
             // Button enable/disable.
-            setEventsInvoked(_addCmd.events);
+            {
+                // Default is enable.
+                final String eventsValue =
+                    (null != _addCmd.events) ? _addCmd.events : Add.ENABLED;
+
+                setEventsInvoked(eventsValue);
+            }
         }
     }
 
@@ -130,10 +136,6 @@ public class GUIButtonItem
     }
 
     protected GUIItem setEventsInvoked(final String eventsValue) {
-        if (null == eventsValue) {
-            // No events value in command message.
-            return this;
-        }
         final boolean enabled = eventsValue.equals(Add.ENABLED);
 
         if (_component.isEnabled() != enabled) {
@@ -171,8 +173,9 @@ log("Modifying label, component is "
             if (null != _textItem) {
                 setTextItemInvoked(_textItem);
             }
-            setEventsInvoked(_modifyCmd.events);
-
+            if (null != _modifyCmd.events) {
+                setEventsInvoked(_modifyCmd.events);
+            }
             // Changed parent ID is handled by Controller.
         }
     }
