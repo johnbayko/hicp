@@ -47,23 +47,27 @@ class TextFieldHandlerML:
 
 
 class AbleButtonHandler:
-    def __init__(self, other_button, enabled_text_id, disabled_text_id):
+    def __init__(self, other_button, text_field, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
-        self.__other_button_events = Button.ENABLED
-
+        self.__text_field = text_field
         self.__enabled_text_id = enabled_text_id
         self.__disabled_text_id = disabled_text_id
 
+        self.__events = Button.ENABLED
+
     def update(self, hicp, event_message, button):
-        if Button.ENABLED == self.__other_button_events:
-            self.__other_button_events = Button.DISABLED
+        if Button.ENABLED == self.__events:
+            self.__events = Button.DISABLED
             new_text_id = self.__enabled_text_id
         else:
-            self.__other_button_events = Button.ENABLED
+            self.__events = Button.ENABLED
             new_text_id = self.__disabled_text_id
 
-        self.__other_button.set_events(self.__other_button_events)
+        self.__other_button.set_events(self.__events)
         self.__other_button.update()
+
+        self.__text_field.set_events(self.__events)
+        self.__text_field.update()
 
         button.set_text_id(new_text_id)
         button.update()
@@ -228,7 +232,7 @@ class TestAppML(App):
         able_button.set_text_id(self.DISABLE_ID)
         able_button.set_handle_click(
             AbleButtonHandler(
-                button, self.ENABLE_ID, self.DISABLE_ID
+                button, text_field, self.ENABLE_ID, self.DISABLE_ID
             )
         )
         window.add(able_button, 1, 3)
