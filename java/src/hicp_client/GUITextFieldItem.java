@@ -189,6 +189,10 @@ public class GUITextFieldItem
     }
 
     protected GUIItem setEventsInvoked(final String eventsValue) {
+        if (null == eventsValue) {
+            // No events value in command message.
+            return this;
+        }
         final boolean enabled = eventsValue.equals(Add.ENABLED);
 
         if (_component.isEditable() != enabled) {

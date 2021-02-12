@@ -53,7 +53,7 @@ public abstract class AddModify
     public String parent = null;
     public String text = null;
     public boolean visible = false;
-    public String events = ENABLED;
+    public String events = null;
 
     public TextDirection firstTextDirection = null;
     public TextDirection secondTextDirection = null;
