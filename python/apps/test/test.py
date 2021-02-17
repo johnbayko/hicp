@@ -3,6 +3,10 @@ import os
 from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
+class DisconnectHandler:
+    def process(self, event_message):
+        print("DisconnectHandler.process()")  # debug
+
 class ButtonHandler:
     def __init__(self, label, next_text_id):
         self.logger = newLogger(type(self).__name__)
@@ -84,6 +88,8 @@ class TestApp(App):
 
     def connected(self, hicp):
         self.__logger.debug("TestApp connected")
+        hicp.set_disconnect_handler(DisconnectHandler())
+
         hicp.text_direction(hicp.RIGHT, hicp.UP) # debug
         hicp.add_all_text({
             self.WINDOW_TITLE_ID : "Button window",

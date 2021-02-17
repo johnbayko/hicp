@@ -350,6 +350,9 @@ Process
   Any long term operation is handled in a separate thread, allowing any other
   events to be handled meanwhile. Can be omitted if not needed.
 
+  The process stage does not interact with the client at all, so there is no
+  ``hicp`` parameter.
+
 Update
   Update the user agent display with the results of the event processing, if
   there are any. This is normally where windows would be opened or closed,

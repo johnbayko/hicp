@@ -368,16 +368,3 @@ class Message:
     def log(self, msg):
         self.logger.debug(msg)
 
-class Event(Message):
-    STAGE_FEEDBACK = 1
-    STAGE_PROCESS = 2
-    STAGE_UPDATE = 3
-
-    def __init__(self, in_stream=None):
-        Message.__init__(self, in_stream)
-
-        self.stage = Event.STAGE_FEEDBACK
-        self.component = None
-        self.handler = None
-
-

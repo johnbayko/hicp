@@ -1381,6 +1381,7 @@ DISCONNECT
 
 Occurs when the user has expressed displeasure at the functioning of the
 user agent or the server application, and no longer wishes to continue.
+Or in response to a DISCONNECT command.
 This indicates that the user agent is no longer in a state that the
 server application can rely on, and the application should terminate.
 The application is under no obligation to save any data or be graceful

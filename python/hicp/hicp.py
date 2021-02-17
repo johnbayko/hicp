@@ -5,7 +5,26 @@ import queue
 import threading
 
 from hicp.logger import newLogger
-from hicp.message import Message, Event
+from hicp.message import Message
+
+# TODO Refactor into a wrapper around Message (message should be a field)
+class Event(Message):
+# TODO Enum?
+    STAGE_FEEDBACK = 1
+    STAGE_PROCESS = 2
+    STAGE_UPDATE = 3
+
+    def __init__(self, in_stream=None):
+        Message.__init__(self, in_stream)
+
+        self.stage = Event.STAGE_FEEDBACK
+        self.component = None
+        self.handler = None
+
+    def is_disconnected(self):
+        # Treat actual disconnection same as DISCONNECT message.
+        return self.disconnected or Message.DISCONNECT == self.get_type_value()
+
 
 class WriteThread(threading.Thread):
     def __init__(self, out_stream):
@@ -45,7 +64,7 @@ class ReadThread(threading.Thread):
 
             self.event_thread.add(event)
 
-            if event.disconnected:
+            if event.is_disconnected():
                 break
 
 
@@ -69,18 +88,20 @@ class ProcessThread(threading.Thread):
             self.logger.debug("ProcessThread about to get Event")
             event = self.event_queue.get()
 
-            if event is None or event.disconnected:
+            self.event_process(event)
+
+            # Disconnect events don't use update.
+            # Also that thread should have stopped due to the disconnect event
+            # by now.
+            if event.is_disconnected():
                 self.logger.debug("Process thread end of file input")
                 break
 
-            # Event must be entirely by event thread, so just call event
-            # handler process method.
-            self.event_process(event)
+            self.event_move_to_update(event)
 
         self.logger.debug("Process thread end of loop")
 
     def event_process(self, event):
-        # This thread first calls "feedback" handler, if it exists.
         try:
             component = event.component
         except AttributeError:
@@ -102,26 +123,23 @@ class ProcessThread(threading.Thread):
         except AttributeError:
             # No process handler, no biggie. Ignore it.
             self.logger.debug("event handler has no process method")
+            pass
         except TypeError:
             # Process handler has wrong number of arguments.
             self.logger.debug("event process handler has wrong number of args")
 
+    def event_move_to_update(self, event):
         # If an update handler method exists, the event stage is
         # updated and the event is returned to this thread.
         try:
-            self.logger.debug("About to check for handler.update")
             if handler.update is not None:
-                self.logger.debug("has handler.update")
                 event.stage = Event.STAGE_UPDATE
-                self.logger.debug("changed stage to UPDATE")
                 self.event_thread.add(event)
-                self.logger.debug("Added to event_thread")
-
-            self.logger.debug("Done check for handler.update")
 
         except AttributeError:
-            # No process handler method.
-            self.logger.debug("event_process event handler has no update method")
+            # No process handler method, not required.
+            self.logger.debug("event handler has no update method")
+            pass
 
 
 class EventThread(threading.Thread):
@@ -129,7 +147,6 @@ class EventThread(threading.Thread):
         self,
         hicp,
         component_list,
-        event_handler_list,
         write_thread,
         default_app,
         app_list=None,
@@ -139,7 +156,6 @@ class EventThread(threading.Thread):
 
         self.hicp = hicp
         self.component_list = component_list
-        self.event_handler_list = event_handler_list
         self.write_thread = write_thread
         self.default_app = default_app
         self.app_list = app_list
@@ -151,6 +167,7 @@ class EventThread(threading.Thread):
         self.suspend_app = False
         self.event_queue = queue.Queue()
         self.connect_event = None
+        self.disconnect_handler = None
 
         threading.Thread.__init__(self)
 
@@ -168,15 +185,8 @@ class EventThread(threading.Thread):
         self.process_thread.start()
 
         state = STATE_WAIT_CONNECT
-        self.logger.debug("Initial state STATE_WAIT_CONNECT") # debug
         while True:
             event = self.event_queue.get()
-
-            if event is None or event.disconnected:
-                self.logger.debug("End of file input")
-                self.process_thread.add(event)
-                self.logger.debug("Passed on to process thread")
-                break
 
             if event.get_type() != Message.EVENT:
                 # Ignore all non-event messages
@@ -202,7 +212,8 @@ class EventThread(threading.Thread):
                         state = STATE_RUNNING
 
             elif STATE_WAIT_AUTHENTICATE == state:
-                if Message.DISCONNECT == event_type:
+#                if Message.DISCONNECT == event_type:
+                if event.is_disconnected():
                     state = STATE_WAIT_CONNECT
 
                 elif Message.AUTHENTICATE == event_type:
@@ -228,9 +239,28 @@ class EventThread(threading.Thread):
                     # Ignore any other messages.
                     pass
             elif STATE_RUNNING == state :
-                if Message.DISCONNECT == event_type:
+#                if Message.DISCONNECT == event_type:
+                if event.is_disconnected():
                     # No longer running, wait for next connection.
                     state = STATE_WAIT_CONNECT
+
+# TODO check, this isn't an app event, disconnect still needs to be handled?
+                    if self.suspend_app:
+                        # Ignore all app events - app is being shutdown.
+                        pass
+                    elif self.disconnect_handler is not None:
+                        handler = self.disconnect_handler
+                        try:
+                            if handler.process is not None:
+                                event.stage = Event.STAGE_PROCESS
+                                event.handler = self.disconnect_handler
+
+                        except AttributeError:
+                            # No process handler method.
+                            self.logger.debug("disconnect event handler has no process method")
+                    # Disconnect events always pass through to stop all threads.
+                    self.process_thread.add(event)
+
                 elif Message.AUTHENTICATE == event_type:
                     # Don't need authentication now, ignore (might be
                     # extra).
@@ -241,7 +271,6 @@ class EventThread(threading.Thread):
                         # Ignore all app events - app is being shutdown.
                         pass
                     elif Event.STAGE_FEEDBACK == event.stage:
-                        self.logger.debug("Feedback stage: " + str(event.stage)) # debug
                         self.set_event_component(event)
 
                         # Find the proper event handler based on event type.
@@ -270,7 +299,6 @@ class EventThread(threading.Thread):
                                 # message, handler is incorrect.
                                 event.handler = None
 
-# here
                         elif Message.CHANGED == event_type:
                             self.logger.debug("Got changed event, stage " + str(event.stage))
                             # Add the close event handler to event message.
@@ -300,6 +328,10 @@ class EventThread(threading.Thread):
                 # Should never happen.
                 self.logger.debug("Invalid state: " + str(state))
                 state = STATE_WAIT_CONNECT
+
+            # If diconnected, end of loop.
+            if event.is_disconnected():
+                break
 
         # Fix current directory. See start_application() for why.
         os.chdir(self.start_path)
@@ -378,6 +410,9 @@ class EventThread(threading.Thread):
     def set_suspend_app(self, suspend_flag):
         self.suspend_app = suspend_flag
 
+    def set_disconnect_handler(self, handler):
+        self.disconnect_handler = handler
+
     def disconnect(self):
         message = Message()
         message.set_type(Message.COMMAND, Message.DISCONNECT)
@@ -455,7 +490,7 @@ class EventThread(threading.Thread):
             self.logger.debug("event_feedback event handler has no update method")
 
     def event_update(self, event):
-        # This thread first calls "feedback" handler, if it exists.
+        # This thread calls "update" handler if it exists after "feedback".
         try:
             component = event.component
         except AttributeError:
@@ -712,7 +747,6 @@ class HICP:
         # Things for this object
         self.__gui_id = 0
         self.__component_list = {}
-        self.__event_handler_list = {}
 
     def start(self):
         self.logger.debug("about to make WriteThread()")  # debug
@@ -723,7 +757,6 @@ class HICP:
         self.__event_thread = EventThread(
             self,
             self.__component_list,
-            self.__event_handler_list,
             self.__write_thread,
             self.__default_app,
             self.__app_list,
@@ -850,13 +883,17 @@ class HICP:
 
         return self.text_manager.get_text(text_id)
 
+    def set_disconnect_handler(self, handler):
+        if handler.process is None:
+            raise AttributeError("Handler is missing process() method.")
+        # feedback or update methods are ignored.
+
+        self.__event_thread.set_disconnect_handler(handler)
+
     def get_gui_id(self):
         gui_id = self.__gui_id
         self.__gui_id = self.__gui_id + 1
         return gui_id
-
-    def add_event_handler(self, event_name, handler):
-        self.__event_handler_list[event_name] = handler
 
     def add(self, component):
         """Make a message to add the component."""
@@ -965,5 +1002,4 @@ class HICP:
 
     def disconnect(self):
         self.__event_thread.disconnect()
-        self.logger.debug("hicp.disconnect() done") # debug
 
