@@ -35,7 +35,6 @@ class Event():
     STAGE_PROCESS = 2
     STAGE_UPDATE = 3
 
-    # TODO add parameter either message or type_value (check istype())
     def __init__(self, source):
         self.stage = Event.STAGE_FEEDBACK
         self.message = None
@@ -43,13 +42,17 @@ class Event():
         self.component = None
         self.handler = None
 
-    def set_message(self, message):
-        self.message = message
-        self.event_type = EventType.get_by_name(message.get_type_value())
-
-    def is_disconnected(self):
-        # Treat actual disconnection same as DISCONNECT message.
-        return self.message.disconnected or EventType.DISCONNECT == self.event_type
+        if isinstance(source, EventType):
+            self.eventType = source
+        elif isinstance(source, Message):
+            if source.disconnected:
+                # No event message received, but treat it as DISCONNECT
+                self.event_type = EventType.DISCONNECT
+            else:
+                self.message = source
+                self.event_type = EventType.get_by_name(source.get_type_value())
+        else:
+            raise TypeError('Event parameter not EventType or Message: ' + srt(source))
 
 
 class WriteThread(threading.Thread):
@@ -93,12 +96,10 @@ class ReadThread(threading.Thread):
                 self.logger.debug("Non-event " + message.get_type())  # debug
                 continue
 
-            event = Event()
-            event.set_message(message)
-
+            event = Event(message)
             self.event_thread.add(event)
 
-            if event.is_disconnected():
+            if EventType.DISCONNECT == event.event_type:
                 break
 
 
@@ -127,7 +128,7 @@ class ProcessThread(threading.Thread):
             # Disconnect events don't use update.
             # Also that thread should have stopped due to the disconnect event
             # by now.
-            if event.is_disconnected():
+            if EventType.DISCONNECT == event.event_type:
                 self.logger.debug("Process thread end of file input")
                 break
 
@@ -241,7 +242,7 @@ class EventThread(threading.Thread):
                         state = STATE_RUNNING
 
             elif STATE_WAIT_AUTHENTICATE == state:
-                if event.is_disconnected():
+                if EventType.DISCONNECT == event.event_type:
                     state = STATE_WAIT_CONNECT
 
                 elif EventType.AUTHENTICATE == event_type:
@@ -267,7 +268,7 @@ class EventThread(threading.Thread):
                     # Ignore any other messages.
                     pass
             elif STATE_RUNNING == state :
-                if event.is_disconnected():
+                if EventType.DISCONNECT == event.event_type:
                     # No longer running, wait for next connection.
                     state = STATE_WAIT_CONNECT
 
@@ -357,7 +358,7 @@ class EventThread(threading.Thread):
                 state = STATE_WAIT_CONNECT
 
             # If diconnected, end of loop.
-            if event.is_disconnected():
+            if EventType.DISCONNECT == event.event_type:
                 break
 
         # Fix current directory. See start_application() for why.
