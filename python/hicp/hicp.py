@@ -4,26 +4,39 @@ import pathlib
 import queue
 import threading
 
+from enum import Enum, auto
+
 from hicp.logger import newLogger
 from hicp.message import Message
 
-# TODO Refactor into a wrapper around Message (message should be a field)
+class EventType(Enum):
+  # Message event types.
+  AUTHENTICATE = (auto(), Message.AUTHENTICATE)
+  CHANGED = (auto(), Message.CHANGED)
+  CLICK = (auto(), Message.CLICK)
+  CLOSE = (auto(), Message.CLOSE)
+  CONNECT = (auto(), Message.CONNECT)
+  DISCONNECT = (auto(), Message.DISCONNECT)
+  # Non message event types.
+
+  def __init__(self, event_id, event_name=""):
+    self.event_id = event_id
+    self.event_name = event_name
+
+  @classmethod
+  def get_by_name(cls, event_name):
+    for _, event_type in cls.__members__.items():
+      if event_type.event_name == event_name:
+        return event_type
+    return None
+
 class Event():
     STAGE_FEEDBACK = 1
     STAGE_PROCESS = 2
     STAGE_UPDATE = 3
 
-    # Event type values
-    AUTHENTICATE = Message.AUTHENTICATE
-    CHANGED = Message.CHANGED
-    CLICK = Message.CLICK
-    CLOSE = Message.CLOSE
-    CONNECT = Message.CONNECT
-    DISCONNECT = Message.DISCONNECT
-    # Non-message events.
-
     # TODO add parameter either message or type_value (check istype())
-    def __init__(self):
+    def __init__(self, source):
         self.stage = Event.STAGE_FEEDBACK
         self.message = None
         self.event_type = None
@@ -32,11 +45,11 @@ class Event():
 
     def set_message(self, message):
         self.message = message
-        self.event_type = message.get_type_value()
+        self.event_type = EventType.get_by_name(message.get_type_value())
 
     def is_disconnected(self):
         # Treat actual disconnection same as DISCONNECT message.
-        return self.message.disconnected or Event.DISCONNECT == self.event_type
+        return self.message.disconnected or EventType.DISCONNECT == self.event_type
 
 
 class WriteThread(threading.Thread):
@@ -212,7 +225,7 @@ class EventThread(threading.Thread):
             event_type = event.event_type
 
             if STATE_WAIT_CONNECT == state:
-                if Event.CONNECT == event_type:
+                if EventType.CONNECT == event_type:
                     # save connection info.
                     self.connect_event = event
 
@@ -231,7 +244,7 @@ class EventThread(threading.Thread):
                 if event.is_disconnected():
                     state = STATE_WAIT_CONNECT
 
-                elif Event.AUTHENTICATE == event_type:
+                elif EventType.AUTHENTICATE == event_type:
                     # Check authentication
                     if self.authenticator.authenticate(event.message):
                         # Authenticated, start app running
@@ -275,7 +288,7 @@ class EventThread(threading.Thread):
                     # Disconnect events always pass through to stop all threads.
                     self.process_thread.add(event)
 
-                elif Event.AUTHENTICATE == event_type:
+                elif EventType.AUTHENTICATE == event_type:
                     # Don't need authentication now, ignore (might be
                     # extra).
                     pass
@@ -290,8 +303,8 @@ class EventThread(threading.Thread):
                         # Find the proper event handler based on event type.
                         event.handler = None
 
-                        self.logger.debug("event type: " + event_type) # debug
-                        if Event.CLOSE == event_type:
+                        self.logger.debug("event type: " + event_type.event_name) # debug
+                        if EventType.CLOSE == event_type:
                             self.logger.debug("Got close event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
@@ -302,7 +315,7 @@ class EventThread(threading.Thread):
                                 # message, handler is incorrect.
                                 event.handler = None
 
-                        elif Event.CLICK == event_type:
+                        elif EventType.CLICK == event_type:
                             self.logger.debug("Got click event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
@@ -313,7 +326,7 @@ class EventThread(threading.Thread):
                                 # message, handler is incorrect.
                                 event.handler = None
 
-                        elif Event.CHANGED == event_type:
+                        elif EventType.CHANGED == event_type:
                             self.logger.debug("Got changed event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
