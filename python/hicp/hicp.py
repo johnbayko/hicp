@@ -8,22 +8,35 @@ from hicp.logger import newLogger
 from hicp.message import Message
 
 # TODO Refactor into a wrapper around Message (message should be a field)
-class Event(Message):
-# TODO Enum?
+class Event():
     STAGE_FEEDBACK = 1
     STAGE_PROCESS = 2
     STAGE_UPDATE = 3
 
-    def __init__(self, in_stream=None):
-        Message.__init__(self, in_stream)
+    # Event type values
+    AUTHENTICATE = Message.AUTHENTICATE
+    CHANGED = Message.CHANGED
+    CLICK = Message.CLICK
+    CLOSE = Message.CLOSE
+    CONNECT = Message.CONNECT
+    DISCONNECT = Message.DISCONNECT
+    # Non-message events.
 
+    # TODO add parameter either message or type_value (check istype())
+    def __init__(self):
         self.stage = Event.STAGE_FEEDBACK
+        self.message = None
+        self.event_type = None
         self.component = None
         self.handler = None
 
+    def set_message(self, message):
+        self.message = message
+        self.event_type = message.get_type_value()
+
     def is_disconnected(self):
         # Treat actual disconnection same as DISCONNECT message.
-        return self.disconnected or Message.DISCONNECT == self.get_type_value()
+        return self.message.disconnected or Event.DISCONNECT == self.event_type
 
 
 class WriteThread(threading.Thread):
@@ -60,7 +73,15 @@ class ReadThread(threading.Thread):
 
     def run(self):
         while True:
-            event = Event(in_stream=self.in_stream)
+            message = Message(in_stream=self.in_stream)
+
+            if message.get_type() != Message.EVENT:
+                # Ignore all non-event messages
+                self.logger.debug("Non-event " + message.get_type())  # debug
+                continue
+
+            event = Event()
+            event.set_message(message)
 
             self.event_thread.add(event)
 
@@ -188,15 +209,10 @@ class EventThread(threading.Thread):
         while True:
             event = self.event_queue.get()
 
-            if event.get_type() != Message.EVENT:
-                # Ignore all non-event messages
-                self.logger.debug("Non-event " + event.get_type())  # debug
-                continue
-
-            event_type = event.get_type_value()
+            event_type = event.event_type
 
             if STATE_WAIT_CONNECT == state:
-                if Message.CONNECT == event_type:
+                if Event.CONNECT == event_type:
                     # save connection info.
                     self.connect_event = event
 
@@ -212,13 +228,12 @@ class EventThread(threading.Thread):
                         state = STATE_RUNNING
 
             elif STATE_WAIT_AUTHENTICATE == state:
-#                if Message.DISCONNECT == event_type:
                 if event.is_disconnected():
                     state = STATE_WAIT_CONNECT
 
-                elif Message.AUTHENTICATE == event_type:
+                elif Event.AUTHENTICATE == event_type:
                     # Check authentication
-                    if self.authenticator.authenticate(event):
+                    if self.authenticator.authenticate(event.message):
                         # Authenticated, start app running
                         self.start_application()
                         state = STATE_RUNNING
@@ -239,7 +254,6 @@ class EventThread(threading.Thread):
                     # Ignore any other messages.
                     pass
             elif STATE_RUNNING == state :
-#                if Message.DISCONNECT == event_type:
                 if event.is_disconnected():
                     # No longer running, wait for next connection.
                     state = STATE_WAIT_CONNECT
@@ -261,7 +275,7 @@ class EventThread(threading.Thread):
                     # Disconnect events always pass through to stop all threads.
                     self.process_thread.add(event)
 
-                elif Message.AUTHENTICATE == event_type:
+                elif Event.AUTHENTICATE == event_type:
                     # Don't need authentication now, ignore (might be
                     # extra).
                     pass
@@ -277,7 +291,7 @@ class EventThread(threading.Thread):
                         event.handler = None
 
                         self.logger.debug("event type: " + event_type) # debug
-                        if Message.CLOSE == event_type:
+                        if Event.CLOSE == event_type:
                             self.logger.debug("Got close event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
@@ -288,7 +302,7 @@ class EventThread(threading.Thread):
                                 # message, handler is incorrect.
                                 event.handler = None
 
-                        elif Message.CLICK == event_type:
+                        elif Event.CLICK == event_type:
                             self.logger.debug("Got click event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
@@ -299,7 +313,7 @@ class EventThread(threading.Thread):
                                 # message, handler is incorrect.
                                 event.handler = None
 
-                        elif Message.CHANGED == event_type:
+                        elif Event.CHANGED == event_type:
                             self.logger.debug("Got changed event, stage " + str(event.stage))
                             # Add the close event handler to event message.
                             try:
@@ -362,7 +376,7 @@ class EventThread(threading.Thread):
             # Not conected.
             return None
 
-        app_name = self.connect_event.get_header(Message.APPLICATION)
+        app_name = self.connect_event.message.get_header(Message.APPLICATION)
 
         if app_name is None:
             # Connection event didn't specify one, use default.
@@ -418,9 +432,10 @@ class EventThread(threading.Thread):
         message.set_type(Message.COMMAND, Message.DISCONNECT)
         self.write_thread.write(message)
 
+# TODO Move this to Event as part of set message
     def set_event_component(self, event):
         # Find the component ID.
-        component_id = event.get_header(Message.ID)
+        component_id = event.message.get_header(Message.ID)
         if component_id is None:
             return
 

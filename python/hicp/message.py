@@ -324,8 +324,8 @@ class Message:
 
         out_stream.flush()
 
-    def set_type(self, type, value):
-        self.__type = type
+    def set_type(self, message_type, value):
+        self.__type = message_type
         self.__type_value = value
 
     def get_type(self):
