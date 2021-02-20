@@ -159,6 +159,7 @@ class TestApp(App):
 
         path_field = TextField()
         path_field.set_content(os.getcwd())
+        path_field.set_events(TextField.DISABLED)
         window.add(path_field, 1, 4)
 
         window.set_visible(True)
