@@ -11,17 +11,18 @@ from hicp.message import Message
 
 class EventType(Enum):
   # Message event types.
-  AUTHENTICATE = (auto(), Message.AUTHENTICATE)
-  CHANGED = (auto(), Message.CHANGED)
-  CLICK = (auto(), Message.CLICK)
-  CLOSE = (auto(), Message.CLOSE)
-  CONNECT = (auto(), Message.CONNECT)
-  DISCONNECT = (auto(), Message.DISCONNECT)
+  AUTHENTICATE = (auto(), Message.AUTHENTICATE, False)
+  CHANGED = (auto(), Message.CHANGED, True)
+  CLICK = (auto(), Message.CLICK, True)
+  CLOSE = (auto(), Message.CLOSE, True)
+  CONNECT = (auto(), Message.CONNECT, False)
+  DISCONNECT = (auto(), Message.DISCONNECT, False)
   # Non message event types.
 
-  def __init__(self, event_id, event_name=""):
+  def __init__(self, event_id, event_name="", from_component=False):
     self.event_id = event_id
     self.event_name = event_name
+    self.from_component = from_component
 
   @classmethod
   def get_by_name(cls, event_name):
@@ -31,6 +32,7 @@ class EventType(Enum):
     return None
 
 class Event():
+    # Also change to an enum?
     STAGE_FEEDBACK = 1
     STAGE_PROCESS = 2
     STAGE_UPDATE = 3
@@ -79,7 +81,11 @@ class WriteThread(threading.Thread):
 
 
 class ReadThread(threading.Thread):
-    def __init__(self, in_stream, event_thread):
+    def __init__(
+        self,
+        in_stream,
+        event_thread):
+
         self.in_stream = in_stream
         self.event_thread = event_thread
 
@@ -93,7 +99,7 @@ class ReadThread(threading.Thread):
 
             if message.get_type() != Message.EVENT:
                 # Ignore all non-event messages
-                self.logger.debug("Non-event " + message.get_type())  # debug
+                self.logger.debug("Non-event " + str(message.get_type()))  # debug
                 continue
 
             event = Event(message)
@@ -294,50 +300,51 @@ class EventThread(threading.Thread):
                     # extra).
                     pass
                 else:
-                    # Real event.
+                    # Event with handler
                     if self.suspend_app:
                         # Ignore all app events - app is being shutdown.
                         pass
                     elif Event.STAGE_FEEDBACK == event.stage:
-                        self.set_event_component(event)
+                        if event.event_type.from_component:
+                            self.set_event_component(event)
 
-                        # Find the proper event handler based on event type.
-                        event.handler = None
+                            # Find the proper event handler based on event type.
+                            event.handler = None
 
-                        self.logger.debug("event type: " + event_type.event_name) # debug
-                        if EventType.CLOSE == event_type:
-                            self.logger.debug("Got close event, stage " + str(event.stage))
-                            # Add the close event handler to event message.
-                            try:
-                                if event.component is not None:
-                                    event.handler = event.component.get_handle_close()
-                            except AttributeError:
-                                # Component does not respond to close
-                                # message, handler is incorrect.
-                                event.handler = None
+                            self.logger.debug("event type: " + event_type.event_name) # debug
+                            if EventType.CLOSE == event_type:
+                                self.logger.debug("Got close event, stage " + str(event.stage))
+                                # Add the close event handler to event message.
+                                try:
+                                    if event.component is not None:
+                                        event.handler = event.component.get_handler(event)
+                                except AttributeError:
+                                    # Component does not respond to close
+                                    # message, handler is incorrect.
+                                    event.handler = None
 
-                        elif EventType.CLICK == event_type:
-                            self.logger.debug("Got click event, stage " + str(event.stage))
-                            # Add the close event handler to event message.
-                            try:
-                                if event.component is not None:
-                                    event.handler = event.component.get_handle_click()
-                            except AttributeError:
-                                # Component does not respond to close
-                                # message, handler is incorrect.
-                                event.handler = None
+                            elif EventType.CLICK == event_type:
+                                self.logger.debug("Got click event, stage " + str(event.stage))
+                                # Add the close event handler to event message.
+                                try:
+                                    if event.component is not None:
+                                        event.handler = event.component.get_handler(event)
+                                except AttributeError:
+                                    # Component does not respond to close
+                                    # message, handler is incorrect.
+                                    event.handler = None
 
-                        elif EventType.CHANGED == event_type:
-                            self.logger.debug("Got changed event, stage " + str(event.stage))
-                            # Add the close event handler to event message.
-                            try:
-                                if event.component is not None:
-                                    event.handler = \
-                                        event.component.get_handle_changed(event)
-                            except AttributeError:
-                                # Component does not respond to changed
-                                # message, handler is incorrect.
-                                event.handler = None
+                            elif EventType.CHANGED == event_type:
+                                self.logger.debug("Got changed event, stage " + str(event.stage))
+                                # Add the close event handler to event message.
+                                try:
+                                    if event.component is not None:
+                                        event.handler = \
+                                            event.component.get_handler(event)
+                                except AttributeError:
+                                    # Component does not respond to changed
+                                    # message, handler is incorrect.
+                                    event.handler = None
 
                         if event.handler is not None:
                             # Handler was added to event message.
@@ -446,7 +453,6 @@ class EventThread(threading.Thread):
         message.set_type(Message.COMMAND, Message.DISCONNECT)
         self.write_thread.write(message)
 
-# TODO Move this to Event as part of set message
     def set_event_component(self, event):
         # Find the component ID.
         component_id = event.message.get_header(Message.ID)

@@ -1,6 +1,6 @@
 import os
 
-from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
 class DisconnectHandler:
@@ -123,7 +123,8 @@ class TestApp(App):
         button = Button()
         button.set_text_id(self.BUTTON_ID)
         button.set_size(1, 1)  # debug
-        button.set_handle_click(
+        button.set_handler(
+            EventType.CLICK,
             ButtonHandler(click_label, self.LABEL_THANKS_ID)
         )
         window.add(button, 1, 1)
@@ -136,14 +137,16 @@ class TestApp(App):
         # debug - test value attribute - size of "text"
         # Should be: 8 2=4 1
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
-        text_field.set_handle_changed(
+        text_field.set_handler(
+            EventType.CHANGED,
             TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
         )
         window.add(text_field, 1, 2)
 
         able_button = Button()
         able_button.set_text_id(self.DISABLE_BUTTON_ID)
-        able_button.set_handle_click(
+        able_button.set_handler(
+            EventType.CLICK,
             AbleButtonHandler(
                 button, text_field, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
             )

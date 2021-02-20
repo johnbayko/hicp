@@ -1,4 +1,4 @@
-from hicp.hicp import TextSelector
+from hicp.hicp import EventType, TextSelector
 from hicp.component import Window
 
 class AppInfo:
@@ -68,7 +68,7 @@ class App:
     def new_app_window(self):
         """Create a window with a close handler that disconnects when window is closed."""
         app_window = Window()
-        app_window.set_handle_close(AppWindowCloser())
+        app_window.set_handler(EventType.CLOSE, AppWindowCloser())
         return app_window
 
 class AppSpec:

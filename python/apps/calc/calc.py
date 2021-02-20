@@ -1,6 +1,6 @@
 from enum import Enum
 
-from hicp import HICP, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, EventType, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
 class CalcOp(Enum):
@@ -189,119 +189,119 @@ class Calc(App):
         digit = '7'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 0, 1)
 
         digit = '8'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 1, 1)
 
         digit = '9'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 2, 1)
 
         digit = '4'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 0, 2)
 
         digit = '5'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 1, 2)
 
         digit = '6'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 2, 2)
 
         digit = '1'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 0, 3)
 
         digit = '2'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 1, 3)
 
         digit = '3'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 2, 3)
 
         digit = '+/-'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(SignClickHandler(display_field))
+        button.set_handler(EventType.CLICK, SignClickHandler(display_field))
         window.add(button, 0, 4)
 
         digit = '0'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DigitClickHandler(calc_data, digit, display_field))
+        button.set_handler(EventType.CLICK, DigitClickHandler(calc_data, digit, display_field))
         window.add(button, 1, 4)
 
         digit = '.'
         button = Button()
         button.set_text(digit, hicp)
-        button.set_handle_click(DecimalClickHandler(digit, display_field))
+        button.set_handler(EventType.CLICK, DecimalClickHandler(digit, display_field))
         window.add(button, 2, 4)
 
         # Buttons tend to go most common op at the bottom
         op = CalcOp.DIV
         button = Button()
         button.set_text(op.text, hicp)
-        button.set_handle_click(OpClickHandler(op, display_field, calc_data))
+        button.set_handler(EventType.CLICK, OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 1)
 
         op = CalcOp.MUL
         button = Button()
         button.set_text(op.text, hicp)
-        button.set_handle_click(OpClickHandler(op, display_field, calc_data))
+        button.set_handler(EventType.CLICK, OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 2)
 
         op = CalcOp.SUB
         button = Button()
         button.set_text(op.text, hicp)
-        button.set_handle_click(OpClickHandler(op, display_field, calc_data))
+        button.set_handler(EventType.CLICK, OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 3)
 
         op = CalcOp.ADD
         button = Button()
         button.set_text(op.text, hicp)
-        button.set_handle_click(OpClickHandler(op, display_field, calc_data))
+        button.set_handler(EventType.CLICK, OpClickHandler(op, display_field, calc_data))
         window.add(button, 3, 4)
 
         op = CalcOp.EQ
         button = Button()
         button.set_text(op.text, hicp)
-        button.set_handle_click(OpClickHandler(op, display_field, calc_data))
+        button.set_handler(EventType.CLICK, OpClickHandler(op, display_field, calc_data))
         window.add(button, 4, 4)
 
         button = Button()
         button.set_text('CLR', hicp)
-        button.set_handle_click(ClrClickHandler(display_field, calc_data))
+        button.set_handler(EventType.CLICK, ClrClickHandler(display_field, calc_data))
         window.add(button, 4, 1)
 
         button = Button()
         button.set_text('M STO', hicp)
-        button.set_handle_click(MemStoClickHandler(display_field, calc_data))
+        button.set_handler(EventType.CLICK, MemStoClickHandler(display_field, calc_data))
         window.add(button, 4, 2)
 
         button = Button()
         button.set_text('M RCL', hicp)
-        button.set_handle_click(MemRclClickHandler(display_field, calc_data))
+        button.set_handler(EventType.CLICK, MemRclClickHandler(display_field, calc_data))
         window.add(button, 4, 3)
 
         window.set_visible(True)

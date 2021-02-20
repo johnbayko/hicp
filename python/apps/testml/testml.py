@@ -1,6 +1,6 @@
 import os
 
-from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
 class ButtonHandlerML:
@@ -163,7 +163,8 @@ class TestAppML(App):
                 ( "English", self.LANG_EN),
                 ( "English", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        button_en.set_handle_click(
+        button_en.set_handler(
+            EventType.CLICK,
             ButtonLangHandler(hicp, self.LANG_EN)
         )
         amazing_panel.add(button_en, 0, 1)
@@ -173,7 +174,8 @@ class TestAppML(App):
                 ( "English (UK)", self.LANG_EN),
                 ( "English (UK)", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        button_en_gb.set_handle_click(
+        button_en_gb.set_handler(
+            EventType.CLICK,
             ButtonLangHandler(hicp, self.LANG_EN, self.LANG__GB)
         )
         amazing_panel.add(button_en_gb, 0, 2)
@@ -183,7 +185,8 @@ class TestAppML(App):
                 ( "Français", self.LANG_EN),
                 ( "Français", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        button_fr_ca.set_handle_click(
+        button_fr_ca.set_handler(
+            EventType.CLICK,
             ButtonLangHandler(hicp, self.LANG_FR, self.LANG__CA)
         )
         amazing_panel.add(button_fr_ca, 0, 3)
@@ -202,7 +205,8 @@ class TestAppML(App):
                 ( "Bouton", self.LANG_FR, self.LANG__CA)
             ], hicp)
         button.set_size(1, 1)  # debug
-        button.set_handle_click(
+        button.set_handler(
+            EventType.CLICK,
             ButtonHandlerML(click_label, [
                 ( "Thank you. Don't click the button again.",
                     self.LANG_EN),
@@ -220,7 +224,8 @@ class TestAppML(App):
         # debug - test value attribute - size of "text"
         # Should be: 8 2=4 1
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
-        text_field.set_handle_changed(
+        text_field.set_handler(
+            EventType.CHANGED,
             TextFieldHandlerML(click_label, [
                 ( "Text has been changed.", self.LANG_EN),
                 ( "Le texte a été modifié.", self.LANG_FR, self.LANG__CA)
@@ -230,7 +235,8 @@ class TestAppML(App):
 
         able_button = Button()
         able_button.set_text_id(self.DISABLE_ID)
-        able_button.set_handle_click(
+        able_button.set_handler(
+            EventType.CLICK,
             AbleButtonHandler(
                 button, text_field, self.ENABLE_ID, self.DISABLE_ID
             )

@@ -2,6 +2,7 @@ import re
 
 from hicp.logger import newLogger
 from hicp.message import Message
+from hicp.hicp import EventType
 
 class Component:
     """Components use getters and setters functions, because they need to
@@ -24,6 +25,15 @@ keep track of which items have been changed so they can be sent in
         self.added_to_hicp = None
 
         self.changed_header_list = {}
+
+    def set_handler(self, event_type, handler):
+        # Maybe in the future, this will be a map, but for now handlers are
+        # tracked by individual component classes.
+        pass
+
+    def get_handler(self, event):
+        # See set_handler().
+        return None
 
     def set_changed_header(self, header, field):
         # Must be a string - the value that will be put in the update
@@ -230,11 +240,22 @@ class Button(ContainedComponent):
         ContainedComponent.fill_headers_add(self, message)
         self.component_text.fill_headers_add(message)
 
-    def set_handle_click(self, handle_click):
-        self.__handle_click = handle_click
+    def set_handler(self, event_type, handler):
+        if EventType.CLICK == event_type:
+            self.__handle_click = handler
+        else:
+            super().set_handler(event_type, handler)
 
-    def get_handle_click(self):
-        return self.__handle_click
+    def get_handler(self, event):
+        handler = super().get_handler(event)
+        if None != handler:
+            return handler
+
+        if EventType.CLICK == event.event_type:
+            return self.__handle_click
+        else:
+            # Not an event type this component supports.
+            return None
 
 class TextFieldAttribute:
     def __init__(self, length, is_multivalued, value=None):
@@ -695,17 +716,31 @@ class TextField(ContainedComponent):
         if self.__attributes is not None and self.__attributes != "":
             message.add_header(Message.ATTRIBUTES, self.__attributes)
 
-    def set_handle_changed(self, handle_changed):
-        self.__handle_changed = handle_changed
+    def set_handler(self, event_type, handler):
+        if EventType.CHANGED == event_type:
+            self.__handle_changed = handler
+        else:
+            super().set_handler(event_type, handler)
 
-    def get_handle_changed(self, event):
+    def get_handler(self, event):
+        handler = super().get_handler(event)
+        if None != handler:
+            return handler
+
+        if EventType.CHANGED == event.event_type:
+            return self.__get_handle_changed(event)
+        else:
+            # Not an event type this component supports.
+            return None
+
+    def __get_handle_changed(self, event):
         # Get content from event
-        content = event.get_header(Message.CONTENT)
+        content = event.message.get_header(Message.CONTENT)
         if content is not None:
             self.__content = content
 
         # Get attributes from event.
-        attribute_header = event.get_header(Message.ATTRIBUTES)
+        attribute_header = event.message.get_header(Message.ATTRIBUTES)
         if attribute_header is not None:
             self.set_attribute_string(attribute_header)
 
@@ -769,11 +804,22 @@ class Window(Container):
         else:
             self.set_changed_header(Message.VISIBLE, "false")
 
-    def set_handle_close(self, handle_close):
-        self.__handle_close = handle_close
+    def set_handler(self, event_type, handler):
+        if EventType.CLOSE == event_type:
+            self.__handle_close = handler
+        else:
+            super().set_handler(event_type, handler)
 
-    def get_handle_close(self):
-        return self.__handle_close
+    def get_handler(self, event):
+        handler = super().get_handler(event)
+        if None != handler:
+            return handler
+
+        if EventType.CLOSE == event.event_type:
+            return self.__handle_close
+        else:
+            # Not an event type this component supports.
+            return None
 
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
