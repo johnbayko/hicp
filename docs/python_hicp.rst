@@ -326,6 +326,8 @@ Event handling
 
 ::
 
+  from hicp import EventType
+
   class UpdateButtonHandler:
     def feedback(self, hicp, event_message, component):
         ...optional event feedback...
@@ -336,7 +338,7 @@ Event handling
     def update(self, hicp, event_message, component):
         ...optional update results
 
-  update_button.set_handle_click(UpdateButtonHnadler())
+  update_button.set_handler(EventType.CLICK, UpdateButtonHnadler())
 
 Events are handled in three stages:
 
@@ -449,7 +451,7 @@ Component set_size()
 
 ::
 
-  from hicp import Label, Button
+  from hicp import Label, Button, EventType
 
   l = Label()
   l.set_text("Options:")
@@ -458,7 +460,7 @@ Component set_size()
 
   b1 = Button()
   b1.set_text("One")
-  b1.set_handle_click(OptionOneHandler())
+  b1.set_handler(EventType.CLICK, OptionOneHandler())
   w.add(b1, 0, 1)
 
   b2 = ...Option 2 button...
@@ -483,13 +485,13 @@ Window
 
 ::
 
-  from hicp import Window, Button
+  from hicp import Window, Button, EventType
 
   wc = WelcomeCloser()
 
   w = Window()
   w.set_text("Welcome")  # Window frame title.
-  w.set_handle_close(wc)
+  w.set_handler(EventType.CLOSE, wc)
   hicp.add(w)
 
   bc = ...a close button...
@@ -530,10 +532,12 @@ Window set_visible()
 When set to ``True`` makes the user agent display the window and contents. The
 window can be added and constructed, then made visible when it's complete. When set to ``False`` the window will not be displayed.
 
-Window set_handle_close()
--------------------------
+Window set_handler()
+--------------------
 
 ::
+
+  from hicp import EventType
 
   class CloseHandler:
     def feedback(self, hicp, event_message, component):
@@ -545,12 +549,15 @@ Window set_handle_close()
     def update(self, hicp, event_message, component):
         hicp.remove(component)
 
-  w.set_handle_close(CloseHandler())
+  w.set_handler(EventType.CLOSE, CloseHandler())
 
-When a window's "close" control on the frame is clicked, it sends a "close"
-event. This handler should remove the window (closing it) or make it invisible
-if it might be opened again. Closing the last window can also disconnect the
-application (call ``hicp.disconnect()``).
+A handler can be added to a ``Window`` for these events:
+
+``EventType.CLOSE``
+    When a window's "close" control on the frame is clicked, it sends a "close"
+    event. This handler should remove the window (closing it) or make it
+    invisible if it might be opened again. Closing the last window can also
+    disconnect the application (call ``hicp.disconnect()``).
 
 Panel
 =====
@@ -608,13 +615,13 @@ Button
 
 ::
 
-  from hicp import Button
+  from hicp import Button, EventType
 
   hb = ...button click handler...
 
   b = Button()
   b.set_text("Activate")
-  b.set_handle_click(hb)
+  b.set_handler(EventType.CLICK, hb)
 
   w.add(b, 0, 1)
 
@@ -622,10 +629,12 @@ A button can be clicked to send an event that the specified handler processes.
 The text is just displayed on the button. It must be added to a container
 component (like a window or panel).
 
-Button set_handle_click()
--------------------------
+Button set_handler()
+--------------------
 
 ::
+
+  from hicp import EventType
 
   class ActivateHandler:
     def feedback(self, hicp, event_message, component):
@@ -637,27 +646,30 @@ Button set_handle_click()
     def update(self, hicp, event_message, component):
         ...optional update results
 
-  b.set_handle_click(ActivateHandler())
+  b.set_handler(EventType.CLICK, ActivateHandler())
 
-The event handler is called when a button's click event is received, as
-described above.
+A handler can be added to a ``Button`` for these events:
+
+``EventType.CLICK``
+  The event handler is called when a button's click event is received, as
+  described above.
 
 Button set_events()
--------------------------
+-------------------
 
 ::
 
   b.set_events(Button.DISABLED)
 
-When set to Button.DISABLED, button events are not sent, events are sent when
-set to Button.ENABLED (default).
+When set to ``Button.DISABLED``, button events are not sent, events are sent
+when set to ``Button.ENABLED`` (default).
 
 TextField
 =========
 
 ::
 
-  from hicp import TextField
+  from hicp import TextField, EventType
 
   user = ...an object with a .name string...
 
@@ -665,7 +677,7 @@ TextField
 
   tf = TextField()
   tf.set_content(user.name)
-  tf.set_handle_changed(htc)
+  tf.set_handler(EventType.CHANGED, htc)
 
   w.add(tf, 1, 2)
 
@@ -709,10 +721,12 @@ in the hicp message protocol, and isn't normally useful except for debugging.
 ``set_attribute_string()`` sets attributes based on the same format of string,
 and is less useful, except maybe for testing.
 
-TextField set_handle_changed()
-------------------------------
+TextField set_handler()
+-----------------------
 
 ::
+
+  from hicp import EventType
 
   class PriceEnteredHandler:
     def __init__(transaction):
@@ -734,14 +748,17 @@ TextField set_handle_changed()
 
   tr = ...an object with a .price field...
 
-  tf.set_handle_changed(PriceEnteredHandler(tr))
+  tf.set_handler(EventType.CHANGED, PriceEnteredHandler(tr))
 
-Once editing finishes, a changed event is sent which contains the changed text
-and current attributes, if any. This is normally the entire text content once
-editing is complete, not individual changes.
+A handler can be added to a ``TextField`` for these events:
 
-The text field is updated with the changed contents and attributes before the
-handler functions are called.
+``EventType.CHANGED``
+  Once editing finishes, a changed event is sent which contains the changed
+  text and current attributes, if any. This is normally the entire text content
+  once editing is complete, not individual changes.
+
+  The text field is updated with the changed contents and attributes before the
+  handler functions are called, so ``get_content()`` etc. behaves as expected.
 
 hicpd
 =====
