@@ -84,12 +84,16 @@ class ReadThread(threading.Thread):
     def __init__(
         self,
         in_stream,
+        component_list,
         event_thread):
 
         self.in_stream = in_stream
+        # This is updated by hicp, so only read from it, no iterating.
+        self.component_list = component_list
         self.event_thread = event_thread
 
         self.logger = newLogger(type(self).__name__)
+        self.disconnect_handler = None
 
         threading.Thread.__init__(self)
 
@@ -103,10 +107,45 @@ class ReadThread(threading.Thread):
                 continue
 
             event = Event(message)
+
+            if event.event_type.from_component:
+                # Find the component ID.
+                component_id = event.message.get_header(Message.ID)
+                if component_id is None:
+                    # Message missing something, can't use this event.
+                    continue
+
+                try:
+                    event.component = self.component_list[component_id]
+                except KeyError:
+                    # Component not found, so can't do anything with event.
+                    # May have sent remove message, but didn't work for some
+                    # reason and other side thinks it's still there, but may be
+                    # some other reason, so don't try to "fix" it.
+                    self.logger.debug("Event for unknown component id " + component_id)
+                    continue
+
+                event.handler = event.component.get_handler(event)
+
+            else:
+                if EventType.DISCONNECT == event.event_type:
+                    handler = self.disconnect_handler
+                    try:
+                        if handler is not None and handler.process is not None:
+                            event.handler = handler
+
+                    except AttributeError:
+                        # No process handler method, so don't use.
+                        self.logger.debug("disconnect event handler has no process method")
+                        pass
+
             self.event_thread.add(event)
 
             if EventType.DISCONNECT == event.event_type:
                 break
+
+    def set_disconnect_handler(self, handler):
+        self.disconnect_handler = handler
 
 
 class ProcessThread(threading.Thread):
@@ -187,7 +226,6 @@ class EventThread(threading.Thread):
     def __init__(
         self,
         hicp,
-        component_list,
         write_thread,
         default_app,
         app_list=None,
@@ -196,7 +234,6 @@ class EventThread(threading.Thread):
         self.logger = newLogger(type(self).__name__)
 
         self.hicp = hicp
-        self.component_list = component_list
         self.write_thread = write_thread
         self.default_app = default_app
         self.app_list = app_list
@@ -208,7 +245,6 @@ class EventThread(threading.Thread):
         self.suspend_app = False
         self.event_queue = queue.Queue()
         self.connect_event = None
-        self.disconnect_handler = None
 
         threading.Thread.__init__(self)
 
@@ -278,20 +314,12 @@ class EventThread(threading.Thread):
                     # No longer running, wait for next connection.
                     state = STATE_WAIT_CONNECT
 
-# TODO check, this isn't an app event, disconnect still needs to be handled?
                     if self.suspend_app:
                         # Ignore all app events - app is being shutdown.
                         pass
-                    elif self.disconnect_handler is not None:
-                        handler = self.disconnect_handler
-                        try:
-                            if handler.process is not None:
-                                event.stage = Event.STAGE_PROCESS
-                                event.handler = self.disconnect_handler
+                    elif event.handler is not None:
+                        event.stage = Event.STAGE_PROCESS
 
-                        except AttributeError:
-                            # No process handler method.
-                            self.logger.debug("disconnect event handler has no process method")
                     # Disconnect events always pass through to stop all threads.
                     self.process_thread.add(event)
 
@@ -305,55 +333,9 @@ class EventThread(threading.Thread):
                         # Ignore all app events - app is being shutdown.
                         pass
                     elif Event.STAGE_FEEDBACK == event.stage:
-                        if event.event_type.from_component:
-                            self.set_event_component(event)
-
-                            # Find the proper event handler based on event type.
-                            event.handler = None
-
-                            self.logger.debug("event type: " + event_type.event_name) # debug
-                            if EventType.CLOSE == event_type:
-                                self.logger.debug("Got close event, stage " + str(event.stage))
-                                # Add the close event handler to event message.
-                                try:
-                                    if event.component is not None:
-                                        event.handler = event.component.get_handler(event)
-                                except AttributeError:
-                                    # Component does not respond to close
-                                    # message, handler is incorrect.
-                                    event.handler = None
-
-                            elif EventType.CLICK == event_type:
-                                self.logger.debug("Got click event, stage " + str(event.stage))
-                                # Add the close event handler to event message.
-                                try:
-                                    if event.component is not None:
-                                        event.handler = event.component.get_handler(event)
-                                except AttributeError:
-                                    # Component does not respond to close
-                                    # message, handler is incorrect.
-                                    event.handler = None
-
-                            elif EventType.CHANGED == event_type:
-                                self.logger.debug("Got changed event, stage " + str(event.stage))
-                                # Add the close event handler to event message.
-                                try:
-                                    if event.component is not None:
-                                        event.handler = \
-                                            event.component.get_handler(event)
-                                except AttributeError:
-                                    # Component does not respond to changed
-                                    # message, handler is incorrect.
-                                    event.handler = None
-
-                        if event.handler is not None:
-                            # Handler was added to event message.
-                            self.event_feedback(event)
+                        self.event_feedback(event)
 
                     elif Event.STAGE_UPDATE == event.stage:
-                        # event already has component and event fields,
-                        # just call event_update()
-                        self.logger.debug("Update stage: " + str(event.stage))
                         self.event_update(event)
                     else:
                         # Shouldn't happen. Maybe log it?
@@ -445,29 +427,10 @@ class EventThread(threading.Thread):
     def set_suspend_app(self, suspend_flag):
         self.suspend_app = suspend_flag
 
-    def set_disconnect_handler(self, handler):
-        self.disconnect_handler = handler
-
     def disconnect(self):
         message = Message()
         message.set_type(Message.COMMAND, Message.DISCONNECT)
         self.write_thread.write(message)
-
-    def set_event_component(self, event):
-        # Find the component ID.
-        component_id = event.message.get_header(Message.ID)
-        if component_id is None:
-            return
-
-        try:
-            event.component = self.component_list[component_id]
-        except KeyError:
-            # Component not found, so can't do anything with event.
-            # May have sent remove message, but didn't work for some
-            # reason and other side thinks it's still there, but may be
-            # some other reason, so don't try to "fix" it.
-            self.logger.debug("Close event for unknown component id " + component_id)
-            return
 
     def event_feedback(self, event):
         # This thread first calls "feedback" handler, if it exists.
@@ -791,7 +754,6 @@ class HICP:
         self.logger.debug("about to make EventThread()")  # debug
         self.__event_thread = EventThread(
             self,
-            self.__component_list,
             self.__write_thread,
             self.__default_app,
             self.__app_list,
@@ -799,7 +761,10 @@ class HICP:
         self.__event_thread.start()
 
         self.logger.debug("about to make ReadThread()")  # debug
-        self.__read_thread = ReadThread(self.in_stream, self.__event_thread)
+        self.__read_thread = ReadThread(
+            self.in_stream,
+            self.__component_list,
+            self.__event_thread)
         self.__read_thread.start()
         self.logger.debug("about to join read_thread")  # debug
         self.__read_thread.join()
@@ -923,7 +888,7 @@ class HICP:
             raise AttributeError("Handler is missing process() method.")
         # feedback or update methods are ignored.
 
-        self.__event_thread.set_disconnect_handler(handler)
+        self.__read_thread.set_disconnect_handler(handler)
 
     def get_gui_id(self):
         gui_id = self.__gui_id
