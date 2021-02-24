@@ -48,7 +48,7 @@ HICP
   app_path = pathlib.Path(os.getcwd())
   app_list = {
       App1.get_app_name(): AppSpec(App1, app_path),
-      App2.get_app_name(): AppSpec(App2, app_path) 
+      App2.get_app_name(): AppSpec(App2, app_path)
   }
   default_app = App1.get_app_name()
 
@@ -324,6 +324,9 @@ The ``App`` class also has the convenience method:
 Event handling
 ==============
 
+Component event handling
+------------------------
+
 ::
 
   from hicp import EventType
@@ -382,6 +385,31 @@ Update
 
 - ``process()`` stages might run at the same time as another event's
   ``feedback()`` or ``update()`` stages (but never its own).
+
+Disconnect event handling
+-------------------------
+
+::
+
+  class DisconnectHandler:
+    def __init__(self, ...stuff that needs to be cleaned up...):
+      ...Add stuff to clean up to self
+
+    def process(self, event_message):
+      ...clean up stuff
+
+  hicp.set_disconnect_handler(DisconnectHandler(...stuff...))
+
+A disconnect handler can be added to hicp. The ``process()`` method will be
+called when a disconnect message is received, or there is a communication
+disconnection that terminates the application. The handler cannot interact with
+the client (so no ``feedback()`` or ``update()`` stages), and should be very
+short.
+
+It's meant to allow cleanup, such as closing connections or saving data, but
+there is never any guarantee that the event will be received, so any important
+data should be saved immediately rather than waiting for the disconnect
+handler.
 
 Components
 ==========

@@ -85,12 +85,14 @@ class ReadThread(threading.Thread):
         self,
         in_stream,
         component_list,
-        event_thread):
+        event_thread,
+        time_thread):
 
         self.in_stream = in_stream
         # This is updated by hicp, so only read from it, no iterating.
         self.component_list = component_list
         self.event_thread = event_thread
+        self.time_thread = time_thread
 
         self.logger = newLogger(type(self).__name__)
         self.disconnect_handler = None
@@ -142,10 +144,38 @@ class ReadThread(threading.Thread):
             self.event_thread.add(event)
 
             if EventType.DISCONNECT == event.event_type:
+                # Pass through to time thread so it knows to stop.
+                self.time_thread.add(event)
                 break
 
     def set_disconnect_handler(self, handler):
         self.disconnect_handler = handler
+
+
+class TimeThread(threading.Thread):
+    def __init__(
+        self,
+        event_thread):
+
+        self.event_thread = event_thread
+
+        self.logger = newLogger(type(self).__name__)
+
+        self.time_queue = queue.Queue()
+
+        threading.Thread.__init__(self)
+
+    def add(self, event):
+        self.time_queue.put(event)
+
+    def run(self):
+        while True:
+            event = self.time_queue.get()
+
+            if EventType.DISCONNECT == event.event_type:
+                break
+
+        print("Time thread end of loop")
 
 
 class ProcessThread(threading.Thread):
@@ -760,14 +790,23 @@ class HICP:
             self.__authenticator)
         self.__event_thread.start()
 
+        self.logger.debug("before make TimeThread()")  # debug
+        self.__time_thread = TimeThread(self.__event_thread)
+        self.__time_thread.start()
+
         self.logger.debug("about to make ReadThread()")  # debug
         self.__read_thread = ReadThread(
             self.in_stream,
             self.__component_list,
-            self.__event_thread)
+            self.__event_thread,
+            self.__time_thread)
         self.__read_thread.start()
+
         self.logger.debug("about to join read_thread")  # debug
         self.__read_thread.join()
+
+        self.logger.debug("about to join time_thread")  # debug
+        self.__time_thread.join()
 
         self.logger.debug("about to join event_thread")  # debug
         self.__event_thread.join()
