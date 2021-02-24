@@ -4,10 +4,28 @@ import pathlib
 import queue
 import threading
 
+from datetime import datetime, timedelta
 from enum import Enum, auto
 
 from hicp.logger import newLogger
 from hicp.message import Message
+
+def find_free_id(map_to_search):
+    ids = map_to_search.keys()
+    if 0 == len(ids):
+        # Nothing, any ID will do.
+        return 0
+    sorted_ids = sorted(ids)
+
+    # Start at lowest key value
+    prev_id = sorted_ids[0]
+    for this_id in sorted_ids:
+        if (this_id - prev_id) > 1:
+            # There was a gap in keys
+            return prev_id + 1
+        prev_id = this_id
+    # No gap found, next key is end of list
+    return prev_id + 1
 
 class EventType(Enum):
   # Message event types.
@@ -18,6 +36,7 @@ class EventType(Enum):
   CONNECT = (auto(), Message.CONNECT, False)
   DISCONNECT = (auto(), Message.DISCONNECT, False)
   # Non message event types.
+  TIME = (auto(), "TIME", False)
 
   def __init__(self, event_id, event_name="", from_component=False):
     self.event_id = event_id
@@ -54,7 +73,7 @@ class Event():
                 self.message = source
                 self.event_type = EventType.get_by_name(source.get_type_value())
         else:
-            raise TypeError('Event parameter not EventType or Message: ' + srt(source))
+            raise TypeError('Event parameter not EventType or Message: ' + str(source))
 
 
 class WriteThread(threading.Thread):
@@ -152,6 +171,32 @@ class ReadThread(threading.Thread):
         self.disconnect_handler = handler
 
 
+class TimeHandlerInfo:
+    def __init__(self, time_info, is_repeating = False):
+        if isinstance(time_info, int):
+            # time is in seconds, and can be repeating.
+            self.delta_seconds = time_info
+
+            self.expected_time = \
+                datetime.now() + timedelta(seconds=self.delta_seconds)
+
+            self.is_repeating = is_repeating
+
+        elif isinstance(time_info, datetime):
+            # Specific time, time doesn't repeat.
+            self.expected_time = time_info
+            self.is_repeating = False
+
+        else:
+            # Unrecognized info.
+            raise TypeError('Time info parameter not int (seconds) or datetime: ' + str(time_info))
+
+class TimeHandler:
+    def get_info(self):
+        """Actual handler overrides this and returns a TimeHandlerInfo
+        indicating when this event should occur."""
+        return None
+
 class TimeThread(threading.Thread):
     def __init__(
         self,
@@ -162,6 +207,7 @@ class TimeThread(threading.Thread):
         self.logger = newLogger(type(self).__name__)
 
         self.time_queue = queue.Queue()
+        self.handler_list = {}
 
         threading.Thread.__init__(self)
 
@@ -170,12 +216,41 @@ class TimeThread(threading.Thread):
 
     def run(self):
         while True:
+            # TODO Scan handler list for timeout to use.
             event = self.time_queue.get()
+            print("Got event", event)
+
+            # TODO check for timeout (event is None)
+            # TODO check for empty event.
 
             if EventType.DISCONNECT == event.event_type:
                 break
 
         print("Time thread end of loop")
+
+    def add_handler(self, handler):
+        """Add a time handler, return an ID that can be used to delete the handler later."""
+        if not isinstance(handler, TimeHandler):
+            print('Time handler not instance of TimeHandler')  # debug
+            raise TypeError('Time handler not instance of TimeHandler: ' + str(handler))
+        if handler.get_info() is None:
+            # No handling info, nothing to handle
+            print('No handling info, nothing to handle')  # debug
+            return
+
+        handler_id = find_free_id(self.handler_list)
+        self.handler_list[handler_id] = handler
+        print('handler_list', self.handler_list[handler_id])  # debug
+
+        # TODO Insert empty pseudo event to input queue to trigger re-start
+        # timeout.
+        return handler_id
+
+    def del_handler(self, handler_id):
+        del self.handler_list[handler_id]
+
+        # TODO Insert empty pseudo event to input queue to trigger re-start
+        # timeout.
 
 
 class ProcessThread(threading.Thread):
@@ -670,23 +745,6 @@ class TextManager:
 
         selector.add_text(text, group, subgroup)
 
-    def find_free_id(self):
-        text_ids = self.id_to_selector.keys()
-        if 0 == len(text_ids):
-            # Nothing, any ID will do.
-            return 0
-        sorted_text_ids = sorted(text_ids)
-
-        # Start at lowest key value
-        prev_text_id = sorted_text_ids[0]
-        for text_id in sorted_text_ids:
-            if (text_id - prev_text_id) > 1:
-                # There was a gap in keys
-                return prev_text_id + 1
-            prev_text_id = text_id
-        # No gap found, next key is end of list
-        return prev_text_id + 1
-
     def add_text_get_id(self, text, group = None, subgroup = None):
         (group, subgroup) = self.validate_group(group, subgroup)
 
@@ -702,7 +760,7 @@ class TextManager:
                 return text_id
 
         # Is new text, group, subgroup, so add it and return new id.
-        text_id = self.find_free_id()
+        text_id = find_free_id(self.id_to_selector)
         self.add_text(text_id, text, group, subgroup)
         return text_id
 
@@ -713,7 +771,7 @@ class TextManager:
 
         text_selector = TextSelector(text_group_list)
 
-        text_id = self.find_free_id()
+        text_id = find_free_id(self.id_to_selector)
         self.id_to_selector[text_id] = text_selector
 
         return text_id
@@ -928,6 +986,12 @@ class HICP:
         # feedback or update methods are ignored.
 
         self.__read_thread.set_disconnect_handler(handler)
+
+    def add_time_handler(self, handler):
+        return self.__time_thread.add_handler(handler)
+
+    def del_time_handler(self, handler_id):
+        self.__time_thread.del_handler(handler_id)
 
     def get_gui_id(self):
         gui_id = self.__gui_id

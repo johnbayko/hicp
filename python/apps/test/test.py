@@ -1,6 +1,6 @@
 import os
 
-from hicp import HICP, newLogger, EventType, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
 class DisconnectHandler:
@@ -58,6 +58,15 @@ class AbleButtonHandler:
 
         button.set_text_id(new_text_id)
         button.update()
+
+
+class ClockHandler(TimeHandler):
+    def __init__(self):
+        # debug 10 seconds.
+        self.time_info = TimeHandlerInfo(10, True)
+
+    def get_info(self):
+        return self.time_info
 
 
 class TestApp(App):
@@ -161,6 +170,8 @@ class TestApp(App):
         path_field.set_content(os.getcwd())
         path_field.set_events(TextField.DISABLED)
         window.add(path_field, 1, 4)
+
+        hicp.add_time_handler(ClockHandler())
 
         window.set_visible(True)
         window.update()
