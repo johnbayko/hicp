@@ -61,12 +61,14 @@ class AbleButtonHandler:
 
 
 class ClockHandler(TimeHandler):
-    def __init__(self):
-        # debug 10 seconds.
-        self.time_info = TimeHandlerInfo(10, True)
+    def __init__(self, time_delta, is_repeating):
+        self.time_info = TimeHandlerInfo(time_delta, is_repeating)
 
     def get_info(self):
         return self.time_info
+
+    def process(self, event):
+        print("event_time", event.event_time)  # debug
 
 
 class TestApp(App):
@@ -171,7 +173,8 @@ class TestApp(App):
         path_field.set_events(TextField.DISABLED)
         window.add(path_field, 1, 4)
 
-        hicp.add_time_handler(ClockHandler())
+        hicp.add_time_handler(ClockHandler(4, True))
+        hicp.add_time_handler(ClockHandler(6, False))
 
         window.set_visible(True)
         window.update()

@@ -62,6 +62,7 @@ class Event():
         self.event_type = None
         self.component = None
         self.handler = None
+        self.event_time = datetime.now()
 
         if isinstance(source, EventType):
             self.eventType = source
@@ -74,6 +75,12 @@ class Event():
                 self.event_type = EventType.get_by_name(source.get_type_value())
         else:
             raise TypeError('Event parameter not EventType or Message: ' + str(source))
+
+    def set_handler(self, handler):
+        self.handler = handler
+
+    def set_event_time(self, event_time):
+        self.event_time = event_time
 
 
 class WriteThread(threading.Thread):
@@ -124,7 +131,6 @@ class ReadThread(threading.Thread):
 
             if message.get_type() != Message.EVENT:
                 # Ignore all non-event messages
-                self.logger.debug("Non-event " + str(message.get_type()))  # debug
                 continue
 
             event = Event(message)
@@ -146,14 +152,14 @@ class ReadThread(threading.Thread):
                     self.logger.debug("Event for unknown component id " + component_id)
                     continue
 
-                event.handler = event.component.get_handler(event)
+                event.set_handler(event.component.get_handler(event))
 
             else:
                 if EventType.DISCONNECT == event.event_type:
                     handler = self.disconnect_handler
                     try:
                         if handler is not None and handler.process is not None:
-                            event.handler = handler
+                            event.set_handler(handler)
 
                     except AttributeError:
                         # No process handler method, so don't use.
@@ -216,41 +222,85 @@ class TimeThread(threading.Thread):
 
     def run(self):
         while True:
-            # TODO Scan handler list for timeout to use.
-            event = self.time_queue.get()
-            print("Got event", event)
+            # Scan handler list for timeout to use.
+            # Only looking for timeout here, list updates come after .get().
+            timeout = None
+            timeout_delta = None
+            now = datetime.now()
+            for handler_id, handler in self.handler_list.items():
+                handler_info = handler.get_info()
+                expected_time = handler_info.expected_time
+                if expected_time > now:
+                    new_delta = expected_time - now
+                    if timeout_delta is None or new_delta < timeout_delta:
+                        timeout_delta = new_delta
 
-            # TODO check for timeout (event is None)
-            # TODO check for empty event.
+            if timeout_delta is not None:
+                timeout = timeout_delta.total_seconds()
+            try:
+                event = self.time_queue.get(timeout=timeout)
 
-            if EventType.DISCONNECT == event.event_type:
-                break
+                if EventType.TIME == event.event_type:
+                    pass
+                elif EventType.DISCONNECT == event.event_type:
+                    break
+                else:
+                    # Unrecognized event type? Ignore for now
+                    self.logger.debug(
+                        "Unrecognized event sent to TimeThread: "
+                        + str(event.event_type))
 
-        print("Time thread end of loop")
+            except queue.Empty:
+                # Timeout happens here. Send timeout event to event thread for
+                # every handler whose expected time is in the past.
+                handlers_to_remove = []  # List of handler ids.
+                now = datetime.now()
+                for handler_id, handler in self.handler_list.items():
+                    handler_info = handler.get_info()
+                    expected_time = handler_info.expected_time
+                    if expected_time <= now:
+                        new_event = Event(EventType.TIME)
+                        new_event.set_handler(handler)
+                        new_event.set_event_time(expected_time)
+
+                        self.event_thread.add(new_event)
+
+                        if handler_info.is_repeating:
+                            # This repeats, update expected time.
+                            handler_info.expected_time = \
+                                now + timedelta(
+                                    seconds = handler_info.delta_seconds)
+                        else:
+                            # Non repeating handlers should be removed.
+                            handlers_to_remove.append(handler_id)
+
+                for handler_id in handlers_to_remove:
+                    del self.handler_list[handler_id]
+
+                pass
 
     def add_handler(self, handler):
-        """Add a time handler, return an ID that can be used to delete the handler later."""
+        """Add a time handler, return an ID that can be used to delete the
+        handler later."""
+
         if not isinstance(handler, TimeHandler):
-            print('Time handler not instance of TimeHandler')  # debug
             raise TypeError('Time handler not instance of TimeHandler: ' + str(handler))
         if handler.get_info() is None:
             # No handling info, nothing to handle
-            print('No handling info, nothing to handle')  # debug
             return
 
         handler_id = find_free_id(self.handler_list)
         self.handler_list[handler_id] = handler
-        print('handler_list', self.handler_list[handler_id])  # debug
 
-        # TODO Insert empty pseudo event to input queue to trigger re-start
-        # timeout.
+        # Insert empty pseudo event to input queue to re-start timeout.
+        self.add(Event(EventType.TIME))
         return handler_id
 
     def del_handler(self, handler_id):
         del self.handler_list[handler_id]
 
-        # TODO Insert empty pseudo event to input queue to trigger re-start
-        # timeout.
+        # Insert empty pseudo event to input queue to re-start timeout.
+        self.add(Event(EventType.TIME))
 
 
 class ProcessThread(threading.Thread):
@@ -317,7 +367,7 @@ class ProcessThread(threading.Thread):
         # If an update handler method exists, the event stage is
         # updated and the event is returned to this thread.
         try:
-            if handler.update is not None:
+            if event.handler.update is not None:
                 event.stage = Event.STAGE_UPDATE
                 self.event_thread.add(event)
 
