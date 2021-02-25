@@ -181,10 +181,10 @@ class TimeHandlerInfo:
     def __init__(self, time_info, is_repeating = False):
         if isinstance(time_info, int):
             # time is in seconds, and can be repeating.
-            self.delta_seconds = time_info
+            self.seconds = time_info
+            self.seconds_delta = timedelta(seconds=self.seconds)
 
-            self.expected_time = \
-                datetime.now() + timedelta(seconds=self.delta_seconds)
+            self.expected_time = datetime.now() + self.seconds_delta
 
             self.is_repeating = is_repeating
 
@@ -268,8 +268,8 @@ class TimeThread(threading.Thread):
                         if handler_info.is_repeating:
                             # This repeats, update expected time.
                             handler_info.expected_time = \
-                                now + timedelta(
-                                    seconds = handler_info.delta_seconds)
+                                handler_info.expected_time + \
+                                handler_info.seconds_delta
                         else:
                             # Non repeating handlers should be removed.
                             handlers_to_remove.append(handler_id)
