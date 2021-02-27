@@ -1,5 +1,7 @@
 import os
 
+from datetime import datetime
+
 from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
@@ -61,14 +63,25 @@ class AbleButtonHandler:
 
 
 class ClockHandler(TimeHandler):
-    def __init__(self, time_delta, is_repeating):
-        self.time_info = TimeHandlerInfo(time_delta, is_repeating)
+    def __init__(self, clock_text):
+        self.clock_text = clock_text
+
+        # Display now as initial time, instead of blank for a second.
+        self.update_clock_text(datetime.now())
+
+        self.time_info = TimeHandlerInfo(1, is_repeating=True)
 
     def get_info(self):
         return self.time_info
 
     def process(self, event):
-        print("event_time", event.event_time)  # debug
+        # Update clock_text from event time.
+        self.update_clock_text(event.event_time)
+
+    def update_clock_text(self, new_time):
+        self.clock_text.set_content(
+            new_time.isoformat(sep=' ', timespec='seconds') )
+        self.clock_text.update()
 
 
 class TestApp(App):
@@ -79,8 +92,9 @@ class TestApp(App):
     LABEL_THANKS_ID = 5
     LABEL_CHANGED_ID = 6
     LABEL_PATH_ID = 7
-    DISABLE_BUTTON_ID = 8
-    ENABLE_BUTTON_ID = 9
+    LABEL_CLOCK_ID = 8
+    DISABLE_BUTTON_ID = 9
+    ENABLE_BUTTON_ID = 10
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -109,7 +123,8 @@ class TestApp(App):
             self.LABEL_CLICK_ID : "Please click the button.",
             self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
             self.LABEL_CHANGED_ID : "Text has been changed.",
-            self.LABEL_PATH_ID : "Current path.",
+            self.LABEL_PATH_ID : "Current path:",
+            self.LABEL_CLOCK_ID : "Current time:",
             self.DISABLE_BUTTON_ID : "Disable",
             self.ENABLE_BUTTON_ID : "Enable",
         })
@@ -173,8 +188,15 @@ class TestApp(App):
         path_field.set_events(TextField.DISABLED)
         window.add(path_field, 1, 4)
 
-        hicp.add_time_handler(ClockHandler(4, True))
-        hicp.add_time_handler(ClockHandler(6, False))
+        clock_label = Label()
+        clock_label.set_text_id(self.LABEL_CLOCK_ID)
+        window.add(clock_label, 0, 5)
+
+        clock_text = TextField()
+        clock_text.set_events(TextField.DISABLED)
+        window.add(clock_text, 1, 5)
+
+        hicp.add_time_handler(ClockHandler(clock_text))
 
         window.set_visible(True)
         window.update()

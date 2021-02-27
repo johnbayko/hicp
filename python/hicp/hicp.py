@@ -188,6 +188,15 @@ class TimeHandlerInfo:
 
             self.is_repeating = is_repeating
 
+        elif isinstance(time_info, timedelta):
+            # time is a delta, and can be repeating.
+            self.seconds_delta = time_info
+            self.seconds = self.seconds_delta.total_seconds()
+
+            self.expected_time = datetime.now() + self.seconds_delta
+
+            self.is_repeating = is_repeating
+
         elif isinstance(time_info, datetime):
             # Specific time, time doesn't repeat.
             self.expected_time = time_info
