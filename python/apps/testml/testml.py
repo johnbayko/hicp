@@ -1,6 +1,8 @@
 import os
 
-from hicp import HICP, newLogger, EventType, Message, Panel, Window, Label, Button, TextField
+from datetime import datetime
+
+from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 
 class ButtonHandlerML:
@@ -17,15 +19,17 @@ class ButtonHandlerML:
 
 
 class ButtonLangHandler:
-    def __init__(self, hicp, group, subgroup=None):
+    def __init__(self, hicp, clock_handler, group, subgroup=None):
         self.logger = newLogger(type(self).__name__)
+        self.__hicp = hicp
+        self.__clock_handler = clock_handler
         self.__group = group
         self.__subgroup = subgroup
-        self.__hicp = hicp
 
     def update(self, hicp, event_message, component):
         self.logger.debug("ButtonLangHandler In update handler")
         self.__hicp.set_text_group(self.__group, self.__subgroup)
+        self.__clock_handler.text_group_changed()
 
 
 class TextFieldHandlerML:
@@ -36,9 +40,6 @@ class TextFieldHandlerML:
         self.__hicp = hicp
 
     def update(self, hicp, event_message, text_field):
-        self.logger.debug("TextFieldHandler In update handler")
-        self.logger.debug("content: " + text_field.get_content())  # debug
-        self.logger.debug("attributes: " + text_field.get_attribute_string())  # debug
         self.__label.set_groups_text(self.__next_group_text, self.__hicp)
         self.__label.update()
 
@@ -73,6 +74,46 @@ class AbleButtonHandler:
         button.update()
 
 
+class ClockHandler(TimeHandler):
+    def __init__(self, hicp, time_format_id):
+        self.time_info = TimeHandlerInfo(1, is_repeating=True)
+
+        self.hicp = hicp
+        self.time_format_id = time_format_id
+        self.time_format = self.hicp.get_text(self.time_format_id)
+
+    def get_info(self):
+        return self.time_info
+
+    def set_clock_text(self, clock_text):
+        self.clock_text = clock_text
+
+        if self.time_format is not None:
+            # Display now as initial time, instead of blank for a second.
+            self.update_clock_text(datetime.now())
+
+    def update_clock_text(self, new_time):
+        if self.time_format is not None:
+            self.clock_text.set_content(
+                new_time.strftime(self.time_format) )
+        else:
+            # default to ISO
+            self.clock_text.set_content(
+                new_time.isoformat(sep=' ', timespec='seconds') )
+
+        self.clock_text.update()
+
+    def text_group_changed(self):
+        self.time_format = self.hicp.get_text(self.time_format_id)
+
+        if self.clock_text is not None:
+            self.update_clock_text(datetime.now())
+
+    def process(self, event):
+        # Update clock_text from event time.
+        self.update_clock_text(event.event_time)
+
+
 # Test multilingual features.
 class TestAppML(App):
     # Using http://www.lingoes.net/en/translator/langcode.htm
@@ -80,6 +121,7 @@ class TestAppML(App):
     LANG_FR = "fr"
     LANG__CA = "ca"
     LANG__GB = "gb"
+    LANG__US = "us"
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -130,6 +172,13 @@ class TestAppML(App):
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
         hicp.set_text_group(self.LANG_EN)
 
+        time_format_id = hicp.add_groups_text_get_id( [
+                ("%m/%d/%Y %I:%M:%S %p", self.LANG_EN),
+                ("%d/%m/%Y %I:%M:%S %p", self.LANG_EN, self.LANG__GB),
+                ("%d/%m/%Y %H:%M:%S", self.LANG_FR, self.LANG__CA)
+            ] )
+        clock_handler = ClockHandler(hicp, time_format_id)
+
         self.ENABLE_ID = hicp.add_groups_text_get_id( [
                 ("Enable", self.LANG_EN),
                 ("Activer", self.LANG_FR, self.LANG__CA)
@@ -165,7 +214,8 @@ class TestAppML(App):
             ], hicp)
         button_en.set_handler(
             EventType.CLICK,
-            ButtonLangHandler(hicp, self.LANG_EN)
+            ButtonLangHandler(hicp, clock_handler, self.LANG_EN)
+#            ButtonLangHandler(hicp, self.LANG_EN)
         )
         amazing_panel.add(button_en, 0, 1)
 
@@ -176,7 +226,7 @@ class TestAppML(App):
             ], hicp)
         button_en_gb.set_handler(
             EventType.CLICK,
-            ButtonLangHandler(hicp, self.LANG_EN, self.LANG__GB)
+            ButtonLangHandler(hicp, clock_handler, self.LANG_EN, self.LANG__GB)
         )
         amazing_panel.add(button_en_gb, 0, 2)
 
@@ -187,7 +237,7 @@ class TestAppML(App):
             ], hicp)
         button_fr_ca.set_handler(
             EventType.CLICK,
-            ButtonLangHandler(hicp, self.LANG_FR, self.LANG__CA)
+            ButtonLangHandler(hicp, clock_handler, self.LANG_FR, self.LANG__CA)
         )
         amazing_panel.add(button_fr_ca, 0, 3)
 
@@ -254,6 +304,20 @@ class TestAppML(App):
         path_field.set_content(os.getcwd())
         path_field.set_events(TextField.DISABLED)
         window.add(path_field, 1, 4)
+
+        clock_label = Label()
+        clock_label.set_groups_text( [
+                ( "Current Time", self.LANG_EN),
+                ( "Heure actuel", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        window.add(clock_label, 0, 5)
+
+        clock_text = TextField()
+        clock_text.set_events(TextField.DISABLED)
+        window.add(clock_text, 1, 5)
+
+        clock_handler.set_clock_text(clock_text)
+        hicp.add_time_handler(clock_handler)
 
         window.set_visible(True)
         window.update()
