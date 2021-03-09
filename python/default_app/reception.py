@@ -50,16 +50,20 @@ class Reception(App):
         app_panel = Panel()
         window.add(app_panel, 0, 1)
 
-        all_app_info = hicp.get_all_app_info()
-
         (group, subgroup) = hicp.get_text_group()
+
+        # Sort them first
+        unsorted_app_info = []
+        for app_info in hicp.get_all_app_info().values():
+            app_name = app_info.display_name.get_text(group, subgroup)
+            app_name_id = hicp.add_text_get_id(app_name)
+            unsorted_app_info.append((app_name_id, app_info))
+        sorted_app_info = hicp.sort(unsorted_app_info)
+
         app_pos_y = 0
-        for app_info in all_app_info.values():
+        for (app_name_id, app_info) in sorted_app_info:
             # Skip adding button for this app.
             if app_info.app_name != self.get_app_name():
-                app_name = app_info.display_name.get_text(group, subgroup)
-                app_name_id = hicp.add_text_get_id(app_name)
-
                 app_button = Button()
                 app_button.set_text_id(app_name_id)
                 app_button.set_handler(

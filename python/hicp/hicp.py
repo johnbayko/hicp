@@ -747,6 +747,10 @@ class TextSelector:
 
         return match_text
 
+def text_id_sorter(e):
+    (text, text_id, o) = e
+    return text
+
 class TextManager:
     def __init__(self, start_group, start_subgroup):
         self.logger = newLogger(type(self).__name__)
@@ -840,6 +844,26 @@ class TextManager:
         if selector is not None:
             return selector.get_text(self.group, self.subgroup)
         return None
+
+    def sort(self, unsorted_list):
+        """Sort the (text_id, object) list based on the string values
+        corresponding to the text ids, for the current group and subgroup,
+        return as a new list."""
+        # Get list with strings for these ids.
+        sorting_list = []
+        for (text_id, o) in unsorted_list:
+            text = self.get_text(text_id)
+            if text is not None:
+                sorting_list.append((text, text_id, o))
+        # Sort
+        sorting_list.sort(key=text_id_sorter)
+
+        # Convert back to ID list for return.
+        return_list = []
+        for (text, text_id, o) in sorting_list:
+            return_list.append((text_id, o))
+
+        return return_list
 
     def keys(self):
         return self.id_to_selector.keys()
@@ -1038,6 +1062,12 @@ class HICP:
             raise UnboundLocalError("text_id required, not defined")
 
         return self.text_manager.get_text(text_id)
+
+    def sort(self, unsorted_list):
+        if unsorted_list is None:
+            raise UnboundLocalError("unsorted_list required, not defined")
+
+        return self.text_manager.sort(unsorted_list)
 
     def set_disconnect_handler(self, handler):
         if handler.process is None:
