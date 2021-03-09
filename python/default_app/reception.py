@@ -1,19 +1,7 @@
-from hicp import HICP, newLogger, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, Message, Panel, Window, Label, Button, TextField
 from hicp import App, AppInfo
 from apps.test.test import TestApp
 from apps.testml.testml import TestAppML
-
-class ButtonAppHandler:
-    def __init__(self, reception_window, app, hicp):
-        self.logger = newLogger(type(self).__name__)
-        self.__reception_window = reception_window
-        self.__app = app
-        self.__hicp = hicp
-
-    def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonAppHandler In update handler")
-        self.__hicp.remove(self.__reception_window)
-        self.__app.connected(self.__hicp)
 
 class ButtonSwitchAppHandler:
     def __init__(self, app_name):
@@ -24,21 +12,10 @@ class ButtonSwitchAppHandler:
         hicp.switch_app(self.__app_name)
 
 class Reception(App):
-    APP_NAME_SELF = "self"
-    APP_NAME_TEST = "test"
-    APP_NAME_TEST_ML = "testml"
 
     def __init__(self):
 
         self.__logger = newLogger(type(self).__name__)
-
-        # Make app list.
-        self.app_list = {
-            self.APP_NAME_SELF: self,
-            self.APP_NAME_TEST: TestApp(),
-            self.APP_NAME_TEST_ML: TestAppML()
-        }
-        self.default_app = self.APP_NAME_SELF
 
     @classmethod
     def get_app_name(cls):
@@ -69,26 +46,9 @@ class Reception(App):
         select_app_label.set_text_id(SELECT_APP_ID)
         window.add(select_app_label, 0, 0)
 
-        select_panel = Panel()
-        window.add(select_panel, 0, 1)
-
-        button_test = Button()
-        button_test.set_text_id(TEST_APP_ID)
-        button_test.set_handle_click(
-            ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST], hicp)
-        )
-        select_panel.add(button_test, 0, 0)
-
-        button_test_ml = Button()
-        button_test_ml.set_text_id(TEST_APP_ML_ID)
-        button_test_ml.set_handle_click(
-            ButtonAppHandler(window, self.app_list[self.APP_NAME_TEST_ML], hicp)
-        )
-        select_panel.add(button_test_ml, 0, 1)
-
         # Show found apps
         app_panel = Panel()
-        window.add(app_panel, 1, 1)
+        window.add(app_panel, 0, 1)
 
         all_app_info = hicp.get_all_app_info()
 
@@ -102,7 +62,8 @@ class Reception(App):
 
                 app_button = Button()
                 app_button.set_text_id(app_name_id)
-                app_button.set_handle_click(
+                app_button.set_handler(
+                    EventType.CLICK,
                     ButtonSwitchAppHandler(app_info.app_name)
                 )
                 app_panel.add(app_button, 0, app_pos_y)
