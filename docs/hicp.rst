@@ -593,10 +593,6 @@ category: <keyword>
 component: <keyword>
   Identifies the type of GUI component being added. The types are:
 
-  "panel"
-    A component which contains and lays out other components based on their
-    "size" and "position" attributes.
-
   "window"
     A window. Windows act like a panel component, but typically
     are moveable, have a title bar, and can contain a menu bar. Some
@@ -606,6 +602,10 @@ component: <keyword>
     either hide or remove the window. The user agent can perform
     whatever actions it wants for any other title bar controls (e.g.
     minimise, raise, lower, etc.).
+
+  "panel"
+    A component which contains and lays out other components based on their
+    "size" and "position" attributes.
 
   "button"
     A button control. It generates a "click" event when activated (mouse click
@@ -631,9 +631,39 @@ component: <keyword>
     The user agent can also decide whether labels can be copied to a
     system clipboard.
 
+  "selection"
+    A list of items that can be selected by the user, and presented in
+    different ways.
+
+    A list of items can have several attributes that affect how they're
+    displayed and selected:
+
+    - Mode can be:
+
+      - Single
+      - Multiple
+
+      See "mode" header for "selection" component below.
+
+    - Presentation can be:
+
+      - Scroll
+      - Toggle
+      - Dropdown
+
+      See "presentation" header for "selection" component below.
+
+    - Scroll height can modify how a "Scroll" presentation is displayed, or the
+      number of items displayed in a dropdown list when selecting one.
+
+    When an item is selected or unselected, the current list of items is sent
+    as a changed event so the server does not have to keep track of what's been
+    added or removed, in the same way a text change imply sends the current
+    text.
+
   "textpanel"
     A multi-line text area which may be editable. If editable, will generate a
-    "finished" event when editing is finished, which is usually when "return"
+    "changed" event when editing is finished, which is usually when "return"
     or "enter" is typed, or editing focus changes to some other component.
 
     Text content and text attributes (both character and paragraph
@@ -643,7 +673,7 @@ component: <keyword>
 
   "textfield"
     A single line text field (which does not support paragraph structures in
-    data) which may be editable. If editable, will generate a "finished" event
+    data) which may be editable. If editable, will generate a "changed" event
     when editing is finished, which is usually when "return" or "enter" is
     typed, or editing focus changes to some other component.
 
@@ -977,7 +1007,108 @@ events: [ "enabled" | "disabled" ]
     "disabled":
       The user agent will not generate events from user actions.
 
-textwidth: <string>
+  "selection"
+    Indicates whether items can be selected or unselected.
+
+    "enabled":
+      The user agent will allow the user to select or unselect an item, and
+      will generate events for each.
+
+    "disabled":
+      The user agent will not allow the user to select or unselect an item.
+
+    "unselect":
+      The user agent will only allow the user to unselect an item, and will
+      generate an event when that is done.
+
+items: <item list>
+  If specified, this is used by these components:
+
+  "selection"
+    A list of items. Items consist of an item ID and a text ID for display.
+
+    List items are separated by <end-of-line> sequences - the attributes header
+    itself is terminated by an <end-of-line> sequence. This makes the string a
+    data block which would be encoded with a boundary string, and would look
+    like this::
+
+      items:: boundary=
+      --
+      1: text=12
+      2: text=14
+      3: text=20, events=disabled
+      --
+
+    Items are specified in this form::
+
+      <integer> ": " <id type> "=" <value> [ "," <id type> "=" <value> ]*
+
+    The first integer is the item id, which is included in the event message.
+
+    The ID type determines what is shown to the user, the items should be
+    displayed in the order of the item ID.
+
+    Defined ID types are:
+
+    "text"
+      The text ID to display, where <value> must be an <integer>.
+
+    "events"
+      Indicates whether this item will generate events, where <value> must be
+      one of:
+
+      "enabled"
+        This item can be selected or unselected. This is the default.
+
+      "disabled"
+        This item cannot be selected or unselected. In single selection mode, a
+        selected item will stil be unselected when another item is selected.
+
+mode: <string>
+  If specified, this is used by these components:
+
+  "selection"
+    Indicates the selection mode of the list. The defined modes are:
+
+    "single":
+      Selecting an item in a single selection list unselects any other selected
+      item.
+
+    "multiple":
+      Any number of items can be selected in the list.
+
+presentation: <string>
+  If specified, this is used by these components:
+
+  "selection"
+    Indicates how the list of items should be presented for user selection. The
+    defined presentation methods are:
+
+    "scroll":
+      All items are displayed in a list in which they can be selected or
+      unselected by clicking on them. The items can be scrolled if there are
+      too many for the list height ("height" header). This is the default for
+      multiple selection.
+
+    "toggle":
+      Items are displayed as individual items on a panel which the user agent
+      determins based on the GUI style and other attributes, such as single /
+      multi selection or scroll height settings, That could be check boxes,
+      switch tools, or radio buttons (normally vertically, not scrollable).
+
+    "dropdown":
+      For single selection lists only, a dropdown tool presents the available
+      items for the user to select, with only the selected item visible when
+      not being changed. This is the default for single selection.
+
+selected: <integer> "," <integer>
+  If specified, this is used by these components:
+
+  "selection"
+    A list of items IDs from the "items" header. Any item not in the list is
+    unselected. Any ID not in the "items" header list must be ignored.
+
+width: <string>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
@@ -988,7 +1119,7 @@ textwidth: <string>
 
     This value can be ignored.
 
-textheight: <integer>
+height: <integer>
   If specified, this is used by these components:
 
   "textpanel":
@@ -997,6 +1128,14 @@ textheight: <integer>
     attributes. The default height is "1".
 
     This value can be ignored.
+
+  "selection":
+    Modifies how a "scroll" presentation is displayed, or the number of items
+    displayed in a dropdown list when selecting one.
+
+    This is a suggestion, and can be adjusted by the user agent if it's large
+    (e.g. past end of display) or small (e.g. minimum of 3).
+    
 
 "gui" "modify" optional headers
 '''''''''''''''''''''''''''''''
@@ -1013,6 +1152,9 @@ parent: [ <integer> | "none" ]
   root as a parent.
 
 delta-list: <content/attribute changes>
+  [I think I'll remove this, it was intended for "server" type editing which I
+  already removed]
+
   If specified, this is used by these components:
 
   "textfield", "textpanel":
@@ -1086,6 +1228,9 @@ delta-list: <content/attribute changes>
       A: Maybe, but it would require two parameters and be inconsistent.
 
 delta: <single content/attribute change>
+  [I think I'll remove this, it was intended for "server" type editing which I
+  already removed]
+
   If specified, this is used by these components:
 
   "textfield", "textpanel":
@@ -1097,6 +1242,9 @@ delta: <single content/attribute change>
 
 "gui" optional headers
 ''''''''''''''''''''''
+
+[What's the difference between this and "gui" "add" or "modify" optional
+headers? I think these should be moved there]
 
 text: <integer>
   The ID number of the text to use for this control. If the text item
@@ -1470,4 +1618,12 @@ attributes: <attribute specifiers>
   "textpanel", "textfield":
     Format is the same as the "attributes" header of an "add" or "modify"
     command.
+
+selected: <integer> "," <integer>
+  Generated by these components:
+
+  "selection"
+    Format is the same as the "selected" header of an "add" or "modify"
+    command. An event is sent each time one or more items are selected or
+    unselected. Any item not in the list is unselected.
 
