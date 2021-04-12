@@ -525,12 +525,8 @@ class EventThread(threading.Thread):
         message = Message()
         message.set_type(Message.COMMAND, Message.AUTHENTICATE)
 
-        method_field = ""
-        method_sep = ""
-        for method in self.authenticator.get_methods():
-            method_field = method_field + method_sep + method
-            method_sep = ", "
-        message.add_header(Message.METHOD, method_field)
+        message.add_header(
+            Message.METHOD, ', '.join(self.authenticator.get_methods()) )
 
         self.write_thread.write(message)
 

@@ -14,6 +14,7 @@ keep track of which items have been changed so they can be sent in
     BUTTON = "button"
     LABEL = "label"
     PANEL = "panel"
+    SELECTION = "selection"
     TEXTPANEL = "textpanel"
     TEXTFIELD = "textfield"
     WINDOW = "window"
@@ -44,7 +45,6 @@ keep track of which items have been changed so they can be sent in
         self.changed_header_list[header] = field
 
     def fill_headers_add(self, message):
-        self.logger.debug("Component fill add headers: " + Message.GUI + " component_id " + str(self.component_id) + " component " + self.component)  # debug
         message.add_header(Message.CATEGORY, Message.GUI)
         message.add_header(Message.ID, str(self.component_id))
         message.add_header(self.COMPONENT, self.component)
@@ -301,7 +301,6 @@ class TextField(ContainedComponent):
     # EDITING attributes
     ENABLED = Message.ENABLED
     DISABLED = Message.DISABLED
-    SERVER = Message.SERVER
 
     CONTENT_INVALID_RE = re.compile("[\\0-\\037]")
 
@@ -327,8 +326,6 @@ class TextField(ContainedComponent):
         # it like any other header string than to detect it when headers
         # are written out and generate it then.
         self.__attributes = ""
-
-#        self.__editing = Message.ENABLED
 
     def set_content(self, content):
         # Content must be a string.
@@ -621,39 +618,28 @@ class TextField(ContainedComponent):
         self.__attribute_map[attribute] = new_attribute_list
 
         # Generate new attributes string for this attribute.
-        attribute_string = attribute + ": "
         # Separator string.
-        sep_str = ""
+        attribute_val_list = []
         for attribute_range in new_attribute_list:
             if is_multivalued:
                 if "" == attribute_range.value:
                     # No value, omit "="
-                    attribute_string = \
-                        attribute_string + sep_str + str(attribute_range.length)
+                    attribute_val_list.append(str(attribute_range.length))
                 else:
-                    attribute_string = \
-                        attribute_string \
-                        + sep_str \
-                        + attribute_range.value \
-                        + "=" \
-                        + str(attribute_range.length)
+                    attribute_val_list.append(
+                        attribute_range.value +
+                            "=" +
+                            str(attribute_range.length) )
             else:
-                attribute_string = \
-                    attribute_string + sep_str + str(attribute_range.length)
+                attribute_val_list.append(str(attribute_range.length))
 
-            sep_str = ", "
-
+        attribute_string = attribute + ': ' + ', '.join(attribute_val_list)
         self.__attribute_string_map[attribute] = attribute_string
 
         # Generate new __attributes string from all indiviaual attribute
         # strings.
-        new_attributes = ""
-        sep_str = ""
-        for attribute_string in list(self.__attribute_string_map.values()):
-            new_attributes = new_attributes + sep_str + attribute_string
-            sep_str = "\r\n"
-
-        self.__attributes = new_attributes
+        self.__attributes = \
+            '\r\n'.join( list(self.__attribute_string_map.values()) )
         self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
 
     def set_attribute_string(self, attribute_list_string):
@@ -748,6 +734,122 @@ class TextField(ContainedComponent):
         return self.__handle_changed
 
 
+class SelectionItem():
+    def __init__(self, item_id, text_id, events=None):
+        self.item_id = item_id
+        self.text_id = text_id
+        self.events = events
+
+class Selection(ContainedComponent):
+    MODE = Message.MODE
+    SINGLE = Message.SINGLE
+    MULTIPLE = Message.MULTIPLE
+
+    PRESENTATION = Message.PRESENTATION
+    SCROLL = Message.SCROLL
+    TOGGLE = Message.TOGGLE
+    DROPDOWN = Message.DROPDOWN
+
+    def __init__(self):
+        ContainedComponent.__init__(self)
+        self.component = Component.SELECTION
+
+        self.__item_list = {}
+        self.__items = None
+
+        self.__selected_list = []
+        self.__selected = None
+
+        self.__mode = None
+        self.__presentation = None
+        self.__height = None
+
+    def add_items(self, item_list):
+        self.__item_list.update(item_list)
+        self.items_changed()
+
+    def del_items(self, item_list):
+        for item_key in item_list:
+            try:
+                del self.__item_list[item_key]
+            except KeyError:
+                # Not there, don't want it there, it's what we want.
+                pass
+        self.items_changed()
+
+    def items_changed(self):
+        item_str_list = []
+        for item_id, selection_item in self.__item_list.items():
+            if selection_item.events is not None:
+                item_str_list.append(
+                    '%d: text=%d, events=%s' %
+                        (selection_item.item_id,
+                         selection_item.text_id,
+                         selection_item.events) )
+            else:
+                item_str_list.append(
+                    '%d: text=%d' %
+                        (selection_item.item_id,
+                         selection_item.text_id) )
+
+        self.__items = '\r\n'.join(item_str_list)
+        self.set_changed_header(Message.ITEMS, self.__items)
+
+    def set_selection_mode(self, mode):
+        self.__mode = mode
+        self.set_changed_header(Message.MODE, self.__mode)
+
+    def set_presentation(self, presentation):
+        self.__presentation = presentation
+        self.set_changed_header(Message.PRESENTATION, self.__presentation)
+
+    def set_selected(self, selected_list):
+        # Verify that selected items are actual items
+        valid_list = []
+        valid_str_list = []
+        for selected_item in selected_list:
+            if selected_item in self.__item_list:
+                valid_list.append(selected_item)
+                valid_str_list.append(str(selected_item))
+
+        self.__selected_list = valid_list
+        self.__selected = ",".join(valid_str_list)
+
+    def set_height(self, height):
+        self.__height = str(height)
+
+    def fill_headers_add(self, message):
+        ContainedComponent.fill_headers_add(self, message)
+        # "items" from item list
+        if self.__items is not None:
+            message.add_header(Message.ITEMS, self.__items)
+        if self.__mode is not None:
+            message.add_header(Message.MODE, self.__mode)
+        if self.__presentation is not None:
+            message.add_header(Message.PRESENTATION, self.__presentation)
+        if len(self.__selected_list) > 0:
+            message.add_header(Message.SELECTED, self.__selected)
+        if self.__height is not None:
+            message.add_header(Message.HEIGHT, self.__height)
+
+    def set_handler(self, event_type, handler):
+        if EventType.CHANGED == event_type:
+            self.__handle_changed = handler
+        else:
+            super().set_handler(event_type, handler)
+
+    def get_handler(self, event):
+        handler = super().get_handler(event)
+        if None != handler:
+            return handler
+
+        if EventType.CHANGED == event.event_type:
+            return self.__handle_changed
+        else:
+            # Not an event type this component supports.
+            return None
+
+
 class Container(ContainedComponent):
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -763,7 +865,7 @@ class Container(ContainedComponent):
         if self.added_to_hicp is None:
             return
         self.added_to_hicp.add(component)
-        # If that's a Container, add it's components too (it wouldn't have
+        # If that's a Container, add its components too (it wouldn't have
         # self.added_to_hicp set, so would have skipped the above step).
         if isinstance(component, Container):
             component.add_component_list_to_hicp()

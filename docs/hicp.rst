@@ -137,7 +137,7 @@ things). The headers differ from RFC822 in the following ways:
 
   The data consists of the string without the end-of-line characters ("Hi, this
   is a bunch of data."), since the end-of-line is part of the termination
-  sequence (CR, LF, '-', '-' boundary, and CR, LF end of line).
+  sequence ( [CR, LF, '-', '-'] boundary, and [CR, LF] end of line).
 
   The data block may be any data and is interpreted by context, such
   as image or audio format.
@@ -1101,7 +1101,7 @@ presentation: <string>
       items for the user to select, with only the selected item visible when
       not being changed. This is the default for single selection.
 
-selected: <integer> "," <integer>
+selected: <integer> [ "," <integer> ]*
   If specified, this is used by these components:
 
   "selection"

@@ -22,7 +22,7 @@ class Message:
     CONNECT = "connect"
     DISCONNECT = "disconnect"
 
-    # Attributes
+    # Headers
     # TODO: Maybe make individual event classes?
     ATTRIBUTES = "attributes"
     APPLICATION = "application"
@@ -30,20 +30,26 @@ class Message:
     CONTENT = "content"
     EVENTS = "events"
     GUI = "gui"
+    HEIGHT = "height"
     ID = "id"
+    ITEMS = "items"
     METHOD = "method"
+    MODE = "mode"
+    PRESENTATION = "presentation"
     PARENT = "parent"
     PASSWORD = "password"
     PLAIN = "plain"
     POSITION = "position"
+    SELECTED = "selected"
     SIZE = "size"
     TEXT = "text"
     TEXT_DIRECTION = "text-direction"
     USER = "user"
     VISIBLE = "visible"
+    WIDTH = "width"
 
 # These should be user visible. Move to Component or TextField (or parent,
-# when TextArea is added).
+# when TextPanel is added).
     # ATTRIBUTES attributes
     # CONTENT - already defined.
     BOLD = "bold"
@@ -68,7 +74,16 @@ class Message:
     # EVENTS attributes
     ENABLED = "enabled"
     DISABLED = "disabled"
-    SERVER = "server"
+    UNSELECT = "unselect"
+
+    # MODE attributes
+    SINGLE = "single"
+    MULTIPLE = "multiple"
+
+    # PRESENTATION attributes
+    SCROLL = "scroll"
+    TOGGLE = "toggle"
+    DROPDOWN = "dropdown"
 
     # TEXT_DIRECTION atributes
     LEFT = "left"
@@ -305,14 +320,8 @@ class Message:
 
                 # Escape each occurrence by splitting string with "\r\n--",
                 # write out each with ESC prior to "\r\n--".
-                header_value_list = header_value.split("\r\n--")
-
-                # If there is no match, header_value_list will have one entry
-                # with original string.
-                sep = ""  # Escaped separator between previous and current
-                for header_value_part in header_value_list:
-                    out_stream.write(sep + header_value_part)
-                    sep = "\033\r\n--"
+                esc_header_value = header_value.replace('\r\n--', '\033\r\n--')
+                out_stream.write(esc_header_value)
 
                 # Write out terminator sequence and extra "\r\n" as
                 # block terminator.
