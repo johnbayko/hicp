@@ -2,7 +2,7 @@ import os
 
 from datetime import datetime
 
-from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField, Selection, SelectionItem
 from hicp import App, AppInfo
 
 class DisconnectHandler:
@@ -95,6 +95,7 @@ class TestApp(App):
     LABEL_CLOCK_ID = 8
     DISABLE_BUTTON_ID = 9
     ENABLE_BUTTON_ID = 10
+    SELECTION_LABEL_ID = 11
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -127,6 +128,7 @@ class TestApp(App):
             self.LABEL_CLOCK_ID : "Current time:",
             self.DISABLE_BUTTON_ID : "Disable",
             self.ENABLE_BUTTON_ID : "Enable",
+            self.SELECTION_LABEL_ID : "Selection",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -178,6 +180,23 @@ class TestApp(App):
             )
         )
         window.add(able_button, 1, 3)
+
+        list_panel = Panel()
+        window.add(list_panel, 2, 1)
+
+        selection_label = Label()
+        selection_label.set_text_id(self.SELECTION_LABEL_ID)
+        list_panel.add(selection_label, 0, 0)
+
+        # Add selection list to list_panel
+        selection = Selection()
+        item_list = {}
+        for item_id in range(1, 3):
+            item_text_id = hicp.add_text_get_id('Selection ' + str(item_id))
+            item = SelectionItem(item_id, item_text_id)
+            item_list[item_id] = item
+        selection.add_items(item_list)
+        list_panel.add(selection, 0, 1)
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)
