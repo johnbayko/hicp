@@ -359,17 +359,14 @@ class TextField(ContainedComponent):
         # Attribute and value (if specified) must be strings.
         attribute = str(attribute)
         if value is not None:
-            self.logger.debug("value is not None")  # debug
             is_multivalued = True
             value = str(value)
         else:
-            self.logger.debug("value is None")  # debug
             is_multivalued = False
 
         # New attribute range can't start past end of content.
         if len(self.__content) < new_attribute_range_start:
             # Nothing to apply attribute to.
-            self.logger.debug("Nothing to apply attribute to.")  # debug
             return
 
         # For consistancy, end index in all cases is the first index not
@@ -391,7 +388,6 @@ class TextField(ContainedComponent):
         attribute_list = self.__attribute_map.get(attribute)
         if attribute_list is None:
             # This is a new attribute for this content.
-            self.logger.debug("This is a new attribute for this content.")  # debug
             if is_multivalued:
                 # Initial value of multivalued attributes is user agent
                 # default, indicated by "".
@@ -510,7 +506,6 @@ class TextField(ContainedComponent):
                 range_position = 12
             else:
                 range_position = 13
-            self.logger.debug("range_position " + str(range_position))  # debug
 
             if old_attribute_range.value != value:
                 # Old attribute differs from new attribute.
@@ -536,12 +531,10 @@ class TextField(ContainedComponent):
 
                 if 1 == range_position or 2 == range_position or 13 == range_position:
                     # Copy unchanged.
-                    self.logger.debug("Copy unchanged.")  # debug
                     new_attribute_list.append(old_attribute_range)
 
                 if 5 == range_position:
                     # Add range truncated to start of new range.
-                    self.logger.debug("Add range truncated to start of new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_start - old_attribute_range_start,
                             old_attribute_range.is_multivalued,
@@ -565,7 +558,6 @@ class TextField(ContainedComponent):
 
                 if 7 == range_position or 10 == range_position:
                     # Add new range.
-                    self.logger.debug("Add new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_length, is_multivalued, value
                         )
@@ -573,7 +565,6 @@ class TextField(ContainedComponent):
 
                 if 12 == range_position:
                     # Add new range.
-                    self.logger.debug("Add new range.")  # debug
                     add_attribute_range = TextFieldAttribute(
                             new_attribute_range_length, is_multivalued, value
                         )
@@ -591,18 +582,15 @@ class TextField(ContainedComponent):
                     or 13 == range_position:
 
                     # Copy unchanged.
-                    self.logger.debug("Copy unchanged.")  # debug
                     new_attribute_list.append(old_attribute_range)
 
                 if 2 == range_position or 3 == range_position:
                     # Extend new to start of old, discard old (do nothing).
-                    self.logger.debug("Extend new to start of old, discard old (do nothing).")  # debug
                     new_attribute_range_start = old_attribute_range_start
 
                 if 11 == range_position or 12 == range_position:
                     #   New is now
                     # part of this range, doesn't need to be added.
-                    self.logger.debug("Extend old to start of new and add.")  # debug
                     add_attribute_range_length = \
                         new_attribute_range_start - old_attribute_range_start
                     add_attribute_range = TextFieldAttribute(

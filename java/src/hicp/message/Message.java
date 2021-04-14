@@ -43,19 +43,9 @@ public abstract class Message {
 
             // Escape each occurrence by splitting string with "\r\n--",
             // write out each with ESC prior to "\r\n--".
-            final String[] value_array = value.split("\r\n--", -1);
+            final String esc_value = value.replace("\r\n--", "\033\r\n--");
+            out.write(esc_value);
 
-            // Don't include fake boundary in output the first time.
-            String fakeBoundary = "";
-            for (int value_idx = 0;
-                value_idx < value_array.length;
-                value_idx++
-            ) {
-                out.write(fakeBoundary);
-                fakeBoundary = "\033\r\n--";
-
-                out.write(value_array[value_idx]);
-            }
             // Write out terminator sequence and extra "\r\n" as block
             // terminator.
             out.write("\r\n--\r\n");

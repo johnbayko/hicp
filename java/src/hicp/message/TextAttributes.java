@@ -198,6 +198,9 @@ public class TextAttributes {
             if (!hasValues && !hasRanges()) {
                 // Binary attribute, but none specified. Must have at least
                 // "off" attribute for entire string.
+                // TODO: hasValues will be false even for non-binary, if
+                // hasRanges() is false (none specified, can't tell if binary
+                // or not). Need to encode this based on name at some point.
                 attributeRangeList.add(
                     new AttributeRange("", contentStr.length())
                 );
@@ -223,17 +226,17 @@ public class TextAttributes {
         }
 
         public boolean hasRanges() {
-            return (0 > attributeRangeList.size());
+            return (0 < attributeRangeList.size());
         }
 
         public boolean shouldIncludeString() {
             if (hasValues) {
                 // Include if has any attributes.
-                return (0 > attributeRangeList.size());
+                return (0 < attributeRangeList.size());
             } else {
                 // Binary attributes start with "off" attribute, if that's the
                 // only one then don't include it.
-                return (1 > attributeRangeList.size());
+                return (1 < attributeRangeList.size());
             }
         }
 

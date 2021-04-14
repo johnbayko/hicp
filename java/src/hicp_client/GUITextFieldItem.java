@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.JTextField;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.SwingUtilities;
@@ -22,6 +24,9 @@ import hicp_client.text.AttributeTrackDocument;
 public class GUITextFieldItem
     extends GUIItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIItem.class.getName() );
+
     protected final MessageExchange _messageExchange;
 
     protected JTextField _component;
