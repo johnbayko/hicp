@@ -191,7 +191,7 @@ public class Controller
                                 : null;
 
                         final GUIItem guiItem =
-                            GUIItem.newGUIItem(
+                            GUIItemSource.newGUIItem(
                                 addCmd, textItem, _messageExchange
                                 );
 

@@ -1,22 +1,11 @@
 package hicp_client;
 
 import java.awt.Component;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
-import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
-import hicp.message.event.Event;
 
 public abstract class GUIItem
     implements TextListener
@@ -37,57 +26,10 @@ public abstract class GUIItem
     /** What this is contained by. */
     protected GUIContainerItem _parent = null;
 
-    public static GUIItem newGUIItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
-    ) {
-        try {
-            // Make sure it's a real integer - not used.
-            final int id = Integer.parseInt(addCmd.id);
-
-            if (Add.BUTTON.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUIButtonItem(addCmd, textItem, messageExchange);
-
-                return guiItem;
-            } else if (Add.LABEL.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUILabelItem(addCmd, textItem, messageExchange);
-
-                return guiItem;
-            } else if (Add.PANEL.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUIPanelItem(addCmd, textItem, messageExchange);
-
-                return guiItem;
-            } else if (Add.TEXTFIELD.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUITextFieldItem(addCmd, textItem, messageExchange);
-
-                return guiItem;
-            } else if (Add.WINDOW.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUIWindowItem(addCmd, textItem, messageExchange);
-
-                return guiItem;
-            } else {
-                // Unrecognized category.
-                LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
-                return null;
-            }
-        } catch (NumberFormatException ex) {
-            LOGGER.log(Level.FINE, "ID field not an integer.");
-
-            // Not an integer ID, ignore message.
-            return null;
-        }
-    }
-
     /**
         Non-GUI thread.
      */
-    public GUIItem(Add addCmd/*, Logger logger*/) {
+    public GUIItem(Add addCmd) {
         // Placeholder items used for construction won't have commands.
         if (null != addCmd) {
             idString = addCmd.id;
@@ -170,11 +112,6 @@ public abstract class GUIItem
         }
 
         setText(_textItem.getText());
-    }
-
-// Utility
-    protected void log(String msg) {
-        LOGGER.log(Level.FINE, msg);
     }
 }
 
