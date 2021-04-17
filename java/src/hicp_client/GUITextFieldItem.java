@@ -17,7 +17,6 @@ import hicp.message.TextAttributes;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Changed;
-import hicp.message.event.Event;
 import hicp.message.event.EventEnum;
 import hicp_client.text.AttributeTrackDocument;
 
@@ -239,7 +238,7 @@ public class GUITextFieldItem
 
 // handle attributes.
 // To start, just log the string.
-log("modifyAttributes: " + modifyAttributes);  // debug
+LOGGER.log(Level.FINE, "modifyAttributes: " + modifyAttributes);  // debug
             }
             if (null != _modifyCmd.events) {
                 setEventsInvoked(_modifyCmd.events);

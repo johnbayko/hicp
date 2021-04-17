@@ -1,7 +1,8 @@
 package hicp_client;
 
 import java.awt.Component;
-import java.awt.event.WindowAdapter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -9,16 +10,19 @@ import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 
-public class GUILabelItem
+public class GUISelectionItem
     extends GUIItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIItem.class.getName() );
+
     protected final MessageExchange _messageExchange;
 
-    protected JLabel _component;
+    protected JLabel _component;  // debug
 
-    public GUILabelItem(
+    public GUISelectionItem(
         Add addCmd,
-        TextItem textItem,
+        TextItem textItem,  // Doesn't apply to text fields.
         MessageExchange messageExchange
     ) {
         super(addCmd);
@@ -26,7 +30,7 @@ public class GUILabelItem
         _messageExchange = messageExchange;
 
         SwingUtilities.invokeLater(
-            new RunNew(addCmd, textItem)
+            new RunNew(addCmd)
         );
     }
 
@@ -34,17 +38,15 @@ public class GUILabelItem
         implements Runnable
     {
         protected final Add _addCmd;
-        protected final TextItem _textItem;
 
-        public RunNew(Add addCmd, TextItem textItem)
+        public RunNew(Add addCmd)
         {
             _addCmd = addCmd;
-            _textItem = textItem;
         }
 
         public void run()
         {
-            _component = new JLabel();
+            _component = new JLabel("Selection list");  // debug
 
             // Label string.
             if (null != _textItem) {
@@ -98,7 +100,7 @@ public class GUILabelItem
         Called in GUI thread.
      */
     protected GUIItem setTextInvoked(String text) {
-        _component.setText(text);
+        LOGGER.log(Level.FINE, "setTextInvoked(\"" + text + "\")");  // debug
 
         return this;
     }
@@ -108,9 +110,15 @@ public class GUILabelItem
         _component = null;
     }
 
+    protected GUIItem setEventsInvoked(final String eventsValue) {
+        // TODO all of this.
+
+        return this;
+    }
+
     public GUIItem modify(Modify modifyCmd, TextItem textItem) {
         SwingUtilities.invokeLater(
-            new RunModify(modifyCmd, textItem)
+            new RunModify(modifyCmd)
         );
 
         return this;
@@ -120,21 +128,16 @@ public class GUILabelItem
         implements Runnable
     {
         protected final Modify _modifyCmd;
-        protected final TextItem _textItem;
 
-        public RunModify(Modify modifyCmd, TextItem textItem) {
+        public RunModify(Modify modifyCmd) {
             _modifyCmd = modifyCmd;
-            _textItem = textItem;
         }
 
         public void run() {
             // See what's changed.
-
-            // New text item?
-            if (null != _textItem) {
-                setTextItemInvoked(_textItem);
+            if (null != _modifyCmd.events) {
+                setEventsInvoked(_modifyCmd.events);
             }
-
             // Changed parent ID is handled by Controller.
         }
     }

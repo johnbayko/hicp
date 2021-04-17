@@ -3,24 +3,23 @@ package hicp_client;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Click;
-import hicp.message.event.Event;
 import hicp.message.event.EventEnum;
 
 public class GUIButtonItem
     extends GUIItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIButtonItem.class.getName() );
+
     protected final MessageExchange _messageExchange;
 
     protected JButton _component;
@@ -164,9 +163,6 @@ public class GUIButtonItem
         }
 
         public void run() {
-log("Modifying label, component is "
-    + _component.getClass().getName()
-);  // debug
             // See what's changed.
 
             // New text item?

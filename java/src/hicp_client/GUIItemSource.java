@@ -44,6 +44,11 @@ public class GUIItemSource {
                     new GUIWindowItem(addCmd, textItem, messageExchange);
 
                 return guiItem;
+            } else if (Add.SELECTION.equals(addCmd.component)) {
+                GUIItem guiItem =
+                    new GUISelectionItem(addCmd, textItem, messageExchange);
+
+                return guiItem;
             } else {
                 // Unrecognized category.
                 LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);

@@ -4,26 +4,31 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import javax.swing.JFrame;
+//import java.awt.Insets;
+//import java.awt.event.WindowAdapter;
+//import java.awt.event.WindowEvent;
+//import java.util.Iterator;
+//import java.util.LinkedList;
+//import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+//import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+//import javax.swing.WindowConstants;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
-import hicp.message.event.Event;
+//import hicp.message.event.Event;
 
 public class GUIPanelItem
     extends GUILayoutItem
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIPanelItem.class.getName() );
+
     // Should be used only from GUI thread.
     protected JPanel _component;
 
@@ -116,27 +121,27 @@ public class GUIPanelItem
     }
 
     public void dispose() {
-log("GUIPanelItem.dispose() entered");  // debug
+LOGGER.log(Level.FINE, "GUIPanelItem.dispose() entered");  // debug
         // GUIContainerItem will remove any items added to this.
         super.dispose();
-log("GUIPanelItem.dispose() done super.dispose()");  // debug
+LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done super.dispose()");  // debug
 
         if (null == _component) {
-log("GUIItem has no component");  // debug
+LOGGER.log(Level.FINE, "GUIItem has no component");  // debug
             return;
         }
 
         // Remove this from its parent.
 //        if (null != _parent) {
-//log("GUIPanelItem.dispose() about to _parent.remove()");  // debug
+//LOGGER.log(Level.FINE, "GUIPanelItem.dispose() about to _parent.remove()");  // debug
 //            _parent.remove(this);
 //        }
 
         // Dispose of this object.
-log("GUIPanelItem.dispose() invokeLater(RunDispose)");  // debug
+LOGGER.log(Level.FINE, "GUIPanelItem.dispose() invokeLater(RunDispose)");  // debug
         _component = null;
 
-log("GUIPanelItem.dispose() done remove");  // debug
+LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
     }
 
     public GUIItem add(GUIItem guiItem) {

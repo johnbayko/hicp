@@ -27,6 +27,7 @@ public abstract class AddModify
     public final static String BUTTON = "button";
     public final static String LABEL = "label";
     public final static String PANEL = "panel";
+    public final static String SELECTION = "selection";
     public final static String TEXTPANEL = "textpanel";
     public final static String TEXTFIELD = "textfield";
     public final static String WINDOW = "window";
