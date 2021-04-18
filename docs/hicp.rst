@@ -732,6 +732,43 @@ parent: <integer>
   This field is ignored for windows, all windows implicitly have the GUI
   root as a parent.
 
+mode: <string>
+  If specified, this is used by these components:
+
+  "selection"
+    Indicates the selection mode of the list. The defined modes are:
+
+    "single":
+      Selecting an item in a single selection list unselects any other selected
+      item.
+
+    "multiple":
+      Any number of items can be selected in the list. This is the default.
+
+presentation: <string>
+  If specified, this is used by these components:
+
+  "selection"
+    Indicates how the list of items should be presented for user selection. The
+    defined presentation methods are:
+
+    "scroll":
+      All items are displayed in a list in which they can be selected or
+      unselected by clicking on them. The items can be scrolled if there are
+      too many for the list height ("height" header). This is the default for
+      multiple selection. This is the default for multiple selection.
+
+    "toggle":
+      Items are displayed as individual items on a panel which the user agent
+      determins based on the GUI style and other attributes, such as single /
+      multi selection or scroll height settings, That could be check boxes,
+      switch tools, or radio buttons (normally vertically, not scrollable).
+
+    "dropdown":
+      For single selection lists only, a dropdown tool presents the available
+      items for the user to select, with only the selected item visible when
+      not being changed. This is the default for single selection.
+
 "gui" "add" required or "modify" optional headers
 '''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -1012,7 +1049,7 @@ events: [ "enabled" | "disabled" ]
 
     "enabled":
       The user agent will allow the user to select or unselect an item, and
-      will generate events for each.
+      will generate events for each. This is the default.
 
     "disabled":
       The user agent will not allow the user to select or unselect an item.
@@ -1064,43 +1101,6 @@ items: <item list>
         This item cannot be selected or unselected. In single selection mode, a
         selected item will stil be unselected when another item is selected.
 
-mode: <string>
-  If specified, this is used by these components:
-
-  "selection"
-    Indicates the selection mode of the list. The defined modes are:
-
-    "single":
-      Selecting an item in a single selection list unselects any other selected
-      item.
-
-    "multiple":
-      Any number of items can be selected in the list.
-
-presentation: <string>
-  If specified, this is used by these components:
-
-  "selection"
-    Indicates how the list of items should be presented for user selection. The
-    defined presentation methods are:
-
-    "scroll":
-      All items are displayed in a list in which they can be selected or
-      unselected by clicking on them. The items can be scrolled if there are
-      too many for the list height ("height" header). This is the default for
-      multiple selection.
-
-    "toggle":
-      Items are displayed as individual items on a panel which the user agent
-      determins based on the GUI style and other attributes, such as single /
-      multi selection or scroll height settings, That could be check boxes,
-      switch tools, or radio buttons (normally vertically, not scrollable).
-
-    "dropdown":
-      For single selection lists only, a dropdown tool presents the available
-      items for the user to select, with only the selected item visible when
-      not being changed. This is the default for single selection.
-
 selected: <integer> [ "," <integer> ]*
   If specified, this is used by these components:
 
@@ -1118,6 +1118,11 @@ width: <string>
     string with the widest character (usually "W" or "M").
 
     This value can be ignored.
+
+  "selection":
+    For "toggle" presentation, this is interpreted as an integet to indicate
+    how many columns are desired. Non-positive or non-integer values are
+    ignored.  Default is 1.
 
 height: <integer>
   If specified, this is used by these components:

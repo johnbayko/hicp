@@ -4,24 +4,15 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-//import java.awt.Insets;
-//import java.awt.event.WindowAdapter;
-//import java.awt.event.WindowEvent;
-//import java.util.Iterator;
-//import java.util.LinkedList;
-//import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-//import javax.swing.WindowConstants;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
-//import hicp.message.event.Event;
 
 public class GUIPanelItem
     extends GUILayoutItem

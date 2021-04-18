@@ -1,8 +1,11 @@
 package hicp_client;
 
 import java.awt.Component;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -19,6 +22,55 @@ public class GUISelectionItem
     protected final MessageExchange _messageExchange;
 
     protected JLabel _component;  // debug
+
+    static enum Mode {
+        SINGLE("single"),
+        MULTIPLE("multiple");
+
+        public final String name;
+
+        private static final Map<String, Mode> modeMap =
+            Arrays.stream(Mode.values())
+                .collect(
+                    Collectors.toMap(
+                        mode -> mode.name,
+                        mode -> mode
+                    )
+                );
+
+        Mode(final String forMode) {
+            name = forMode;
+        }
+
+        public static Mode getEnum(final String forMode) {
+            return modeMap.getOrDefault(forMode, MULTIPLE);
+        }
+    }
+
+    static enum Presentation {
+        SCROLL("scroll"),
+        TOGGLE("toggle"),
+        DROPDOWN("dropdown");
+
+        public final String name;
+
+        private static final Map<String, Presentation> presentationMap =
+            Arrays.stream(Presentation.values())
+                .collect(
+                    Collectors.toMap(
+                        presentation -> presentation.name,
+                        presentation -> presentation
+                    )
+                );
+
+        Presentation(final String forPresentation) {
+            name = forPresentation;
+        }
+
+        public static Presentation getEnum(final String forPresentation) {
+            return presentationMap.getOrDefault(forPresentation, SCROLL);
+        }
+    }
 
     public GUISelectionItem(
         Add addCmd,
@@ -46,12 +98,37 @@ public class GUISelectionItem
 
         public void run()
         {
-            _component = new JLabel("Selection list");  // debug
+            final Presentation presentation =
+                Presentation.getEnum(_addCmd.presentation);
+
+            final Mode mode =
+                Mode.getEnum(_addCmd.mode);
+
+            switch (presentation) {
+              case SCROLL:
+                _component = new JLabel("scroll selection list");  // debug
+                break;
+              case TOGGLE:
+                switch (mode) {
+                  case SINGLE:
+                    _component = new JLabel("radio selection list");  // debug
+                    break;
+                  case MULTIPLE:
+                    _component = new JLabel("checkbox selection list");  // debug
+                    break;
+                }
+                break;
+              case DROPDOWN:
+                _component = new JLabel("dropdoen selection list");  // debug
+                break;
+            }
 
             // Label string.
-            if (null != _textItem) {
-                setTextItemInvoked(_textItem);
-            }
+// Each item will have to listen to its text, have to figure out how to
+// generalise that.
+//            if (null != _textItem) {
+//                setTextItemInvoked(_textItem);
+//            }
         }
     }
 
