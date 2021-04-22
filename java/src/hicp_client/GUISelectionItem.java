@@ -7,6 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
@@ -21,8 +23,9 @@ public class GUISelectionItem
 
     protected final MessageExchange _messageExchange;
 
-    protected JLabel _component;  // debug
+    protected Component _component;
 
+    // Do these need to be enums? Or is that overkill?
     static enum Mode {
         SINGLE("single"),
         MULTIPLE("multiple");
@@ -106,7 +109,9 @@ public class GUISelectionItem
 
             switch (presentation) {
               case SCROLL:
-                _component = new JLabel("scroll selection list");  // debug
+                String[] testList = {"scroll", "selection", "list"};  // debug
+                JList<String> newList = new JList<>(testList);  // debug
+                _component = new JScrollPane(newList);
                 break;
               case TOGGLE:
                 switch (mode) {
