@@ -21,7 +21,7 @@ import hicp.message.command.Modify;
 import hicp.message.event.Event;
 
 public abstract class GUIContainerItem
-    extends GUIItem
+    extends GUISingleTextItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( GUIContainerItem.class.getName() );
@@ -56,7 +56,7 @@ public abstract class GUIContainerItem
 
     public GUIItem modify(Modify modifyCmd, TextItem textItem) {
         SwingUtilities.invokeLater(
-            new RunModify(modifyCmd, textItem)
+            new RunModify(modifyCmd)
         );
 
         return this;
@@ -66,11 +66,9 @@ public abstract class GUIContainerItem
         implements Runnable
     {
         protected final Modify _modifyCmd;
-        protected final TextItem _textItem;
 
-        public RunModify(Modify modifyCmd, TextItem textItem) {
+        public RunModify(Modify modifyCmd) {
             _modifyCmd = modifyCmd;
-            _textItem = textItem;
         }
 
         public void run() {
@@ -148,7 +146,6 @@ public abstract class GUIContainerItem
         synchronized (_itemList) {
             final Iterator itemIterator = _itemList.iterator();
             while (itemIterator.hasNext()) {
-//apple.awt.EventQueueExceptionHandler Caught Throwable : java.util.ConcurrentModificationException
                 GUIItem item = (GUIItem)itemIterator.next();
 
                 // Item will tell this object to remove it.

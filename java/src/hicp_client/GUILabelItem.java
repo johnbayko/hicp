@@ -10,7 +10,7 @@ import hicp.message.command.Add;
 import hicp.message.command.Modify;
 
 public class GUILabelItem
-    extends GUIItem
+    extends GUISingleTextItem
 {
     protected final MessageExchange _messageExchange;
 

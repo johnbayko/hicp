@@ -15,7 +15,7 @@ import hicp.message.event.Click;
 import hicp.message.event.EventEnum;
 
 public class GUIButtonItem
-    extends GUIItem
+    extends GUISingleTextItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( GUIButtonItem.class.getName() );
