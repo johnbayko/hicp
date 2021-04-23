@@ -160,7 +160,7 @@ public class Controller
                     break;
                 }
                 if (addCmd.TEXT.equals(addCmd.category)) {
-                    addModifyText(addCmd);
+                    _textLibrary.addModify(addCmd);
                 } else if (addCmd.GUI.equals(addCmd.category)) {
                     // Must have id and component fields.
                     if ((null == addCmd.id) || (null == addCmd.component)) {
@@ -225,7 +225,7 @@ public class Controller
                 }
 
                 if (modifyCmd.TEXT.equals(modifyCmd.category)) {
-                    addModifyText(modifyCmd);
+                    _textLibrary.addModify(modifyCmd);
                 } else if (modifyCmd.GUI.equals(modifyCmd.category)) {
                     final GUIItem guiItem;
                     if (null != modifyCmd.id) {
@@ -328,29 +328,6 @@ public class Controller
             }
             break;
         }
-    }
-
-    protected Controller addModifyText(hicp.message.command.AddModify addModifyCmd) {
-        // Must have id and text fields.
-        if ((null == addModifyCmd.id) || (null == addModifyCmd.text)) {
-            log("Add text missing id or text");
-            return this;
-        }
-        try {
-            TextItem textItem = _textLibrary.get(addModifyCmd.id);
-
-            if (null != textItem) {
-                textItem.setText(addModifyCmd.text);
-            } else {
-                final int id = Integer.parseInt(addModifyCmd.id);
-                textItem = new TextItem(id, addModifyCmd.id, addModifyCmd.text);
-                _textLibrary.put(addModifyCmd.id, textItem);
-            }
-        } catch (NumberFormatException ex) {
-            // Not an integer ID, ignore message.
-            return this;
-        }
-        return this;
     }
 
     public void closed() {

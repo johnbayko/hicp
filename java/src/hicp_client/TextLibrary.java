@@ -29,7 +29,25 @@ public class TextLibrary {
         return this;
     }
     public TextLibrary addModify(hicp.message.command.AddModify addModifyCmd) {
-        // TODO fill in from Controller.
+        // Must have id and text fields.
+        if ((null == addModifyCmd.id) || (null == addModifyCmd.text)) {
+            LOGGER.log(Level.INFO, "Add text missing id or text");
+            return this;
+        }
+        try {
+            TextItem textItem = _textItemMap.get(addModifyCmd.id);
+
+            if (null != textItem) {
+                textItem.setText(addModifyCmd.text);
+            } else {
+                final int id = Integer.parseInt(addModifyCmd.id);
+                textItem = new TextItem(id, addModifyCmd.id, addModifyCmd.text);
+                _textItemMap.put(addModifyCmd.id, textItem);
+            }
+        } catch (NumberFormatException ex) {
+            // Not an integer ID, ignore message.
+            return this;
+        }
         return this;
     }
 }
