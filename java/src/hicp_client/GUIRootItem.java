@@ -63,7 +63,7 @@ public class GUIRootItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-    public GUIItem modify(Modify modifyCmd/*, TextItem textItem*/) {
+    public GUIItem modify(Modify modifyCmd) {
 //        SwingUtilities.invokeLater(
 //            new RunModify(modifyCmd)
 //        );

@@ -108,7 +108,7 @@ public class GUILabelItem
 
     public GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
-            new RunModify(modifyCmd/*, textItem*/)
+            new RunModify(modifyCmd)
         );
 
         return this;
