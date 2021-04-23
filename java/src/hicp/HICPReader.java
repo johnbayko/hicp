@@ -2,18 +2,12 @@ package hicp;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.BufferedReader;
 import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HICPReader
 {

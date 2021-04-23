@@ -1063,7 +1063,7 @@ items: <item list>
 
   "selection"
     A list of items. Items consist of an item ID and a text ID for display. The
-    user agent must be able to display only 255 items.
+    user agent must be able to display 255 items.
 
     List items are separated by <end-of-line> sequences - the attributes header
     itself is terminated by an <end-of-line> sequence. This makes the string a

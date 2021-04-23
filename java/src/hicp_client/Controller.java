@@ -2,19 +2,15 @@ package hicp_client;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import hicp.MessageExchange;
-import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
 import hicp.message.event.Connect;
-import hicp.message.event.Event;
 import hicp.message.event.EventEnum;
 
 // Main controller for handling HICP communication.
@@ -27,11 +23,10 @@ public class Controller
     protected final Session _session;
     protected final Monitor _monitor;
 
-    protected Pattern _commaRegex;
     protected MessageExchange _messageExchange;
     protected boolean _isConnected = false;
 
-    protected Map<String, TextItem> _textMap = new HashMap<>();
+    protected TextLibrary _textLibrary = new TextLibrary();  // debug
     protected Map<String, GUIItem> _guiMap = new HashMap<>();
 
     protected GUIContainerItem _root = null;
@@ -45,7 +40,6 @@ public class Controller
         _session = session;
         _monitor = monitor;
 
-        _commaRegex = Pattern.compile(",");
         _messageExchange =
             new MessageExchange(_session.in, _session.out, this);
 
@@ -187,7 +181,7 @@ public class Controller
                         // Find text item for text ID if specified.
                         final TextItem textItem =
                             (null != addCmd.text)
-                                ? (TextItem)_textMap.get(addCmd.text)
+                                ? _textLibrary.get(addCmd.text)
                                 : null;
 
                         final GUIItem guiItem =
@@ -251,7 +245,7 @@ public class Controller
                     TextItem textItem = null;
                     if (null != modifyCmd.text) {
                         // Set text.
-                        textItem = (TextItem)_textMap.get(modifyCmd.text);
+                        textItem = _textLibrary.get(modifyCmd.text);
                     }
 
                     guiItem.modify(modifyCmd, textItem);
@@ -279,7 +273,7 @@ public class Controller
                         break;
                     }
 
-                    TextItem textItem = (TextItem)_textMap.get(removeCmd.id);
+                    TextItem textItem = _textLibrary.get(removeCmd.id);
 
                     if (null == textItem) {
                         // Nothing found to remove.
@@ -293,7 +287,7 @@ public class Controller
                         }
                     } else {
                         // Can be safely removed.
-                        _textMap.remove(removeCmd.id);
+                        _textLibrary.remove(removeCmd.id);
                     }
                 } else if (removeCmd.GUI.equals(removeCmd.category)) {
                     log("Remove GUI");
@@ -343,14 +337,14 @@ public class Controller
             return this;
         }
         try {
-            TextItem textItem = (TextItem)_textMap.get(addModifyCmd.id);
+            TextItem textItem = _textLibrary.get(addModifyCmd.id);
 
             if (null != textItem) {
                 textItem.setText(addModifyCmd.text);
             } else {
                 final int id = Integer.parseInt(addModifyCmd.id);
                 textItem = new TextItem(id, addModifyCmd.id, addModifyCmd.text);
-                _textMap.put(addModifyCmd.id, textItem);
+                _textLibrary.put(addModifyCmd.id, textItem);
             }
         } catch (NumberFormatException ex) {
             // Not an integer ID, ignore message.
