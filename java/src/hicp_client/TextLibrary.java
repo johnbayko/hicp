@@ -23,7 +23,26 @@ public class TextLibrary {
             : null;
     }
     public TextLibrary remove(final String id) {
-        if (null != id) {
+        if (null == id) {
+            // Nothing to remove.
+            return this;
+        }
+        final TextItem textItem = _textItemMap.get(id);
+
+        if (null == textItem) {
+            // Nothing found to remove.
+            return this;
+        }
+
+        if (textItem.hasTextListeners()) {
+            // Is used by a GUI item, set this to "".
+            if (false == "".equals(textItem.getText())) {
+                textItem.setText("");
+            }
+            // TODO: when listeners are removed, this will remain - add flag to
+            // clean up when no listners?
+        } else {
+            // Can be safely removed.
             _textItemMap.remove(id);
         }
         return this;

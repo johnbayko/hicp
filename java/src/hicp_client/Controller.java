@@ -272,23 +272,7 @@ public class Controller
                         log("Remove text missing id");
                         break;
                     }
-
-                    TextItem textItem = _textLibrary.get(removeCmd.id);
-
-                    if (null == textItem) {
-                        // Nothing found to remove.
-                        break;
-                    }
-
-                    if (textItem.hasTextListeners()) {
-                        // Is used by a GUI item, set this to "".
-                        if (false == "".equals(textItem.getText())) {
-                            textItem.setText("");
-                        }
-                    } else {
-                        // Can be safely removed.
-                        _textLibrary.remove(removeCmd.id);
-                    }
+                    _textLibrary.remove(removeCmd.id);
                 } else if (removeCmd.GUI.equals(removeCmd.category)) {
                     log("Remove GUI");
                     // Must have id field.
