@@ -29,7 +29,7 @@ public class Controller
     protected TextLibrary _textLibrary = new TextLibrary();  // debug
     protected Map<String, GUIItem> _guiMap = new HashMap<>();
 
-    protected GUIContainerItem _root = null;
+    protected GUIRootItem _root = null;
 
     public Controller(Session session, Monitor monitor)
         throws UnsupportedEncodingException
@@ -170,8 +170,7 @@ public class Controller
                         break;
                     }
                     {
-                        final GUIItem oldGUIItem =
-                            (GUIItem)_guiMap.get(addCmd.id);
+                        final GUIItem oldGUIItem = _guiMap.get(addCmd.id);
 
                         if (null != oldGUIItem) {
                             // Remove the old one.
@@ -232,7 +231,7 @@ public class Controller
                     final GUIItem guiItem;
                     if (null != modifyCmd.id) {
                         // Get GUI item based on id field.
-                        guiItem = (GUIItem)_guiMap.get(modifyCmd.id);
+                        guiItem = _guiMap.get(modifyCmd.id);
                     } else {
                         // No id, modify _root.
                         guiItem = _root;
@@ -274,7 +273,7 @@ public class Controller
                     }
 
                     // find the GUI item to remove.
-                    final GUIItem guiItem = (GUIItem)_guiMap.get(removeCmd.id);
+                    final GUIItem guiItem = _guiMap.get(removeCmd.id);
                     if (null == guiItem) {
                         // No item to remove.
                         break;
