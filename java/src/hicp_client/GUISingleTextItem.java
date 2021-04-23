@@ -7,10 +7,15 @@ public abstract class GUISingleTextItem
     implements TextListener
 {
     /** Source of this thing's text. */
+    protected TextLibrary _textLibrary = null;
     protected TextItem _textItem = null;
 
-    public GUISingleTextItem(Add addCmd) {
+    public GUISingleTextItem(
+        final Add addCmd,
+        final TextLibrary textLibrary
+    ) {
         super(addCmd);
+        _textLibrary = textLibrary;
     }
 
     /**

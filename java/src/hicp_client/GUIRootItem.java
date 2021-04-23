@@ -24,8 +24,8 @@ public class GUIRootItem
     /**
         Non-GUI thread.
      */
-    public GUIRootItem(Add addCmd) {
-        super(addCmd);
+    public GUIRootItem(final Add addCmd, final TextLibrary textLibrary) {
+        super(addCmd, textLibrary);
         _firstTextDirection = TextDirection.RIGHT;
         _secondTextDirection = TextDirection.DOWN;
     }

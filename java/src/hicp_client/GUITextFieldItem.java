@@ -35,7 +35,6 @@ public class GUITextFieldItem
 
     public GUITextFieldItem(
         Add addCmd,
-        TextItem textItem,  // Doesn't apply to text fields.
         MessageExchange messageExchange
     ) {
         super(addCmd);

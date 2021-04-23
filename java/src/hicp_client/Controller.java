@@ -43,7 +43,9 @@ public class Controller
         _messageExchange =
             new MessageExchange(_session.in, _session.out, this);
 
-        _root = new GUIRootItem(null);
+        // TODO Is text library needed? Can constructor without parameters be
+        // made?
+        _root = new GUIRootItem(null, _textLibrary);
     }
 
 // Called by owner.
@@ -186,7 +188,7 @@ public class Controller
 
                         final GUIItem guiItem =
                             GUIItemSource.newGUIItem(
-                                addCmd, textItem, _messageExchange
+                                addCmd, _textLibrary, textItem, _messageExchange
                                 );
 
                         if (null != guiItem) {

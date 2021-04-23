@@ -37,11 +37,12 @@ public class GUIWindowItem
     protected JPanel _panel;
 
     public GUIWindowItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
+        final Add addCmd,
+        final TextLibrary textLibrary,
+        final TextItem textItem,
+        final MessageExchange messageExchange
     ) {
-        super(addCmd, textItem, messageExchange);
+        super(addCmd, textLibrary, textItem, messageExchange);
 
         SwingUtilities.invokeLater(
             new RunNew(addCmd, textItem)

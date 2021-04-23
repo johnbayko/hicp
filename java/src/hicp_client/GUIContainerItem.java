@@ -35,8 +35,8 @@ public abstract class GUIContainerItem
     /**
         Non-GUI thread.
      */
-    public GUIContainerItem(Add addCmd) {
-        super(addCmd);
+    public GUIContainerItem(final Add addCmd, final TextLibrary textLibrary) {
+        super(addCmd, textLibrary);
     }
 
     public GUIItem add(GUIItem guiItem) {

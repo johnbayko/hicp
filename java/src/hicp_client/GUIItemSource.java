@@ -11,9 +11,10 @@ public class GUIItemSource {
         Logger.getLogger( GUIItemSource.class.getName() );
 
     public static GUIItem newGUIItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
+        final Add addCmd,
+        final TextLibrary textLibrary,
+        final TextItem textItem,
+        final MessageExchange messageExchange
     ) {
         try {
             // Make sure it's a real integer - not used.
@@ -21,27 +22,27 @@ public class GUIItemSource {
 
             if (Add.BUTTON.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIButtonItem(addCmd, textItem, messageExchange);
+                    new GUIButtonItem(addCmd, textLibrary, textItem, messageExchange);
 
                 return guiItem;
             } else if (Add.LABEL.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUILabelItem(addCmd, textItem, messageExchange);
+                    new GUILabelItem(addCmd, textLibrary, textItem, messageExchange);
 
                 return guiItem;
             } else if (Add.PANEL.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIPanelItem(addCmd, textItem, messageExchange);
+                    new GUIPanelItem(addCmd, textLibrary, textItem, messageExchange);
 
                 return guiItem;
             } else if (Add.TEXTFIELD.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUITextFieldItem(addCmd, textItem, messageExchange);
+                    new GUITextFieldItem(addCmd, messageExchange);
 
                 return guiItem;
             } else if (Add.WINDOW.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIWindowItem(addCmd, textItem, messageExchange);
+                    new GUIWindowItem(addCmd, textLibrary, textItem, messageExchange);
 
                 return guiItem;
             } else if (Add.SELECTION.equals(addCmd.component)) {

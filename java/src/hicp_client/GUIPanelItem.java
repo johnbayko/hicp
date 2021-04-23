@@ -24,11 +24,12 @@ public class GUIPanelItem
     protected JPanel _component;
 
     public GUIPanelItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
+        final Add addCmd,
+        final TextLibrary textLibrary,
+        final TextItem textItem,
+        final MessageExchange messageExchange
     ) {
-        super(addCmd, textItem, messageExchange);
+        super(addCmd, textLibrary, textItem, messageExchange);
 
         SwingUtilities.invokeLater(
             new RunNew(addCmd, textItem)

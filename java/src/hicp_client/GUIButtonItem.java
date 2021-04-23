@@ -25,11 +25,12 @@ public class GUIButtonItem
     protected JButton _component;
 
     public GUIButtonItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
+        final Add addCmd,
+        final TextLibrary textLibrary,
+        final TextItem textItem,
+        final MessageExchange messageExchange
     ) {
-        super(addCmd);
+        super(addCmd, textLibrary);
 
         _messageExchange = messageExchange;
 

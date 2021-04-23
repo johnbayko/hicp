@@ -17,11 +17,12 @@ public class GUILabelItem
     protected JLabel _component;
 
     public GUILabelItem(
-        Add addCmd,
-        TextItem textItem,
-        MessageExchange messageExchange
+        final Add addCmd,
+        final TextLibrary textLibrary,
+        final TextItem textItem,
+        final MessageExchange messageExchange
     ) {
-        super(addCmd);
+        super(addCmd, textLibrary);
 
         _messageExchange = messageExchange;
 
