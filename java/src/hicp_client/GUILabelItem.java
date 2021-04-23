@@ -19,7 +19,6 @@ public class GUILabelItem
     public GUILabelItem(
         final Add addCmd,
         final TextLibrary textLibrary,
-        final TextItem textItem,
         final MessageExchange messageExchange
     ) {
         super(addCmd, textLibrary);
@@ -27,7 +26,7 @@ public class GUILabelItem
         _messageExchange = messageExchange;
 
         SwingUtilities.invokeLater(
-            new RunNew(addCmd, textItem)
+            new RunNew(addCmd)
         );
     }
 
@@ -35,12 +34,10 @@ public class GUILabelItem
         implements Runnable
     {
         protected final Add _addCmd;
-        protected final TextItem _textItem;
 
-        public RunNew(Add addCmd, TextItem textItem)
+        public RunNew(Add addCmd)
         {
             _addCmd = addCmd;
-            _textItem = textItem;
         }
 
         public void run()
@@ -48,8 +45,8 @@ public class GUILabelItem
             _component = new JLabel();
 
             // Label string.
-            if (null != _textItem) {
-                setTextItemInvoked(_textItem);
+            if (null != _addCmd.text) {
+                setTextIdInvoked(_addCmd.text);
             }
         }
     }
@@ -109,9 +106,9 @@ public class GUILabelItem
         _component = null;
     }
 
-    public GUIItem modify(Modify modifyCmd, TextItem textItem) {
+    public GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
-            new RunModify(modifyCmd, textItem)
+            new RunModify(modifyCmd/*, textItem*/)
         );
 
         return this;
@@ -121,19 +118,17 @@ public class GUILabelItem
         implements Runnable
     {
         protected final Modify _modifyCmd;
-        protected final TextItem _textItem;
 
-        public RunModify(Modify modifyCmd, TextItem textItem) {
+        public RunModify(Modify modifyCmd) {
             _modifyCmd = modifyCmd;
-            _textItem = textItem;
         }
 
         public void run() {
             // See what's changed.
 
             // New text item?
-            if (null != _textItem) {
-                setTextItemInvoked(_textItem);
+            if (null != _modifyCmd.text) {
+                setTextIdInvoked(_modifyCmd.text);
             }
 
             // Changed parent ID is handled by Controller.

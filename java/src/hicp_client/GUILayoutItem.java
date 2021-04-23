@@ -43,7 +43,6 @@ public abstract class GUILayoutItem
     protected GUILayoutItem(
         final Add addCmd,
         final TextLibrary textLibrary,
-        final TextItem textItem,
         final MessageExchange messageExchange
     ) {
         super(addCmd, textLibrary);

@@ -188,7 +188,7 @@ public class Controller
 
                         final GUIItem guiItem =
                             GUIItemSource.newGUIItem(
-                                addCmd, _textLibrary, textItem, _messageExchange
+                                addCmd, _textLibrary, _messageExchange
                                 );
 
                         if (null != guiItem) {
@@ -241,17 +241,7 @@ public class Controller
                         // No item to modify.
                         break;
                     }
-
-                    // Text is the relation between items, so is
-                    // handled here (not within an item).
-                    TextItem textItem = null;
-                    if (null != modifyCmd.text) {
-                        // Set text.
-                        textItem = _textLibrary.get(modifyCmd.text);
-                    }
-
-                    guiItem.modify(modifyCmd, textItem);
-
+                    guiItem.modify(modifyCmd);
                 } else {
                     // Unrecognized category.
                     log("Add to unrecognized category: " + modifyCmd.category);

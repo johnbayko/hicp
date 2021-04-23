@@ -77,7 +77,6 @@ public class GUISelectionItem
 
     public GUISelectionItem(
         Add addCmd,
-        TextItem textItem,  // Doesn't apply to text fields.
         MessageExchange messageExchange
     ) {
         super(addCmd);
@@ -198,7 +197,7 @@ public class GUISelectionItem
         return this;
     }
 
-    public GUIItem modify(Modify modifyCmd, TextItem textItem) {
+    public GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
         );

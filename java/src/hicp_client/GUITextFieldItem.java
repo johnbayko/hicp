@@ -206,7 +206,7 @@ public class GUITextFieldItem
         return this;
     }
 
-    public GUIItem modify(Modify modifyCmd, TextItem textItem) {
+    public GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
         );

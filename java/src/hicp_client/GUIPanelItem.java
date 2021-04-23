@@ -26,25 +26,21 @@ public class GUIPanelItem
     public GUIPanelItem(
         final Add addCmd,
         final TextLibrary textLibrary,
-        final TextItem textItem,
         final MessageExchange messageExchange
     ) {
-        super(addCmd, textLibrary, textItem, messageExchange);
+        super(addCmd, textLibrary, messageExchange);
 
         SwingUtilities.invokeLater(
-            new RunNew(addCmd, textItem)
+            new RunNew(addCmd)
         );
     }
 
     class RunNew
         extends GUILayoutItem.RunNew
     {
-        protected final TextItem _textItem;
-
-        public RunNew(Add addCmd, TextItem textItem)
+        public RunNew(Add addCmd)
         {
             super(addCmd);
-            _textItem = textItem;
         }
 
         public void run()
@@ -169,11 +165,9 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
         }
     }
 
-    public GUIItem modify(Modify modifyCmd, TextItem textItem) {
-        super.modify(modifyCmd, textItem);
-
+    public GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
-            new RunModify(modifyCmd, textItem)
+            new RunModify(modifyCmd)
         );
 
         return this;
@@ -183,19 +177,17 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
         implements Runnable
     {
         protected final Modify _modifyCmd;
-        protected final TextItem _textItem;
 
-        public RunModify(Modify modifyCmd, TextItem textItem) {
+        public RunModify(Modify modifyCmd) {
             _modifyCmd = modifyCmd;
-            _textItem = textItem;
         }
 
         public void run() {
             // See what's changed.
 
             // New text item?
-            if (null != _textItem) {
-                setTextItemInvoked(_textItem);
+            if (null != _modifyCmd.text) {
+                setTextIdInvoked(_modifyCmd.text);
             }
         }
     }

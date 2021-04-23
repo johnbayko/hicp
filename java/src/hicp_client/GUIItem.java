@@ -62,6 +62,6 @@ public abstract class GUIItem
     public void dispose() {
     }
 
-    public abstract GUIItem modify(Modify modifyCmd, TextItem textItem);
+    public abstract GUIItem modify(Modify modifyCmd);
 }
 

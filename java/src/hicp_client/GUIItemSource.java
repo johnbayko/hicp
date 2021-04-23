@@ -13,7 +13,6 @@ public class GUIItemSource {
     public static GUIItem newGUIItem(
         final Add addCmd,
         final TextLibrary textLibrary,
-        final TextItem textItem,
         final MessageExchange messageExchange
     ) {
         try {
@@ -22,17 +21,17 @@ public class GUIItemSource {
 
             if (Add.BUTTON.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIButtonItem(addCmd, textLibrary, textItem, messageExchange);
+                    new GUIButtonItem(addCmd, textLibrary, messageExchange);
 
                 return guiItem;
             } else if (Add.LABEL.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUILabelItem(addCmd, textLibrary, textItem, messageExchange);
+                    new GUILabelItem(addCmd, textLibrary, messageExchange);
 
                 return guiItem;
             } else if (Add.PANEL.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIPanelItem(addCmd, textLibrary, textItem, messageExchange);
+                    new GUIPanelItem(addCmd, textLibrary, messageExchange);
 
                 return guiItem;
             } else if (Add.TEXTFIELD.equals(addCmd.component)) {
@@ -42,12 +41,12 @@ public class GUIItemSource {
                 return guiItem;
             } else if (Add.WINDOW.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUIWindowItem(addCmd, textLibrary, textItem, messageExchange);
+                    new GUIWindowItem(addCmd, textLibrary, messageExchange);
 
                 return guiItem;
             } else if (Add.SELECTION.equals(addCmd.component)) {
                 GUIItem guiItem =
-                    new GUISelectionItem(addCmd, textItem, messageExchange);
+                    new GUISelectionItem(addCmd, messageExchange);
 
                 return guiItem;
             } else {

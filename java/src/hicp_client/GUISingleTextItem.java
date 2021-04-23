@@ -21,18 +21,17 @@ public abstract class GUISingleTextItem
     /**
         GUI thread.
      */
-    protected GUISingleTextItem setTextItemInvoked(TextItem textItem) {
+    protected GUISingleTextItem setTextIdInvoked(final String textId) {
         if (null != _textItem) {
             _textItem.removeTextListener(this);
         }
+        _textItem = _textLibrary.get(textId);
 
-        _textItem = textItem;
         if (null != _textItem) {
             setTextInvoked(_textItem.getText());
 
             _textItem.addTextListener(this);
         }
-
         return this;
     }
 
