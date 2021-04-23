@@ -145,13 +145,6 @@ public class GUITextFieldItem
     }
 
     /**
-        Called in non-GUI thread.
-     */
-    protected GUIItem setText(String text) {
-        return this;
-    }
-
-    /**
         Called in GUI thread.
      */
     protected GUIItem setTextInvoked(String text) {

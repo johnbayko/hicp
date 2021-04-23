@@ -1,5 +1,7 @@
 package hicp_client;
 
+import javax.swing.SwingUtilities;
+
 import hicp.message.command.Add;
 
 public abstract class GUISingleTextItem
@@ -40,11 +42,6 @@ public abstract class GUISingleTextItem
      */
     protected abstract GUIItem setTextInvoked(String text);
 
-    /**
-        Set text, called from non-GUI thread.
-     */
-    protected abstract GUIItem setText(String text);
-
     public void dispose() {
         super.dispose();
         if (null != _textItem) {
@@ -63,7 +60,23 @@ public abstract class GUISingleTextItem
             return;
         }
 
-        setText(_textItem.getText());
+        SwingUtilities.invokeLater(
+            new RunSetText(_textItem.getText())
+        );
+    }
+
+    class RunSetText
+        implements Runnable
+    {
+        protected final String _text;
+
+        RunSetText(String text) {
+            _text = text;
+        }
+
+        public void run() {
+            setTextInvoked(_text);
+        }
     }
 }
 

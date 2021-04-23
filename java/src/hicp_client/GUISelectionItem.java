@@ -153,31 +153,6 @@ public class GUISelectionItem
     }
 
     /**
-        Called in non-GUI thread.
-     */
-    protected GUIItem setText(String text) {
-        SwingUtilities.invokeLater(
-            new RunSetText(text)
-        );
-
-        return this;
-    }
-
-    class RunSetText
-        implements Runnable
-    {
-        protected final String _text;
-
-        RunSetText(String text) {
-            _text = text;
-        }
-
-        public void run() {
-            setTextInvoked(_text);
-        }
-    }
-
-    /**
         Called in GUI thread.
      */
     protected GUIItem setTextInvoked(String text) {

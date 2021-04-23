@@ -17,11 +17,13 @@ public class TextLibrary {
         }
         return this;
     }
+
     public TextItem get(final String id) {
         return (null != id)
             ? _textItemMap.get(id)
             : null;
     }
+
     public TextLibrary remove(final String id) {
         if (null == id) {
             // Nothing to remove.
@@ -47,6 +49,7 @@ public class TextLibrary {
         }
         return this;
     }
+
     public TextLibrary addModify(hicp.message.command.AddModify addModifyCmd) {
         // Must have id and text fields.
         if ((null == addModifyCmd.id) || (null == addModifyCmd.text)) {

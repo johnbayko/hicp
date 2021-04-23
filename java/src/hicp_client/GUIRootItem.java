@@ -38,14 +38,6 @@ public class GUIRootItem
         return this;
     }
 
-    /**
-        Set text, called from non-GUI thread.
-     */
-    protected GUIItem setText(String text) {
-        // Not used at the moment.
-        return this;
-    }
-
     // Root has no component.
     protected Component getComponent() {
         return null;
