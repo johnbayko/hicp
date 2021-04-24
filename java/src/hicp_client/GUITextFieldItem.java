@@ -199,44 +199,27 @@ public class GUITextFieldItem
         return this;
     }
 
-    public GUIItem modify(Modify modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        // See what's changed.
+        if (null != modifyCmd.content) {
+            final String modifyContent = modifyCmd.content;
 
-        return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            // See what's changed.
-            if (null != _modifyCmd.content) {
-                final String modifyContent = _modifyCmd.content;
-
-                if (!modifyContent.equals(_component.getText())) {
-                    setContentInvoked(modifyContent, _modifyCmd.textAttributes);
-                }
+            if (!modifyContent.equals(_component.getText())) {
+                setContentInvoked(modifyContent, modifyCmd.textAttributes);
             }
-            if (null != _modifyCmd.attributes ) {
-                final String modifyAttributes = _modifyCmd.attributes;
+        }
+        if (null != modifyCmd.attributes ) {
+            final String modifyAttributes = modifyCmd.attributes;
 
 // handle attributes.
 // To start, just log the string.
 LOGGER.log(Level.FINE, "modifyAttributes: " + modifyAttributes);  // debug
-            }
-            if (null != _modifyCmd.events) {
-                setEventsInvoked(_modifyCmd.events);
-            }
-            // Changed parent ID is handled by Controller.
         }
+        if (null != modifyCmd.events) {
+            setEventsInvoked(modifyCmd.events);
+        }
+        // Changed parent ID is handled by Controller.
+        return this;
     }
 }
 

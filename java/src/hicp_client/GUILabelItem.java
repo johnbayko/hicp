@@ -81,33 +81,15 @@ public class GUILabelItem
         _component = null;
     }
 
-    public GUIItem modify(Modify modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        // See what's changed.
 
+        // New text item?
+        if (null != modifyCmd.text) {
+            setTextIdInvoked(modifyCmd.text);
+        }
+        // Changed parent ID is handled by Controller.
         return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            // See what's changed.
-
-            // New text item?
-            if (null != _modifyCmd.text) {
-                setTextIdInvoked(_modifyCmd.text);
-            }
-
-            // Changed parent ID is handled by Controller.
-        }
     }
 }
 

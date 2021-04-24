@@ -54,33 +54,16 @@ public abstract class GUIContainerItem
         return this;
     }
 
-    public GUIItem modify(Modify modifyCmd, TextItem textItem) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
-
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        if ( (null != modifyCmd.firstTextDirection)
+          || (null != modifyCmd.secondTextDirection)
+        ) {
+            setTextDirectionInvoked(
+                modifyCmd.firstTextDirection,
+                modifyCmd.secondTextDirection
+            );
+        }
         return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            if ( (null != _modifyCmd.firstTextDirection)
-              || (null != _modifyCmd.secondTextDirection)
-            ) {
-                setTextDirectionInvoked(
-                    _modifyCmd.firstTextDirection,
-                    _modifyCmd.secondTextDirection
-                );
-            }
-        }
     }
 
     /*

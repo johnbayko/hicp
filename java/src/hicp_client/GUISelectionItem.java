@@ -172,30 +172,13 @@ public class GUISelectionItem
         return this;
     }
 
-    public GUIItem modify(Modify modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
-
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        // See what's changed.
+        if (null != modifyCmd.events) {
+            setEventsInvoked(modifyCmd.events);
+        }
+        // Changed parent ID is handled by Controller.
         return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            // See what's changed.
-            if (null != _modifyCmd.events) {
-                setEventsInvoked(_modifyCmd.events);
-            }
-            // Changed parent ID is handled by Controller.
-        }
     }
 }
 

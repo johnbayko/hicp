@@ -1,6 +1,7 @@
 package hicp_client;
 
 import java.awt.Component;
+import javax.swing.SwingUtilities;
 
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
@@ -35,10 +36,35 @@ public abstract class GUIItem
         }
     }
 
+    public final GUIItem modify(Modify modifyCmd) {
+        SwingUtilities.invokeLater(
+            new RunModify(modifyCmd)
+        );
+        return this;
+    }
+
+    class RunModify
+        implements Runnable
+    {
+        protected final Modify _modifyCmd;
+
+        public RunModify(Modify modifyCmd) {
+            _modifyCmd = modifyCmd;
+        }
+
+        public void run() {
+            modifyInvoked(_modifyCmd);
+        }
+    }
+
     /**
         GUI thread.
      */
+    protected abstract GUIItem modifyInvoked(Modify modifyCmd);
 
+    /**
+        GUI thread.
+     */
     public GUIItem setParent(GUIContainerItem parent) {
         _parent = parent;
         _parent.add(this);
@@ -61,7 +87,5 @@ public abstract class GUIItem
      */
     public void dispose() {
     }
-
-    public abstract GUIItem modify(Modify modifyCmd);
 }
 

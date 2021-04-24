@@ -53,7 +53,7 @@ public abstract class GUISingleTextItem
     /**
         Called from input thread, not GUI thread.
      */
-    public void textChanged(TextEvent textEvent) {
+    public final void textChanged(TextEvent textEvent) {
         TextItem ti = (TextItem)textEvent.getSource();
         if (ti != _textItem) {
             // No idea how this could happen. Ignore it.

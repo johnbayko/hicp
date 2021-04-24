@@ -165,31 +165,15 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
         }
     }
 
-    public GUIItem modify(Modify modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        super.modifyInvoked(modifyCmd);
+        // See what's changed.
 
+        // New text item?
+        if (null != modifyCmd.text) {
+            setTextIdInvoked(modifyCmd.text);
+        }
         return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            // See what's changed.
-
-            // New text item?
-            if (null != _modifyCmd.text) {
-                setTextIdInvoked(_modifyCmd.text);
-            }
-        }
     }
 
     protected GUIItem applyTextDirectionInvoked() {

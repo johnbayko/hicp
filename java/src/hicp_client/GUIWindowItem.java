@@ -265,40 +265,24 @@ public class GUIWindowItem
         }
     }
 
-    public GUIItem modify(Modify modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
+    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+        super.modifyInvoked(modifyCmd);
+        // See what's changed.
 
+        // New text item?
+        if (null != modifyCmd.text) {
+            setTextIdInvoked(modifyCmd.text);
+        }
+
+        // Visible?
+        if (modifyCmd.visible != _component.isVisible()) {
+            // Make sure correct size for children.
+            _component.pack();
+            _component.setSize(_component.getPreferredSize());
+
+            _component.setVisible(modifyCmd.visible);
+        }
         return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            // See what's changed.
-
-            // New text item?
-            if (null != _modifyCmd.text) {
-                setTextIdInvoked(_modifyCmd.text);
-            }
-
-            // Visible?
-            if (_modifyCmd.visible != _component.isVisible()) {
-                // Make sure correct size for children.
-                _component.pack();
-                _component.setSize(_component.getPreferredSize());
-
-                _component.setVisible(_modifyCmd.visible);
-            }
-        }
     }
 
     protected GUIItem applyTextDirectionInvoked() {
