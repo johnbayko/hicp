@@ -18,42 +18,34 @@ public class GUIItemSource {
         try {
             // Make sure it's a real integer - not used.
             final int id = Integer.parseInt(addCmd.id);
+            final GUIItem guiItem;
 
             if (Add.BUTTON.equals(addCmd.component)) {
-                GUIItem guiItem =
+                guiItem =
                     new GUIButtonItem(addCmd, textLibrary, messageExchange);
-
-                return guiItem;
             } else if (Add.LABEL.equals(addCmd.component)) {
-                GUIItem guiItem =
-                    new GUILabelItem(addCmd, textLibrary, messageExchange);
-
-                return guiItem;
+                guiItem =
+                    new GUILabelItem(addCmd, textLibrary);
             } else if (Add.PANEL.equals(addCmd.component)) {
-                GUIItem guiItem =
+                guiItem =
                     new GUIPanelItem(addCmd, textLibrary, messageExchange);
-
-                return guiItem;
             } else if (Add.TEXTFIELD.equals(addCmd.component)) {
-                GUIItem guiItem =
+                guiItem =
                     new GUITextFieldItem(addCmd, messageExchange);
-
-                return guiItem;
             } else if (Add.WINDOW.equals(addCmd.component)) {
-                GUIItem guiItem =
+                guiItem =
                     new GUIWindowItem(addCmd, textLibrary, messageExchange);
-
-                return guiItem;
             } else if (Add.SELECTION.equals(addCmd.component)) {
-                GUIItem guiItem =
+                guiItem =
                     new GUISelectionItem(addCmd, messageExchange);
-
-                return guiItem;
             } else {
                 // Unrecognized category.
                 LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
                 return null;
             }
+            guiItem.add(addCmd);
+
+            return guiItem;
         } catch (NumberFormatException ex) {
             LOGGER.log(Level.FINE, "ID field not an integer.");
 

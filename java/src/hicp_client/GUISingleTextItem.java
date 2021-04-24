@@ -20,6 +20,13 @@ public abstract class GUISingleTextItem
         _textLibrary = textLibrary;
     }
 
+    public GUISingleTextItem(
+        final TextLibrary textLibrary
+    ) {
+        super();
+        _textLibrary = textLibrary;
+    }
+
     /**
         GUI thread.
      */

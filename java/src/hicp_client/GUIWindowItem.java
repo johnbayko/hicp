@@ -32,6 +32,8 @@ public class GUIWindowItem
     private static final Logger LOGGER =
         Logger.getLogger( GUIWindowItem.class.getName() );
 
+    protected final MessageExchange _messageExchange;
+
     // Should be used only from GUI thread.
     protected JFrame _component;
     protected JPanel _panel;
@@ -41,91 +43,79 @@ public class GUIWindowItem
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        super(addCmd, textLibrary, messageExchange);
+        super(addCmd, textLibrary);
 
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
+        _messageExchange = messageExchange;
     }
 
-    class RunNew
-        extends GUILayoutItem.RunNew
-    {
-        public RunNew(Add addCmd)
-        {
-            super(addCmd);
-        }
+    protected GUIItem addInvoked(final Add addCmd) {
+        _component = new JFrame();
 
-        public void run()
-        {
-            _component = new JFrame();
+        _component.getContentPane().setLayout(new BorderLayout());
 
-            _component.getContentPane().setLayout(new BorderLayout());
+        _panel = new JPanel(new GridBagLayout());
 
-            _panel = new JPanel(new GridBagLayout());
-
-            _panel.addComponentListener(
-                new ComponentAdapter() {
-                    public void componentResized(ComponentEvent e) {
-                        if(_component.isVisible()) {
-                            final Dimension size = _component.getSize();
-                            final Dimension preferredSize =
-                                _component.getPreferredSize();
-                            boolean resize = false;
-                            if (size.width < preferredSize.width) {
-                                size.width = preferredSize.width;
-                                resize = true;
-                            }
-                            if (size.height < preferredSize.height) {
-                                size.height = preferredSize.height;
-                                resize = true;
-                            }
-                            if (resize) {
-                                _component.setSize(size);
-                            }
+        _panel.addComponentListener(
+            new ComponentAdapter() {
+                public void componentResized(ComponentEvent e) {
+                    if(_component.isVisible()) {
+                        final Dimension size = _component.getSize();
+                        final Dimension preferredSize =
+                            _component.getPreferredSize();
+                        boolean resize = false;
+                        if (size.width < preferredSize.width) {
+                            size.width = preferredSize.width;
+                            resize = true;
+                        }
+                        if (size.height < preferredSize.height) {
+                            size.height = preferredSize.height;
+                            resize = true;
+                        }
+                        if (resize) {
+                            _component.setSize(size);
                         }
                     }
                 }
-            );
+            }
+        );
 
-            _component
-                .getContentPane()
-                .add(new JScrollPane(_panel), BorderLayout.CENTER);
+        _component
+            .getContentPane()
+            .add(new JScrollPane(_panel), BorderLayout.CENTER);
 
-            _component.setDefaultCloseOperation(
-                WindowConstants.DO_NOTHING_ON_CLOSE
-            );
+        _component.setDefaultCloseOperation(
+            WindowConstants.DO_NOTHING_ON_CLOSE
+        );
 
-            _component.addWindowListener(
-                new WindowAdapter() {
-                    public void windowClosing(WindowEvent e) {
-                        // Send a close event with this object's ID.
-                        final Close closeEvent =
-                            (Close)EventEnum.CLOSE.newEvent();
+        _component.addWindowListener(
+            new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    // Send a close event with this object's ID.
+                    final Close closeEvent =
+                        (Close)EventEnum.CLOSE.newEvent();
 
-                        closeEvent.id = idString;
+                    closeEvent.id = idString;
 
-                        _messageExchange.send(closeEvent);
-                    }
+                    _messageExchange.send(closeEvent);
                 }
-            );
-
-            // Frame title.
-            if (null != _addCmd.text) {
-                setTextIdInvoked(_addCmd.text);
-            } else {
-                // No text for title bar, make up something.
-                _component.setTitle("Window " + _addCmd.id); 
             }
+        );
 
-            // Visible.
-            if (_addCmd.visible) {
-                // Default is false, change only if true.
-                _component.setVisible(true);
-            }
-
-            super.run();
+        // Frame title.
+        if (null != addCmd.text) {
+            setTextIdInvoked(addCmd.text);
+        } else {
+            // No text for title bar, make up something.
+            _component.setTitle("Window " + addCmd.id); 
         }
+
+        // Visible.
+        if (addCmd.visible) {
+            // Default is false, change only if true.
+            _component.setVisible(true);
+        }
+
+        return super.addInvoked(addCmd);
     }
 
     protected GUIItem remove(GUIItem guiItem) {

@@ -82,58 +82,40 @@ public class GUISelectionItem
         super(addCmd);
 
         _messageExchange = messageExchange;
-
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
     }
 
-    class RunNew
-        implements Runnable
-    {
-        protected final Add _addCmd;
+    protected GUIItem addInvoked(final Add addCmd) {
+        final Presentation presentation =
+            Presentation.getEnum(addCmd.presentation);
 
-        public RunNew(Add addCmd)
-        {
-            _addCmd = addCmd;
-        }
+        final Mode mode =
+            Mode.getEnum(addCmd.mode);
 
-        public void run()
-        {
-            final Presentation presentation =
-                Presentation.getEnum(_addCmd.presentation);
-
-            final Mode mode =
-                Mode.getEnum(_addCmd.mode);
-
-            switch (presentation) {
-              case SCROLL:
-                String[] testList = {"scroll", "selection", "list"};  // debug
-                JList<String> newList = new JList<>(testList);  // debug
-                _component = new JScrollPane(newList);
+        switch (presentation) {
+          case SCROLL:
+            String[] testList = {"scroll", "selection", "list"};  // debug
+            JList<String> newList = new JList<>(testList);  // debug
+            _component = new JScrollPane(newList);
+            break;
+          case TOGGLE:
+            switch (mode) {
+              case SINGLE:
+                _component = new JLabel("radio selection list");  // debug
                 break;
-              case TOGGLE:
-                switch (mode) {
-                  case SINGLE:
-                    _component = new JLabel("radio selection list");  // debug
-                    break;
-                  case MULTIPLE:
-                    _component = new JLabel("checkbox selection list");  // debug
-                    break;
-                }
-                break;
-              case DROPDOWN:
-                _component = new JLabel("dropdoen selection list");  // debug
+              case MULTIPLE:
+                _component = new JLabel("checkbox selection list");  // debug
                 break;
             }
+            break;
+          case DROPDOWN:
+            _component = new JLabel("dropdoen selection list");  // debug
+            break;
+        }
 
-            // Label string.
+        // Label string.
 // Each item will have to listen to its text, have to figure out how to
 // generalise that.
-//            if (null != _textItem) {
-//                setTextItemInvoked(_textItem);
-//            }
-        }
+        return this;
     }
 
     protected Component getComponent() {

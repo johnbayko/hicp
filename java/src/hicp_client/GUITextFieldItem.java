@@ -40,59 +40,44 @@ public class GUITextFieldItem
         super(addCmd);
 
         _messageExchange = messageExchange;
-
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
     }
 
-    class RunNew
-        implements Runnable
-    {
-        protected final Add _addCmd;
+    protected GUIItem addInvoked(final Add addCmd) {
+        _component = new JTextField();
+        _document = new AttributeTrackDocument();
+        _component.setDocument(_document);
 
-        public RunNew(Add addCmd)
-        {
-            _addCmd = addCmd;
-        }
-
-        public void run()
-        {
-            _component = new JTextField();
-            _document = new AttributeTrackDocument();
-            _component.setDocument(_document);
-
-            setContentInvoked(_addCmd.content, _addCmd.textAttributes);
+        setContentInvoked(addCmd.content, addCmd.textAttributes);
 
 // Is this needed if there's a focus listener?
-            _component.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        sendChangedEventIfEdited();
-                    }
+        _component.addActionListener(
+            new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    sendChangedEventIfEdited();
                 }
-            );
-            _component.addFocusListener(
-                new FocusListener() {
-                    public void focusGained(FocusEvent e) {
-                        // Don't do anything, no editing has happened
-                        // yet.
-                    }
-                    public void focusLost(FocusEvent e) {
-                        sendChangedEventIfEdited();
-                    }
-                }
-            );
-
-            // Text editing enable/disable.
-            {
-                // Default is enable.
-                final String eventsValue =
-                    (null != _addCmd.events) ? _addCmd.events : Add.ENABLED;
-
-                setEventsInvoked(eventsValue);
             }
+        );
+        _component.addFocusListener(
+            new FocusListener() {
+                public void focusGained(FocusEvent e) {
+                    // Don't do anything, no editing has happened
+                    // yet.
+                }
+                public void focusLost(FocusEvent e) {
+                    sendChangedEventIfEdited();
+                }
+            }
+        );
+
+        // Text editing enable/disable.
+        {
+            // Default is enable.
+            final String eventsValue =
+                (null != addCmd.events) ? addCmd.events : Add.ENABLED;
+
+            setEventsInvoked(eventsValue);
         }
+        return this;
     }
 
     protected void sendChangedEventIfEdited() {

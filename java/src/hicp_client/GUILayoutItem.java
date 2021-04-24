@@ -21,8 +21,6 @@ public abstract class GUILayoutItem
 
     public final static int POSITION_LIMIT = 255;
 
-    protected final MessageExchange _messageExchange;
-
     protected final SizeInfo[][] _positionGrid =
         new SizeInfo
             [POSITION_LIMIT]
@@ -42,39 +40,28 @@ public abstract class GUILayoutItem
 
     protected GUILayoutItem(
         final Add addCmd,
-        final TextLibrary textLibrary,
-        final MessageExchange messageExchange
+        final TextLibrary textLibrary
     ) {
         super(addCmd, textLibrary);
-
-        _messageExchange = messageExchange;
     }
 
-    class RunNew
-        implements Runnable
-    {
-        protected final Add _addCmd;
-
-        public RunNew(Add addCmd)
-        {
-            _addCmd = addCmd;
+    /**
+        GUI thread.
+     */
+    protected GUIItem addInvoked(final Add addCmd) {
+        // Text direction.
+        if ( (null != addCmd.firstTextDirection)
+          || (null != addCmd.secondTextDirection)
+        ) {
+            setTextDirectionInvoked(
+                addCmd.firstTextDirection,
+                addCmd.secondTextDirection
+            );
+        } else {
+            // Default text direction.
+            applyTextDirectionInvoked();
         }
-
-        public void run()
-        {
-            // Text direction.
-            if ( (null != _addCmd.firstTextDirection)
-              || (null != _addCmd.secondTextDirection)
-            ) {
-                setTextDirectionInvoked(
-                    _addCmd.firstTextDirection,
-                    _addCmd.secondTextDirection
-                );
-            } else {
-                // Default text direction.
-                applyTextDirectionInvoked();
-            }
-        }
+        return this;
     }
 
     class RunAdd

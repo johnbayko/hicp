@@ -32,53 +32,38 @@ public class GUIButtonItem
         super(addCmd, textLibrary);
 
         _messageExchange = messageExchange;
-
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
     }
 
-    class RunNew
-        implements Runnable
-    {
-        protected final Add _addCmd;
+    protected GUIItem addInvoked(Add addCmd) {
+        _component = new JButton();
 
-        public RunNew(Add addCmd)
-        {
-            _addCmd = addCmd;
-        }
-
-        public void run()
-        {
-            _component = new JButton();
-
-            _component.addActionListener(
-                new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        // Send a click event with this object's ID.
-                        final Click clickEvent =
-                            (Click)EventEnum.CLICK.newEvent();
+        _component.addActionListener(
+            new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    // Send a click event with this object's ID.
+                    final Click clickEvent =
+                        (Click)EventEnum.CLICK.newEvent();
             
-                        clickEvent.id = idString;
+                    clickEvent.id = idString;
         
-                        _messageExchange.send(clickEvent);
-                    }
+                    _messageExchange.send(clickEvent);
                 }
-            );
-
-            // Button string.
-            if (null != _addCmd.text) {
-                setTextIdInvoked(_addCmd.text);
             }
-            // Button enable/disable.
-            {
-                // Default is enable.
-                final String eventsValue =
-                    (null != _addCmd.events) ? _addCmd.events : Add.ENABLED;
+        );
 
-                setEventsInvoked(eventsValue);
-            }
+        // Button string.
+        if (null != addCmd.text) {
+            setTextIdInvoked(addCmd.text);
         }
+        // Button enable/disable.
+        {
+            // Default is enable.
+            final String eventsValue =
+                (null != addCmd.events) ? addCmd.events : Add.ENABLED;
+
+            setEventsInvoked(eventsValue);
+        }
+        return this;
     }
 
     protected Component getComponent() {

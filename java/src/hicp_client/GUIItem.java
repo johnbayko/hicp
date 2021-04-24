@@ -22,19 +22,44 @@ public abstract class GUIItem
         Non-GUI thread.
      */
     public GUIItem(Add addCmd) {
-        // Placeholder items used for construction won't have commands.
-        if (null != addCmd) {
-            idString = addCmd.id;
-            component = addCmd.component;
-            horizontalPosition = addCmd.horizontalPosition;
-            verticalPosition = addCmd.verticalPosition;
-            horizontalSize = addCmd.horizontalSize;
-            verticalSize = addCmd.verticalSize;
-        } else {
-            idString = null;
-            component = null;
+        idString = addCmd.id;
+        component = addCmd.component;
+        horizontalPosition = addCmd.horizontalPosition;
+        verticalPosition = addCmd.verticalPosition;
+        horizontalSize = addCmd.horizontalSize;
+        verticalSize = addCmd.verticalSize;
+    }
+
+    public GUIItem() {
+        idString = null;
+        component = null;
+    }
+
+    public final GUIItem add(Add addCmd) {
+        SwingUtilities.invokeLater(
+            new RunAdd(addCmd)
+        );
+        return this;
+    }
+
+    class RunAdd
+        implements Runnable
+    {
+        protected final Add _addCmd;
+
+        public RunAdd(Add addCmd) {
+            _addCmd = addCmd;
+        }
+
+        public void run() {
+            addInvoked(_addCmd);
         }
     }
+
+    /**
+        GUI thread.
+     */
+    protected abstract GUIItem addInvoked(Add addCmd);
 
     public final GUIItem modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(

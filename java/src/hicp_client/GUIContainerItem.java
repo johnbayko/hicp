@@ -39,6 +39,10 @@ public abstract class GUIContainerItem
         super(addCmd, textLibrary);
     }
 
+    public GUIContainerItem(final TextLibrary textLibrary) {
+        super(textLibrary);
+    }
+
     public GUIItem add(GUIItem guiItem) {
         synchronized (_itemList) {
             _itemList.add(guiItem);
@@ -54,6 +58,9 @@ public abstract class GUIContainerItem
         return this;
     }
 
+    /**
+        GUI thread.
+     */
     protected GUIItem modifyInvoked(final Modify modifyCmd) {
         if ( (null != modifyCmd.firstTextDirection)
           || (null != modifyCmd.secondTextDirection)

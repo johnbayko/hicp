@@ -28,29 +28,18 @@ public class GUIPanelItem
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        super(addCmd, textLibrary, messageExchange);
-
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
+        super(addCmd, textLibrary);
     }
 
-    class RunNew
-        extends GUILayoutItem.RunNew
-    {
-        public RunNew(Add addCmd)
-        {
-            super(addCmd);
-        }
+    /**
+        GUI thread.
+     */
+    protected GUIItem addInvoked(final Add addCmd) {
+        _component = new JPanel();
 
-        public void run()
-        {
-            _component = new JPanel();
+        _component.setLayout(new GridBagLayout());
 
-            _component.setLayout(new GridBagLayout());
-
-            super.run();
-        }
+        return super.addInvoked(addCmd);
     }
 
     protected GUIItem remove(GUIItem guiItem) {
@@ -63,7 +52,6 @@ public class GUIPanelItem
         return this;
     }
 
-/*
     class RunRemove
         extends GUILayoutItem.RunRemove
     {
@@ -77,7 +65,6 @@ public class GUIPanelItem
             super.run();
         }
     }
-*/
 
     protected void removeComponentInvoked(Component component) {
         _component.remove(component);

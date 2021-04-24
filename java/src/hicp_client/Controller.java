@@ -45,7 +45,7 @@ public class Controller
 
         // TODO Is text library needed? Can constructor without parameters be
         // made?
-        _root = new GUIRootItem(null, _textLibrary);
+        _root = new GUIRootItem(_textLibrary);
     }
 
 // Called by owner.

@@ -24,10 +24,14 @@ public class GUIRootItem
     /**
         Non-GUI thread.
      */
-    public GUIRootItem(final Add addCmd, final TextLibrary textLibrary) {
-        super(addCmd, textLibrary);
+    public GUIRootItem(final TextLibrary textLibrary) {
+        super(textLibrary);
         _firstTextDirection = TextDirection.RIGHT;
         _secondTextDirection = TextDirection.DOWN;
+    }
+
+    protected GUIItem addInvoked(final Add addCmd) {
+        return this;
     }
 
     /**
@@ -55,33 +59,6 @@ public class GUIRootItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-/*
-    public GUIItem modify(Modify modifyCmd) {
-//        SwingUtilities.invokeLater(
-//            new RunModify(modifyCmd)
-//        );
-
-        return this;
-    }
-*/
-
-/*
-    class RunModify
-        implements Runnable
-    {
-        protected final Modify _modifyCmd;
-
-        public RunModify(Modify modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            log("Modifying container"); // debug
-            // See what's changed.
-
-        }
-    }
-*/
     protected GUIItem modifyInvoked(final Modify modifyCmd) {
         super.modifyInvoked(modifyCmd);
         return this;

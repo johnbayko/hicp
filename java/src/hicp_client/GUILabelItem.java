@@ -12,43 +12,26 @@ import hicp.message.command.Modify;
 public class GUILabelItem
     extends GUISingleTextItem
 {
-    protected final MessageExchange _messageExchange;
-
     protected JLabel _component;
 
     public GUILabelItem(
         final Add addCmd,
-        final TextLibrary textLibrary,
-        final MessageExchange messageExchange
+        final TextLibrary textLibrary
     ) {
         super(addCmd, textLibrary);
-
-        _messageExchange = messageExchange;
-
-        SwingUtilities.invokeLater(
-            new RunNew(addCmd)
-        );
     }
 
-    class RunNew
-        implements Runnable
-    {
-        protected final Add _addCmd;
+    /**
+        GUI thread.
+     */
+    protected GUIItem addInvoked(final Add addCmd) {
+        _component = new JLabel();
 
-        public RunNew(Add addCmd)
-        {
-            _addCmd = addCmd;
+        // Label string.
+        if (null != addCmd.text) {
+            setTextIdInvoked(addCmd.text);
         }
-
-        public void run()
-        {
-            _component = new JLabel();
-
-            // Label string.
-            if (null != _addCmd.text) {
-                setTextIdInvoked(_addCmd.text);
-            }
-        }
+        return this;
     }
 
     protected Component getComponent() {
