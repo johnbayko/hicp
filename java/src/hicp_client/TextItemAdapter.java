@@ -10,15 +10,11 @@ public class TextItemAdapter
     private TextItemAdapterListener _listener = null;
     private TextItem _textItem = null;
 
-    class TextInvoker
-        implements Runnable
-    {
+    private Runnable _textInvoker = new Runnable() {
         public void run() {
             _listener.setTextInvoked(_textItem.getText());
         }
-    }
-    // TODO Can this be new Runnable() { ... } ?
-    private TextInvoker _textInvoker = new TextInvoker();
+    };
 
 
     public TextItemAdapter(TextLibrary newTextLibrary) {
