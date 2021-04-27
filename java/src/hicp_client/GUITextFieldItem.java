@@ -132,13 +132,6 @@ public class GUITextFieldItem
     /**
         Called in GUI thread.
      */
-    protected GUIItem setTextInvoked(String text) {
-        return this;
-    }
-
-    /**
-        Called in GUI thread.
-     */
     final static Pattern nonPrintablePattern = Pattern.compile("\\p{Cntrl}");
 
     protected void setContentInvoked(

@@ -22,19 +22,19 @@ public class GUIItemSource {
 
             if (Add.BUTTON.equals(addCmd.component)) {
                 guiItem =
-                    new GUIButtonItem(addCmd, textLibrary, messageExchange);
+                    new GUIButtonItem(addCmd, messageExchange);
             } else if (Add.LABEL.equals(addCmd.component)) {
                 guiItem =
-                    new GUILabelItem(addCmd, textLibrary);
+                    new GUILabelItem(addCmd);
             } else if (Add.PANEL.equals(addCmd.component)) {
                 guiItem =
-                    new GUIPanelItem(addCmd, textLibrary, messageExchange);
+                    new GUIPanelItem(addCmd);
             } else if (Add.TEXTFIELD.equals(addCmd.component)) {
                 guiItem =
                     new GUITextFieldItem(addCmd, messageExchange);
             } else if (Add.WINDOW.equals(addCmd.component)) {
                 guiItem =
-                    new GUIWindowItem(addCmd, textLibrary, messageExchange);
+                    new GUIWindowItem(addCmd, messageExchange);
             } else if (Add.SELECTION.equals(addCmd.component)) {
                 guiItem =
                     new GUISelectionItem(addCmd, messageExchange);
@@ -42,6 +42,9 @@ public class GUIItemSource {
                 // Unrecognized category.
                 LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
                 return null;
+            }
+            if (TextItemAdapterListener.class.isInstance(guiItem)) {
+                ((TextItemAdapterListener)guiItem).setAdapter(new TextItemAdapter(textLibrary));
             }
             guiItem.add(addCmd);
 
@@ -52,5 +55,12 @@ public class GUIItemSource {
             // Not an integer ID, ignore message.
             return null;
         }
+    }
+
+    public static void disposeGUIItem(final GUIItem guiItem) {
+        if (TextItemAdapterListener.class.isInstance(guiItem)) {
+            ((TextItemAdapterListener)guiItem).removeAdapter();
+        }
+        guiItem.dispose();
     }
 }

@@ -32,7 +32,7 @@ public class TextItemAdapter
         return this;
     }
 
-    public TextItemAdapter setTextid(String textId) {
+    public TextItemAdapter setTextId(String textId) {
         if (null != _textItem) {
             _textItem.removeTextListener(this);
         }

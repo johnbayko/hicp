@@ -39,10 +39,9 @@ public abstract class GUILayoutItem
     protected List<SizeInfo> _itemSizeList = new LinkedList<>();
 
     protected GUILayoutItem(
-        final Add addCmd,
-        final TextLibrary textLibrary
+        final Add addCmd
     ) {
-        super(addCmd, textLibrary);
+        super(addCmd);
     }
 
     /**

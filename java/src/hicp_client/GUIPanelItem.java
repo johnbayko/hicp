@@ -23,12 +23,8 @@ public class GUIPanelItem
     // Should be used only from GUI thread.
     protected JPanel _component;
 
-    public GUIPanelItem(
-        final Add addCmd,
-        final TextLibrary textLibrary,
-        final MessageExchange messageExchange
-    ) {
-        super(addCmd, textLibrary);
+    public GUIPanelItem(final Add addCmd) {
+        super(addCmd);
     }
 
     /**
@@ -86,13 +82,6 @@ public class GUIPanelItem
 
     protected int getGridBagFill() {
         return java.awt.GridBagConstraints.BOTH;
-    }
-
-    /**
-        Called in GUI thread.
-     */
-    protected GUIItem setTextInvoked(String text) {
-        return this;
     }
 
     public void dispose() {
@@ -156,10 +145,6 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
         super.modifyInvoked(modifyCmd);
         // See what's changed.
 
-        // New text item?
-        if (null != modifyCmd.text) {
-            setTextIdInvoked(modifyCmd.text);
-        }
         return this;
     }
 

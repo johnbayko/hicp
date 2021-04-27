@@ -45,7 +45,7 @@ public class Controller
 
         // TODO Is text library needed? Can constructor without parameters be
         // made?
-        _root = new GUIRootItem(_textLibrary);
+        _root = new GUIRootItem();
     }
 
 // Called by owner.
@@ -174,17 +174,11 @@ public class Controller
 
                         if (null != oldGUIItem) {
                             // Remove the old one.
-                            oldGUIItem.dispose();
+                            GUIItemSource.disposeGUIItem(oldGUIItem);
                             _guiMap.remove(addCmd.id);
                         }
                     }
                     {
-                        // Find text item for text ID if specified.
-                        final TextItem textItem =
-                            (null != addCmd.text)
-                                ? _textLibrary.get(addCmd.text)
-                                : null;
-
                         final GUIItem guiItem =
                             GUIItemSource.newGUIItem(
                                 addCmd, _textLibrary, _messageExchange
@@ -279,7 +273,7 @@ public class Controller
                         break;
                     }
 
-                    guiItem.dispose();
+                    GUIItemSource.disposeGUIItem(guiItem);
 
                     // Remove it from the GUI item list.
                     _guiMap.remove(removeCmd.id);

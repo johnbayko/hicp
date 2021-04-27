@@ -15,23 +15,30 @@ import hicp.message.event.Click;
 import hicp.message.event.EventEnum;
 
 public class GUIButtonItem
-    extends GUISingleTextItem
+    extends GUIItem
+    implements TextItemAdapterListener
 {
     private static final Logger LOGGER =
         Logger.getLogger( GUIButtonItem.class.getName() );
 
     protected final MessageExchange _messageExchange;
 
+    protected TextItemAdapter _textItemAdapter;
+
     protected JButton _component;
 
     public GUIButtonItem(
         final Add addCmd,
-        final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        super(addCmd, textLibrary);
+        super(addCmd);
 
         _messageExchange = messageExchange;
+    }
+
+    public void setAdapter(TextItemAdapter tia) {
+        _textItemAdapter = tia;
+        _textItemAdapter.setAdapter(this);
     }
 
     protected GUIItem addInvoked(Add addCmd) {
@@ -53,7 +60,7 @@ public class GUIButtonItem
 
         // Button string.
         if (null != addCmd.text) {
-            setTextIdInvoked(addCmd.text);
+            _textItemAdapter.setTextId(addCmd.text);
         }
         // Button enable/disable.
         {
@@ -81,10 +88,12 @@ public class GUIButtonItem
     /**
         Called in GUI thread.
      */
-    protected GUIItem setTextInvoked(String text) {
+    public void setTextInvoked(String text) {
         _component.setText(text);
+    }
 
-        return this;
+    public void removeAdapter() {
+        _textItemAdapter.removeAdapter();
     }
 
     public void dispose() {
@@ -106,7 +115,7 @@ public class GUIButtonItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            setTextIdInvoked(modifyCmd.text);
+            _textItemAdapter.setTextId(modifyCmd.text);
         }
         if (null != modifyCmd.events) {
             setEventsInvoked(modifyCmd.events);

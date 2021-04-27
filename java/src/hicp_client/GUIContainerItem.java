@@ -21,7 +21,7 @@ import hicp.message.command.Modify;
 import hicp.message.event.Event;
 
 public abstract class GUIContainerItem
-    extends GUISingleTextItem
+    extends GUIItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( GUIContainerItem.class.getName() );
@@ -35,12 +35,12 @@ public abstract class GUIContainerItem
     /**
         Non-GUI thread.
      */
-    public GUIContainerItem(final Add addCmd, final TextLibrary textLibrary) {
-        super(addCmd, textLibrary);
+    public GUIContainerItem(final Add addCmd) {
+        super(addCmd);
     }
 
-    public GUIContainerItem(final TextLibrary textLibrary) {
-        super(textLibrary);
+    public GUIContainerItem() {
+        super();
     }
 
     public GUIItem add(GUIItem guiItem) {

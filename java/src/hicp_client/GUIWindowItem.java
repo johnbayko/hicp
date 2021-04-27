@@ -28,11 +28,14 @@ import hicp.message.event.EventEnum;
 
 public class GUIWindowItem
     extends GUILayoutItem
+    implements TextItemAdapterListener
 {
     private static final Logger LOGGER =
         Logger.getLogger( GUIWindowItem.class.getName() );
 
     protected final MessageExchange _messageExchange;
+
+    protected TextItemAdapter _textItemAdapter;
 
     // Should be used only from GUI thread.
     protected JFrame _component;
@@ -40,12 +43,16 @@ public class GUIWindowItem
 
     public GUIWindowItem(
         final Add addCmd,
-        final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        super(addCmd, textLibrary);
+        super(addCmd);
 
         _messageExchange = messageExchange;
+    }
+
+    public void setAdapter(TextItemAdapter tia) {
+        _textItemAdapter = tia;
+        _textItemAdapter.setAdapter(this);
     }
 
     protected GUIItem addInvoked(final Add addCmd) {
@@ -103,7 +110,7 @@ public class GUIWindowItem
 
         // Frame title.
         if (null != addCmd.text) {
-            setTextIdInvoked(addCmd.text);
+            _textItemAdapter.setTextId(addCmd.text);
         } else {
             // No text for title bar, make up something.
             _component.setTitle("Window " + addCmd.id); 
@@ -175,10 +182,12 @@ public class GUIWindowItem
     /**
         Called in GUI thread.
      */
-    protected GUIItem setTextInvoked(String text) {
+    public void setTextInvoked(String text) {
         _component.setTitle(text);
+    }
 
-        return this;
+    public void removeAdapter() {
+        _textItemAdapter.removeAdapter();
     }
 
     public void dispose() {
@@ -261,7 +270,7 @@ public class GUIWindowItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            setTextIdInvoked(modifyCmd.text);
+            _textItemAdapter.setTextId(modifyCmd.text);
         }
 
         // Visible?

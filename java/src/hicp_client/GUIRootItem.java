@@ -24,21 +24,13 @@ public class GUIRootItem
     /**
         Non-GUI thread.
      */
-    public GUIRootItem(final TextLibrary textLibrary) {
-        super(textLibrary);
+    public GUIRootItem() {
+        super();
         _firstTextDirection = TextDirection.RIGHT;
         _secondTextDirection = TextDirection.DOWN;
     }
 
     protected GUIItem addInvoked(final Add addCmd) {
-        return this;
-    }
-
-    /**
-        Set text, must be called from GUI thread.
-     */
-    protected GUIItem setTextInvoked(String text) {
-        // Not used at the moment.
         return this;
     }
 

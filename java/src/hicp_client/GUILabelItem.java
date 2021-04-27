@@ -10,15 +10,20 @@ import hicp.message.command.Add;
 import hicp.message.command.Modify;
 
 public class GUILabelItem
-    extends GUISingleTextItem
+    extends GUIItem
+    implements TextItemAdapterListener
 {
+    protected TextItemAdapter _textItemAdapter;
+
     protected JLabel _component;
 
-    public GUILabelItem(
-        final Add addCmd,
-        final TextLibrary textLibrary
-    ) {
-        super(addCmd, textLibrary);
+    public GUILabelItem(final Add addCmd) {
+        super(addCmd);
+    }
+
+    public void setAdapter(TextItemAdapter tia) {
+        _textItemAdapter = tia;
+        _textItemAdapter.setAdapter(this);
     }
 
     /**
@@ -29,7 +34,7 @@ public class GUILabelItem
 
         // Label string.
         if (null != addCmd.text) {
-            setTextIdInvoked(addCmd.text);
+            _textItemAdapter.setTextId(addCmd.text);
         }
         return this;
     }
@@ -53,10 +58,12 @@ public class GUILabelItem
     /**
         Called in GUI thread.
      */
-    protected GUIItem setTextInvoked(String text) {
+    public void setTextInvoked(String text) {
         _component.setText(text);
+    }
 
-        return this;
+    public void removeAdapter() {
+        _textItemAdapter.removeAdapter();
     }
 
     public void dispose() {
@@ -69,7 +76,7 @@ public class GUILabelItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            setTextIdInvoked(modifyCmd.text);
+            _textItemAdapter.setTextId(modifyCmd.text);
         }
         // Changed parent ID is handled by Controller.
         return this;
