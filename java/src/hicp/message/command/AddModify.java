@@ -34,6 +34,7 @@ public abstract class AddModify
 
     public final static String ATTRIBUTES = "attributes";
     public final static String CONTENT = "content";
+    public final static String ITEMS = "items";
     public final static String PARENT = "parent";
     public final static String POSITION = "position";
     public final static String SIZE = "size";
@@ -50,6 +51,7 @@ public abstract class AddModify
     public TextAttributes textAttributes = null;
 
     public String content = null;
+    public String items = null;
     public String component = null;
     public String parent = null;
     public String text = null;
@@ -111,6 +113,9 @@ readLoop:   for (;;) {
             return true;
         } else if (CONTENT.equals(hicpHeader.name)) {
             content = hicpHeader.value.getString();
+            return true;
+        } else if (ITEMS.equals(hicpHeader.name)) {
+            items = hicpHeader.value.getString();
             return true;
         } else if (COMPONENT.equals(hicpHeader.name)) {
             component = hicpHeader.value.getString();

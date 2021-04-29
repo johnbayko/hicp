@@ -182,6 +182,7 @@ class TestApp(App):
         window.add(able_button, 1, 3)
 
         list_panel = Panel()
+        list_panel.set_size(1, 3)
         window.add(list_panel, 2, 1)
 
         selection_label = Label()
@@ -191,7 +192,7 @@ class TestApp(App):
         # Add selection list to list_panel
         selection = Selection()
         item_list = {}
-        for item_id in range(1, 3):
+        for item_id in range(1, 4):
             item_text_id = hicp.add_text_get_id('Selection ' + str(item_id))
             item = SelectionItem(item_id, item_text_id)
             item_list[item_id] = item

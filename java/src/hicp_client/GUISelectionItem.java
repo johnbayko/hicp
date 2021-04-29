@@ -1,11 +1,16 @@
 package hicp_client;
 
 import java.awt.Component;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.swing.AbstractListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
@@ -21,7 +26,11 @@ public class GUISelectionItem
     private static final Logger LOGGER =
         Logger.getLogger( GUIItem.class.getName() );
 
+    protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
+
+    // Scroll list support
+    SelectionListModel _selectionListModel = null;
 
     protected Component _component;
 
@@ -75,13 +84,165 @@ public class GUISelectionItem
         }
     }
 
+    // TODO make separate classes for these.
+
+    // Scroll component
+    static class SelectionListModel
+        extends AbstractListModel<String>
+    {
+        public static final Pattern lineSplitter =
+            Pattern.compile("\r\n", Pattern.LITERAL);
+
+        private final TextLibrary _textLibrary;
+
+        // Empty list by default.
+        private List<SelectionItem> _selectionItemList = new ArrayList<>();
+
+        public SelectionListModel(
+            final TextLibrary newTextLibrary,
+            final String itemsStr
+        ) {
+            _textLibrary = newTextLibrary;
+
+            updateItems(itemsStr);
+        }
+
+        public void updateItems(final String itemsStr) {
+            final int oldSize = _selectionItemList.size();
+
+            final String[] itemsList = lineSplitter.split(itemsStr);
+
+            _selectionItemList = new ArrayList<>(itemsList.length);
+
+            for (final String itemStr : itemsList) {
+                try {
+                    final SelectionItem newSelectionItem =
+                        new SelectionItem(_textLibrary, itemStr);
+                    _selectionItemList.add(newSelectionItem);
+                } catch (ParseException | NumberFormatException ex) {
+                    // Just skip.
+                }
+            }
+
+            final int newSize = _selectionItemList.size();
+            final int size = Math.max(oldSize, newSize);
+
+            fireContentsChanged(this, 0, size);
+        }
+
+        public String getElementAt(final int index) {
+            return _selectionItemList.get(index).getText();
+        }
+
+        public int getSize() {
+            return _selectionItemList.size();
+        }
+    }
+
+    static class SelectionItem
+// TODO Just testing static strings for now.
+// Will also need to use a text item adapter when text changed event happens
+//        implements TextListener
+    {
+        public static final Pattern colonSplitter =
+            Pattern.compile("\\s*:\\s*");
+        public final int ID_IDX = 0;
+        public final int INFO_IDX = 1;
+
+        public static final Pattern commaSplitter =
+            Pattern.compile("\\s*,\\s*");
+
+        public static final Pattern keyValueSplitter =
+            Pattern.compile("\\s*=\\s*");
+        public final int KEY_IDX = 0;
+        public final int VALUE_IDX = 1;
+
+        private final TextLibrary _textLibrary;
+
+        private final int id;
+
+        private final String textId;
+        private String text = "";
+
+        private boolean enabled = true;
+
+        public SelectionItem(
+            final TextLibrary newTextLibrary,
+            final String itemStr
+        )
+            throws ParseException, NumberFormatException
+        {
+            _textLibrary = newTextLibrary;
+
+            // <id>:<type-value list>
+            final String[] idInfoSplit =
+                colonSplitter.split(itemStr);
+
+            // Needs at least 2 results.
+            if (idInfoSplit.length < 2) {
+                throw new ParseException(
+                        "Expected <id>:<item info>, missing separator ':'", 0
+                    );
+            }
+            id = Integer.parseInt(idInfoSplit[ID_IDX]);
+
+            final String[] infoList =
+                commaSplitter.split(idInfoSplit[INFO_IDX]);
+
+            // Needs at least 1 result.
+            if (infoList.length < 1) {
+                throw new ParseException("No selection item info found.", 0);
+            }
+
+            String textIdStr = null;
+            String eventsStr = null;
+            for (final String typeValueStr : infoList) {
+                final String[] typeValueSplit =
+                    keyValueSplitter.split(typeValueStr);
+
+                if (typeValueSplit.length < 2) {
+                    // Just skip this one.
+                    continue;
+                }
+                final String type = typeValueSplit[KEY_IDX];
+                final String value = typeValueSplit[VALUE_IDX];
+
+                if ("text".equals(type) && (null == textIdStr)) {
+                    textIdStr = value;
+                } else if ("events".equals(type) && (null == eventsStr)) {
+                    eventsStr = value;
+                }
+            }
+            if (null != textIdStr) {
+                textId = textIdStr;
+                text = _textLibrary.get(textId).getText();
+            } else {
+                throw new ParseException(
+                    "Expected at text ID in type info, found none.", 0
+                    );
+            }
+            if (null != eventsStr) {
+                // Default is enabled, explicitly disable.
+                // If not "disabled", don't disable.
+                enabled = !"disabled".equals(eventsStr);
+            }
+        }
+
+        public String getText() {
+            return text;
+        }
+    }
+
     public GUISelectionItem(
         Add addCmd,
+        TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
         super(addCmd);
 
+        _textLibrary = textLibrary;
         _messageExchange = messageExchange;
+
     }
 
     protected GUIItem addInvoked(final Add addCmd) {
@@ -93,8 +254,13 @@ public class GUISelectionItem
 
         switch (presentation) {
           case SCROLL:
-            String[] testList = {"scroll", "selection", "list"};  // debug
-            JList<String> newList = new JList<>(testList);  // debug
+            final JList<String> newList = new JList<String>();
+
+            _selectionListModel =
+                new SelectionListModel(_textLibrary, addCmd.items);
+                
+            newList.setModel(_selectionListModel);
+
             _component = new JScrollPane(newList);
             break;
           case TOGGLE:
@@ -156,6 +322,9 @@ public class GUISelectionItem
 
     protected GUIItem modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
+        if (null != modifyCmd.items) {
+            _selectionListModel.updateItems(modifyCmd.items);
+        }
         if (null != modifyCmd.events) {
             setEventsInvoked(modifyCmd.events);
         }
