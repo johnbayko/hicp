@@ -29,6 +29,22 @@ public class GUISelectionItem
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
+    public static final Pattern lineSplitter =
+        Pattern.compile("\r\n", Pattern.LITERAL);
+
+    public static final Pattern colonSplitter =
+        Pattern.compile("\\s*:\\s*");
+    public final int ID_IDX = 0;
+    public final int INFO_IDX = 1;
+
+    public static final Pattern commaSplitter =
+        Pattern.compile("\\s*,\\s*");
+
+    public static final Pattern keyValueSplitter =
+        Pattern.compile("\\s*=\\s*");
+    public final int KEY_IDX = 0;
+    public final int VALUE_IDX = 1;
+
     // Scroll list support
     SelectionListModel _selectionListModel = null;
 
@@ -87,23 +103,15 @@ public class GUISelectionItem
     // TODO make separate classes for these.
 
     // Scroll component
-    static class SelectionListModel
+    class SelectionListModel
         extends AbstractListModel<String>
     {
-        public static final Pattern lineSplitter =
-            Pattern.compile("\r\n", Pattern.LITERAL);
-
-        private final TextLibrary _textLibrary;
-
         // Empty list by default.
         private List<SelectionItem> _selectionItemList = new ArrayList<>();
 
         public SelectionListModel(
-            final TextLibrary newTextLibrary,
             final String itemsStr
         ) {
-            _textLibrary = newTextLibrary;
-
             updateItems(itemsStr);
         }
 
@@ -117,7 +125,7 @@ public class GUISelectionItem
             for (final String itemStr : itemsList) {
                 try {
                     final SelectionItem newSelectionItem =
-                        new SelectionItem(_textLibrary, itemStr);
+                        new SelectionItem(itemStr);
                     _selectionItemList.add(newSelectionItem);
                 } catch (ParseException | NumberFormatException ex) {
                     // Just skip.
@@ -139,26 +147,11 @@ public class GUISelectionItem
         }
     }
 
-    static class SelectionItem
+    class SelectionItem
 // TODO Just testing static strings for now.
 // Will also need to use a text item adapter when text changed event happens
 //        implements TextListener
     {
-        public static final Pattern colonSplitter =
-            Pattern.compile("\\s*:\\s*");
-        public final int ID_IDX = 0;
-        public final int INFO_IDX = 1;
-
-        public static final Pattern commaSplitter =
-            Pattern.compile("\\s*,\\s*");
-
-        public static final Pattern keyValueSplitter =
-            Pattern.compile("\\s*=\\s*");
-        public final int KEY_IDX = 0;
-        public final int VALUE_IDX = 1;
-
-        private final TextLibrary _textLibrary;
-
         private final int id;
 
         private final String textId;
@@ -167,13 +160,10 @@ public class GUISelectionItem
         private boolean enabled = true;
 
         public SelectionItem(
-            final TextLibrary newTextLibrary,
             final String itemStr
         )
             throws ParseException, NumberFormatException
         {
-            _textLibrary = newTextLibrary;
-
             // <id>:<type-value list>
             final String[] idInfoSplit =
                 colonSplitter.split(itemStr);
@@ -256,9 +246,8 @@ public class GUISelectionItem
           case SCROLL:
             final JList<String> newList = new JList<String>();
 
-            _selectionListModel =
-                new SelectionListModel(_textLibrary, addCmd.items);
-                
+            _selectionListModel = new SelectionListModel(addCmd.items);
+
             newList.setModel(_selectionListModel);
 
             _component = new JScrollPane(newList);
