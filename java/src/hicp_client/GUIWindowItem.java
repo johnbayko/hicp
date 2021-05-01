@@ -110,7 +110,7 @@ public class GUIWindowItem
 
         // Frame title.
         if (null != addCmd.text) {
-            _textItemAdapter.setTextId(addCmd.text);
+            _textItemAdapter.setTextIdInvoked(addCmd.text);
         } else {
             // No text for title bar, make up something.
             _component.setTitle("Window " + addCmd.id); 
@@ -270,7 +270,7 @@ public class GUIWindowItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            _textItemAdapter.setTextId(modifyCmd.text);
+            _textItemAdapter.setTextIdInvoked(modifyCmd.text);
         }
 
         // Visible?

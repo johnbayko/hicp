@@ -60,7 +60,7 @@ public class GUIButtonItem
 
         // Button string.
         if (null != addCmd.text) {
-            _textItemAdapter.setTextId(addCmd.text);
+            _textItemAdapter.setTextIdInvoked(addCmd.text);
         }
         // Button enable/disable.
         {
@@ -115,7 +115,7 @@ public class GUIButtonItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            _textItemAdapter.setTextId(modifyCmd.text);
+            _textItemAdapter.setTextIdInvoked(modifyCmd.text);
         }
         if (null != modifyCmd.events) {
             setEventsInvoked(modifyCmd.events);

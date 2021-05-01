@@ -34,7 +34,7 @@ public class GUILabelItem
 
         // Label string.
         if (null != addCmd.text) {
-            _textItemAdapter.setTextId(addCmd.text);
+            _textItemAdapter.setTextIdInvoked(addCmd.text);
         }
         return this;
     }
@@ -76,7 +76,7 @@ public class GUILabelItem
 
         // New text item?
         if (null != modifyCmd.text) {
-            _textItemAdapter.setTextId(modifyCmd.text);
+            _textItemAdapter.setTextIdInvoked(modifyCmd.text);
         }
         // Changed parent ID is handled by Controller.
         return this;

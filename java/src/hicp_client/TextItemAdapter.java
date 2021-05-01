@@ -28,7 +28,7 @@ public class TextItemAdapter
         return this;
     }
 
-    public TextItemAdapter setTextId(String textId) {
+    public TextItemAdapter setTextIdInvoked(String textId) {
         if (null != _textItem) {
             _textItem.removeTextListener(this);
         }
@@ -36,7 +36,7 @@ public class TextItemAdapter
 
         if (null != _textItem) {
             _textItem.addTextListener(this);
-            SwingUtilities.invokeLater(_textInvoker);
+            _listener.setTextInvoked(_textItem.getText());
         }
         return this;
     }
