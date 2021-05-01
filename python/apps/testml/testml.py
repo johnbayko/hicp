@@ -2,7 +2,7 @@ import os
 
 from datetime import datetime
 
-from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField
+from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField, Selection, SelectionItem
 from hicp import App, AppInfo
 
 class ButtonHandlerML:
@@ -292,6 +292,30 @@ class TestAppML(App):
             )
         )
         window.add(able_button, 1, 3)
+
+        list_panel = Panel()
+        list_panel.set_size(1, 3)
+        window.add(list_panel, 2, 1)
+
+        selection_label = Label()
+        selection_label.set_groups_text( [
+                ( "Selection", self.LANG_EN),
+                ( "Sélection", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        list_panel.add(selection_label, 0, 0)
+
+        # Add selection list to list_panel
+        selection = Selection()
+        item_list = {}
+        for item_id in range(1, 4):
+            item_text_id = hicp.add_groups_text_get_id( [
+                    ("Selection " + str(item_id), self.LANG_EN),
+                    ("Sélection " + str(item_id), self.LANG_FR, self.LANG__CA)
+                ])
+            item = SelectionItem(item_id, item_text_id)
+            item_list[item_id] = item
+        selection.add_items(item_list)
+        list_panel.add(selection, 0, 1)
 
         path_label = Label()
         path_label.set_groups_text( [

@@ -10,13 +10,6 @@ public class TextItemAdapter
     private TextItemAdapterListener _listener = null;
     private TextItem _textItem = null;
 
-    private Runnable _textInvoker = new Runnable() {
-        public void run() {
-            _listener.setTextInvoked(_textItem.getText());
-        }
-    };
-
-
     public TextItemAdapter(TextLibrary newTextLibrary) {
         _textLibrary = newTextLibrary;
     }
@@ -50,6 +43,13 @@ public class TextItemAdapter
 
         return this;
     }
+
+
+    private Runnable _textInvoker = new Runnable() {
+        public void run() {
+            _listener.setTextInvoked(_textItem.getText());
+        }
+    };
 
     public void textChanged(TextEvent e) {
         TextItem ti = (TextItem)e.getSource();

@@ -109,12 +109,14 @@ public class GUISelectionItem
         // Empty list by default.
         private List<SelectionItem> _selectionItemList = new ArrayList<>();
 
+        // GUI thread (addInvoked()).
         public SelectionListModel(
             final String itemsStr
         ) {
             updateItems(itemsStr);
         }
 
+        // GUI thread (modifyInvoked()).
         public void updateItems(final String itemsStr) {
             final int oldSize = _selectionItemList.size();
 
@@ -124,9 +126,13 @@ public class GUISelectionItem
 
             for (final String itemStr : itemsList) {
                 try {
-                    final SelectionItem newSelectionItem =
-                        new SelectionItem(itemStr);
-                    _selectionItemList.add(newSelectionItem);
+                    // Index from 0 to size - 1, next index will be size.
+                    final int newIdx = _selectionItemList.size();
+
+                    final SelectionItem si =
+                        new SelectionItem(this, newIdx, itemStr);
+
+                    _selectionItemList.add(si);
                 } catch (ParseException | NumberFormatException ex) {
                     // Just skip.
                 }
@@ -145,25 +151,40 @@ public class GUISelectionItem
         public int getSize() {
             return _selectionItemList.size();
         }
+
+        // GUI thread.
+        // Inform JList that this item changed.
+        public void itemChangedInvoked(final SelectionItem si) {
+            final int idx = si.idx;
+
+            fireContentsChanged(this, idx, idx);
+        }
     }
 
     class SelectionItem
-// TODO Just testing static strings for now.
-// Will also need to use a text item adapter when text changed event happens
-//        implements TextListener
+        implements TextListener
     {
-        private final int id;
+        // Model and index in model, needed for fireContentsChanged().
+        public final SelectionListModel selectionListModel;
+        public final int idx;
 
-        private final String textId;
+        public final String id;
+
+        public final String textId;
         private String text = "";
 
         private boolean enabled = true;
 
         public SelectionItem(
+            final SelectionListModel newSelectionListModel,
+            final int newIdx,
             final String itemStr
         )
             throws ParseException, NumberFormatException
         {
+            selectionListModel = newSelectionListModel;
+            idx = newIdx;
+
             // <id>:<type-value list>
             final String[] idInfoSplit =
                 colonSplitter.split(itemStr);
@@ -174,7 +195,7 @@ public class GUISelectionItem
                         "Expected <id>:<item info>, missing separator ':'", 0
                     );
             }
-            id = Integer.parseInt(idInfoSplit[ID_IDX]);
+            id = idInfoSplit[ID_IDX];
 
             final String[] infoList =
                 commaSplitter.split(idInfoSplit[INFO_IDX]);
@@ -205,7 +226,13 @@ public class GUISelectionItem
             }
             if (null != textIdStr) {
                 textId = textIdStr;
-                text = _textLibrary.get(textId).getText();
+
+                final TextItem textItem = _textLibrary.get(textId);
+                text = textItem.getText();
+
+                // Adds this as a listener to the text item, but through
+                // SwingUtilities.invokeLater().
+                textItem.addTextListener(new TextListenerInvoker(this));
             } else {
                 throw new ParseException(
                     "Expected at text ID in type info, found none.", 0
@@ -220,6 +247,16 @@ public class GUISelectionItem
 
         public String getText() {
             return text;
+        }
+
+        /*
+            GUI thread.
+         */
+        public void textChanged(TextEvent e) {
+            TextItem ti = (TextItem)e.getSource();
+            text = ti.getText();
+
+            selectionListModel.itemChangedInvoked(this);
         }
     }
 
