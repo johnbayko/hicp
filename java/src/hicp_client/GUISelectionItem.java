@@ -14,6 +14,8 @@ import javax.swing.AbstractListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
@@ -104,7 +106,7 @@ public class GUISelectionItem
 
     // Scroll component
     class SelectionListModel
-        extends AbstractListModel<String>
+        extends AbstractListModel<SelectionItem>
     {
         // Empty list by default.
         private List<SelectionItem> _selectionItemList = new ArrayList<>();
@@ -144,8 +146,8 @@ public class GUISelectionItem
             fireContentsChanged(this, 0, size);
         }
 
-        public String getElementAt(final int index) {
-            return _selectionItemList.get(index).getText();
+        public SelectionItem getElementAt(final int index) {
+            return _selectionItemList.get(index);
         }
 
         public int getSize() {
@@ -249,6 +251,10 @@ public class GUISelectionItem
             return text;
         }
 
+        public boolean isEnabled() {
+            return enabled;
+        }
+
         /*
             GUI thread.
          */
@@ -257,6 +263,32 @@ public class GUISelectionItem
             text = ti.getText();
 
             selectionListModel.itemChangedInvoked(this);
+        }
+    }
+
+    static class SelectionItemRenderer
+        extends JLabel
+        implements ListCellRenderer<SelectionItem>
+    {
+        public Component getListCellRendererComponent(
+            JList<? extends SelectionItem> list,
+            SelectionItem value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus
+        ) {
+            setText(value.getText());
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            setEnabled(list.isEnabled() && value.isEnabled());
+            setFont(list.getFont());
+            setOpaque(true);
+            return this;
         }
     }
 
@@ -281,11 +313,27 @@ public class GUISelectionItem
 
         switch (presentation) {
           case SCROLL:
-            final JList<String> newList = new JList<String>();
+            final JList<SelectionItem> newList = new JList<>();
 
             _selectionListModel = new SelectionListModel(addCmd.items);
-
             newList.setModel(_selectionListModel);
+
+            newList.setCellRenderer(new SelectionItemRenderer());
+
+            switch (mode) {
+              case SINGLE:
+                newList
+                    .setSelectionMode(
+                        ListSelectionModel.SINGLE_SELECTION
+                    );
+                break;
+              case MULTIPLE:
+                newList
+                    .setSelectionMode(
+                        ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+                    );
+                break;
+            }
 
             _component = new JScrollPane(newList);
             break;

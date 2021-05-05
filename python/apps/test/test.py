@@ -193,8 +193,12 @@ class TestApp(App):
         selection = Selection()
         item_list = {}
         for item_id in range(1, 4):
-            item_text_id = hicp.add_text_get_id('Selection ' + str(item_id))
-            item = SelectionItem(item_id, item_text_id)
+            item_text_id = hicp.add_text_get_id('Number ' + str(item_id))
+            # Disable item 2 for testing.
+            if item_id != 2:
+                item = SelectionItem(item_id, item_text_id)
+            else:
+                item = SelectionItem(item_id, item_text_id, events=Message.DISABLED)
             item_list[item_id] = item
         selection.add_items(item_list)
         list_panel.add(selection, 0, 1)
