@@ -15,7 +15,7 @@ class ButtonHandler:
         self.__label = label
         self.__next_text_id = next_text_id
 
-    def update(self, hicp, event_message, component):
+    def update(self, hicp, event, component):
         self.logger.debug("ButtonHandler In update handler")
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
@@ -27,12 +27,21 @@ class TextFieldHandler:
         self.__label = label
         self.__next_text_id = next_text_id
 
-    def update(self, hicp, event_message, text_field):
+    def update(self, hicp, event, text_field):
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
         text_field.set_content("Woo-hoo!")
         text_field.update()
+
+class SelectionHandler:
+    def __init__(self, selection_field):
+        self.__selection_field = selection_field
+
+    def update(self, hicp, event, selection):
+        self.__selection_field.set_content(
+                event.message.get_header(Message.SELECTED) )
+        self.__selection_field.update()
 
 
 class AbleButtonHandler:
@@ -44,7 +53,7 @@ class AbleButtonHandler:
 
         self.__events = Button.ENABLED
 
-    def update(self, hicp, event_message, button):
+    def update(self, hicp, event, button):
         if Button.ENABLED == self.__events:
             self.__events = Button.DISABLED
             new_text_id = self.__enabled_text_id
@@ -202,6 +211,15 @@ class TestApp(App):
             item_list[item_id] = item
         selection.add_items(item_list)
         list_panel.add(selection, 0, 1)
+
+        selection_field = TextField()
+        selection_field.set_events(TextField.DISABLED)
+        list_panel.add(selection_field, 0, 2)
+
+        selection.set_handler(
+            EventType.CHANGED,
+            SelectionHandler(selection_field)
+        )
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)

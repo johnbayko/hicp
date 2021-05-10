@@ -100,7 +100,7 @@ public class GUITextFieldItem
             // Content has changed.
             // Send a changed event with this object's ID
             // and the new content.
-            Changed changedEvent = (Changed)EventEnum.CHANGED.newEvent();
+            final Changed changedEvent = (Changed)EventEnum.CHANGED.newEvent();
             
             changedEvent.id = idString;
             if (hasContentChanged) {

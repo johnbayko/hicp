@@ -914,11 +914,9 @@ class HICP:
         self.__component_list = {}
 
     def start(self):
-        self.logger.debug("about to make WriteThread()")  # debug
         self.__write_thread = WriteThread(self.out_stream)
         self.__write_thread.start()
 
-        self.logger.debug("about to make EventThread()")  # debug
         self.__event_thread = EventThread(
             self,
             self.__write_thread,
@@ -927,11 +925,9 @@ class HICP:
             self.__authenticator)
         self.__event_thread.start()
 
-        self.logger.debug("before make TimeThread()")  # debug
         self.__time_thread = TimeThread(self.__event_thread)
         self.__time_thread.start()
 
-        self.logger.debug("about to make ReadThread()")  # debug
         self.__read_thread = ReadThread(
             self.in_stream,
             self.__component_list,
@@ -939,19 +935,14 @@ class HICP:
             self.__time_thread)
         self.__read_thread.start()
 
-        self.logger.debug("about to join read_thread")  # debug
         self.__read_thread.join()
 
-        self.logger.debug("about to join time_thread")  # debug
         self.__time_thread.join()
 
-        self.logger.debug("about to join event_thread")  # debug
         self.__event_thread.join()
 
         # Stop write thread.
-        self.logger.debug("about to __write_thread.write(None)")  # debug
         self.__write_thread.write(None)
-        self.logger.debug("about to join __write_thread")  # debug
         self.__write_thread.join()
 
     def switch_app(self, app_name):

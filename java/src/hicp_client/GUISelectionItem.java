@@ -17,10 +17,14 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
+import hicp.message.event.Changed;
+import hicp.message.event.EventEnum;
 
 public class GUISelectionItem
     extends GUIItem
@@ -334,6 +338,29 @@ public class GUISelectionItem
                     );
                 break;
             }
+
+            newList
+                .addListSelectionListener(
+                    new ListSelectionListener() {
+                        public void valueChanged(ListSelectionEvent e) {
+                            if (e.getValueIsAdjusting()) {
+                                // Wait until last event to make new event
+                                // message
+                                return;
+                            }
+                            final JList source = (JList)e.getSource();
+                            final int[] selected = source.getSelectedIndices();
+
+                            final Changed changedEvent =
+                                (Changed)EventEnum.CHANGED.newEvent();
+
+                            changedEvent.id = idString;
+                            changedEvent.selected = selected;
+
+                            _messageExchange.send(changedEvent);
+                        }
+                    }
+                );
 
             _component = new JScrollPane(newList);
             break;

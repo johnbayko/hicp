@@ -29,6 +29,9 @@ public class MessageExchange
     protected Writer _out;
     protected Controller _controller;
 
+    /*
+        Written by send (GUI event thread), read by input thread (this).
+     */
     protected Message lastMessage;
 
     /**
@@ -78,6 +81,9 @@ readLoop:   while (null != _in) {
         _controller.closed();
     }
 
+    /*
+        Typically called from GUI event thread.
+     */
     public synchronized MessageExchange send(Message m) {
         if (null == m) {
             return this;
