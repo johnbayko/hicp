@@ -1100,7 +1100,8 @@ items: <item list>
 
       "disabled"
         This item cannot be selected or unselected. In single selection mode, a
-        selected item will stil be unselected when another item is selected.
+        disabled selected item will still be unselected when another enabled
+        item is selected.
 
 selected: <integer> [ "," <integer> ]*
   If specified, this is used by these components:

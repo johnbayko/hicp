@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -11,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.AbstractListModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
@@ -52,7 +55,8 @@ public class GUISelectionItem
     public final int VALUE_IDX = 1;
 
     // Scroll list support
-    SelectionListModel _selectionListModel = null;
+    private SelectionListModel _listModel = null;
+    private SelectionItemSelection _listSelectionModel = null;
 
     protected Component _component;
 
@@ -106,6 +110,31 @@ public class GUISelectionItem
         }
     }
 
+    static enum Events {
+        ENABLED("enabled"),
+        DISABLED("disabled"),
+        UNSELECT("unselect");
+
+        public final String name;
+
+        private static final Map<String, Events> eventsMap =
+            Arrays.stream(Events.values())
+                .collect(
+                    Collectors.toMap(
+                        events -> events.name,
+                        events -> events
+                    )
+                );
+
+        Events(final String forEvents) {
+            name = forEvents;
+        }
+
+        public static Events getEnum(final String forEvents) {
+            return eventsMap.getOrDefault(forEvents, ENABLED);
+        }
+    }
+
     // TODO make separate classes for these.
 
     // Scroll component
@@ -147,7 +176,7 @@ public class GUISelectionItem
             final int newSize = _selectionItemList.size();
             final int size = Math.max(oldSize, newSize);
 
-            fireContentsChanged(this, 0, size);
+            fireContentsChanged(this, 0, size-1);
         }
 
         public SelectionItem getElementAt(final int index) {
@@ -164,6 +193,10 @@ public class GUISelectionItem
             final int idx = si.idx;
 
             fireContentsChanged(this, idx, idx);
+        }
+
+        public void fireContentsChanged() {
+            fireContentsChanged(this, 0, _selectionItemList.size()-1);
         }
     }
 
@@ -289,11 +322,152 @@ public class GUISelectionItem
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
             }
-            setEnabled(list.isEnabled() && value.isEnabled());
+            final SelectionItemSelection sm =
+                (SelectionItemSelection)list.getSelectionModel();
+            setEnabled(
+                (Events.ENABLED == sm.getEvents())
+              && value.isEnabled()
+            );
             setFont(list.getFont());
             setOpaque(true);
             return this;
         }
+    }
+
+    public static class SelectionRange {
+        public final int index0;
+        public final int index1;
+        public SelectionRange(final int newIndex0, final int newIndex1) {
+            index0 = newIndex0;
+            index1 = newIndex1;
+        }
+    }
+
+    /**
+        Manage selection so list can be disabled, or individual item selection
+        can be disabled. Overrides were based on logging which public methods
+        were called, I suspect that's implementation dependent and could change
+        with different Java version or system platforms, but I can't see a way
+        around that.
+     */
+    class SelectionItemSelection
+        extends DefaultListSelectionModel
+    {
+        private Events events = Events.ENABLED;
+
+        public SelectionItemSelection() {
+        }
+
+        public SelectionItemSelection(Events newEvents) {
+            setEvents(newEvents);
+        }
+
+        public SelectionItemSelection setEvents(Events newEvents) {
+            events = newEvents;
+            return this;
+        }
+
+        public Events getEvents() {
+            return events;
+        }
+
+        /**
+            Take a range for elements in a list model, and return a list of
+            ranges where all elements are enabled. Works for ascending or
+            decending order.
+         */
+        protected List<SelectionRange> enabledRanges(int index0, int index1) {
+            final List<SelectionRange> enabledRanges = new LinkedList<>();
+
+            // Indexes can go up or down. Set scan direction here.
+            final int step = (index0 > index1) ? -1 : 1;
+            final int stopIdx = index1 + step;
+
+            int rangeStart = index0;
+            boolean prevIsEnabled = false;
+
+            for (int scanIdx = index0; scanIdx != stopIdx;scanIdx += step) {
+                // Find range start or end - that is, current and previous item
+                // enabled value changes.
+                final SelectionItem si = _listModel.getElementAt(scanIdx);
+                final boolean isEnabled = si.isEnabled();
+
+                if (prevIsEnabled && !isEnabled) {
+                    // Change from enabled to disbled means end of a range, add
+                    // to list.
+                    enabledRanges
+                        .add(new SelectionRange(rangeStart, scanIdx-step));
+                } else if (!prevIsEnabled && isEnabled) {
+                    // Change from disabled to enabled means start of a range.
+                    rangeStart = scanIdx;
+                }
+                prevIsEnabled = isEnabled;
+            }
+            if (prevIsEnabled) {
+                // Last item was enabled, ended with an enabled range, add to
+                // list.
+                enabledRanges.add(new SelectionRange(rangeStart, index1));
+            }
+            return enabledRanges;
+        }
+
+        @Override
+        public void setSelectionInterval(int index0, int index1) {
+            if (Events.ENABLED == events) {
+                // First call should be super.setSelectionInterval(),
+                // all others should be super.addSelectionInterval().
+                boolean isFirstRange = true;
+
+                for (final SelectionRange r : enabledRanges(index0, index1)) {
+                    if (isFirstRange) {
+                        super.setSelectionInterval(r.index0, r.index1);
+                        isFirstRange = false;
+                    } else {
+                        super.addSelectionInterval(r.index0, r.index1);
+                    }
+                }
+            }
+        }
+        @Override
+        public void addSelectionInterval(int index0, int index1) {
+            if (Events.ENABLED == events) {
+                for (final SelectionRange r : enabledRanges(index0, index1)) {
+                    super.addSelectionInterval(r.index0, r.index1);
+                }
+            }
+        }
+        @Override
+        public void removeSelectionInterval(int index0, int index1) {
+            if ( (Events.ENABLED == events)
+              || (Events.UNSELECT == events) )
+            {
+                for (final SelectionRange r : enabledRanges(index0, index1)) {
+                    super.removeSelectionInterval(r.index0, r.index1);
+                }
+            }
+        }
+        // Leaving these here in case they need to be overridden in other
+        // versions or implementations.
+//        @Override
+//        public void insertIndexInterval(int index, int length, boolean before) {
+//            super.insertIndexInterval(index, length, before);
+//        }
+//        @Override
+//        public void removeIndexInterval(int index0, int index1) {
+//            super.removeIndexInterval(index0, index1);
+//        }
+//        @Override
+//        public void setAnchorSelectionIndex(int anchorIndex) {
+//            super.setAnchorSelectionIndex(anchorIndex);
+//        }
+//        @Override
+//        public void moveLeadSelectionIndex(int leadIndex) {
+//            super.moveLeadSelectionIndex(leadIndex);
+//        }
+//        @Override
+//        public void setLeadSelectionIndex(int leadIndex) {
+//            super.setLeadSelectionIndex(leadIndex);
+//        }
     }
 
     public GUISelectionItem(
@@ -315,14 +489,20 @@ public class GUISelectionItem
         final Mode mode =
             Mode.getEnum(addCmd.mode);
 
+        final Events events =
+            Events.getEnum(addCmd.events);
+
         switch (presentation) {
           case SCROLL:
             final JList<SelectionItem> newList = new JList<>();
 
-            _selectionListModel = new SelectionListModel(addCmd.items);
-            newList.setModel(_selectionListModel);
+            _listModel = new SelectionListModel(addCmd.items);
+            newList.setModel(_listModel);
 
             newList.setCellRenderer(new SelectionItemRenderer());
+
+            _listSelectionModel = new SelectionItemSelection(events);
+            newList.setSelectionModel(_listSelectionModel);
 
             switch (mode) {
               case SINGLE:
@@ -379,9 +559,6 @@ public class GUISelectionItem
             break;
         }
 
-        // Label string.
-// Each item will have to listen to its text, have to figure out how to
-// generalise that.
         return this;
     }
 
@@ -401,30 +578,25 @@ public class GUISelectionItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-    /**
-        Called in GUI thread.
-     */
-    protected GUIItem setTextInvoked(String text) {
-        LOGGER.log(Level.FINE, "setTextInvoked(\"" + text + "\")");  // debug
-
-        return this;
-    }
-
     public void dispose() {
         super.dispose();
         _component = null;
     }
 
     protected GUIItem setEventsInvoked(final String eventsValue) {
-        // TODO all of this.
-
+        final Events events = Events.getEnum(eventsValue);
+        if (events != _listSelectionModel.getEvents()) {
+            _listSelectionModel.setEvents(events);
+            // Make JList redisplay items as enabled/disabled.
+            _listModel.fireContentsChanged();
+        }
         return this;
     }
 
     protected GUIItem modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
         if (null != modifyCmd.items) {
-            _selectionListModel.updateItems(modifyCmd.items);
+            _listModel.updateItems(modifyCmd.items);
         }
         if (null != modifyCmd.events) {
             setEventsInvoked(modifyCmd.events);

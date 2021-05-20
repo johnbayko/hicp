@@ -45,20 +45,23 @@ class SelectionHandler:
 
 
 class AbleButtonHandler:
-    def __init__(self, other_button, text_field, enabled_text_id, disabled_text_id):
+    def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
         self.__text_field = text_field
+        self.__selection = selection
         self.__enabled_text_id = enabled_text_id
         self.__disabled_text_id = disabled_text_id
 
         self.__events = Button.ENABLED
 
     def update(self, hicp, event, button):
-        if Button.ENABLED == self.__events:
-            self.__events = Button.DISABLED
+        selection_events = Message.ENABLED  # debug
+        if Message.ENABLED == self.__events:
+            self.__events = Message.DISABLED
+            selection_events = Message.UNSELECT  # debug
             new_text_id = self.__enabled_text_id
         else:
-            self.__events = Button.ENABLED
+            self.__events = Message.ENABLED
             new_text_id = self.__disabled_text_id
 
         self.__other_button.set_events(self.__events)
@@ -66,6 +69,9 @@ class AbleButtonHandler:
 
         self.__text_field.set_events(self.__events)
         self.__text_field.update()
+
+        self.__selection.set_events(selection_events)  # debug
+        self.__selection.update()
 
         button.set_text_id(new_text_id)
         button.update()
@@ -180,16 +186,6 @@ class TestApp(App):
         )
         window.add(text_field, 1, 2)
 
-        able_button = Button()
-        able_button.set_text_id(self.DISABLE_BUTTON_ID)
-        able_button.set_handler(
-            EventType.CLICK,
-            AbleButtonHandler(
-                button, text_field, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
-            )
-        )
-        window.add(able_button, 1, 3)
-
         list_panel = Panel()
         list_panel.set_size(1, 3)
         window.add(list_panel, 2, 1)
@@ -220,6 +216,16 @@ class TestApp(App):
             EventType.CHANGED,
             SelectionHandler(selection_field)
         )
+
+        able_button = Button()
+        able_button.set_text_id(self.DISABLE_BUTTON_ID)
+        able_button.set_handler(
+            EventType.CLICK,
+            AbleButtonHandler(
+                button, text_field, selection, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
+            )
+        )
+        window.add(able_button, 1, 3)
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)
