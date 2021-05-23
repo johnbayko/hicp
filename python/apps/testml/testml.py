@@ -47,18 +47,31 @@ class TextFieldHandlerML:
         text_field.update()
 
 
+class SelectionHandler:
+    def __init__(self, selection_field):
+        self.__selection_field = selection_field
+
+    def update(self, hicp, event, selection):
+        self.__selection_field.set_content(
+                event.message.get_header(Message.SELECTED) )
+        self.__selection_field.update()
+
+
 class AbleButtonHandler:
-    def __init__(self, other_button, text_field, enabled_text_id, disabled_text_id):
+    def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
         self.__text_field = text_field
+        self.__selection = selection
         self.__enabled_text_id = enabled_text_id
         self.__disabled_text_id = disabled_text_id
 
         self.__events = Button.ENABLED
 
     def update(self, hicp, event_message, button):
+        selection_events = Message.ENABLED  # debug
         if Button.ENABLED == self.__events:
             self.__events = Button.DISABLED
+            selection_events = Message.UNSELECT  # debug
             new_text_id = self.__enabled_text_id
         else:
             self.__events = Button.ENABLED
@@ -69,6 +82,9 @@ class AbleButtonHandler:
 
         self.__text_field.set_events(self.__events)
         self.__text_field.update()
+
+        self.__selection.set_events(selection_events)  # debug
+        self.__selection.update()
 
         button.set_text_id(new_text_id)
         button.update()
@@ -283,16 +299,6 @@ class TestAppML(App):
         )
         window.add(text_field, 1, 2)
 
-        able_button = Button()
-        able_button.set_text_id(self.DISABLE_ID)
-        able_button.set_handler(
-            EventType.CLICK,
-            AbleButtonHandler(
-                button, text_field, self.ENABLE_ID, self.DISABLE_ID
-            )
-        )
-        window.add(able_button, 1, 3)
-
         list_panel = Panel()
         list_panel.set_size(1, 3)
         window.add(list_panel, 2, 1)
@@ -320,6 +326,25 @@ class TestAppML(App):
             item_list[item_id] = item
         selection.add_items(item_list)
         list_panel.add(selection, 0, 1)
+
+        selection_field = TextField()
+        selection_field.set_events(TextField.DISABLED)
+        list_panel.add(selection_field, 0, 2)
+
+        selection.set_handler(
+            EventType.CHANGED,
+            SelectionHandler(selection_field)
+        )
+
+        able_button = Button()
+        able_button.set_text_id(self.DISABLE_ID)
+        able_button.set_handler(
+            EventType.CLICK,
+            AbleButtonHandler(
+                button, text_field, selection, self.ENABLE_ID, self.DISABLE_ID
+            )
+        )
+        window.add(able_button, 1, 3)
 
         path_label = Label()
         path_label.set_groups_text( [
