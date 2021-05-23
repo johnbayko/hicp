@@ -252,9 +252,16 @@ class Button(ContainedComponent):
             return handler
 
         if EventType.CLICK == event.event_type:
-            return self.__handle_click
+            return self.get_handle_click()
         else:
             # Not an event type this component supports.
+            return None
+
+    def get_handle_click(self):
+        try:
+            return self.__handle_click
+        except AttributeError:
+            # Hasn't been set.
             return None
 
 class TextFieldAttribute:
@@ -719,7 +726,11 @@ class TextField(ContainedComponent):
             self.set_attribute_string(attribute_header)
 
         # Return changed event handler.
-        return self.__handle_changed
+        try:
+            return self.__handle_changed
+        except AttributeError:
+            # Hasn't been set yet.
+            return None
 
 
 class SelectionItem():
@@ -832,9 +843,16 @@ class Selection(ContainedComponent):
             return handler
 
         if EventType.CHANGED == event.event_type:
-            return self.__handle_changed
+            return self.get_handle_changed()
         else:
             # Not an event type this component supports.
+            return None
+
+    def get_handle_changed(self):
+        try:
+            return self.__handle_changed
+        except AttributeError:
+            # Hasn't been set.
             return None
 
 
@@ -906,9 +924,16 @@ class Window(Container):
             return handler
 
         if EventType.CLOSE == event.event_type:
-            return self.__handle_close
+            return self.get_handle_close()
         else:
             # Not an event type this component supports.
+            return None
+
+    def get_handle_close(self):
+        try:
+            return self.__handle_close
+        except AttributeError:
+            # Hasn't been set.
             return None
 
     def fill_headers_add(self, message):
