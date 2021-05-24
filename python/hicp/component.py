@@ -879,7 +879,7 @@ class Container(ContainedComponent):
     def add_component_list_to_hicp(self):
         for component in self.__component_list:
             component.set_parent(self)
-            self.added_to_hicp.add(component)
+            self.add_to_hicp(component)
 
 
 class Panel(Container):
