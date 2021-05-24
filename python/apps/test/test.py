@@ -228,20 +228,20 @@ class TestApp(App):
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)
-        window.add(path_label, 0, 3)
+        window.add(path_label, 0, 2)
 
         path_field = TextField()
         path_field.set_content(os.getcwd())
         path_field.set_events(TextField.DISABLED)
-        window.add(path_field, 1, 3)
+        window.add(path_field, 1, 2)
 
         clock_label = Label()
         clock_label.set_text_id(self.LABEL_CLOCK_ID)
-        window.add(clock_label, 0, 4)
+        window.add(clock_label, 0, 3)
 
         clock_text = TextField()
         clock_text.set_events(TextField.DISABLED)
-        window.add(clock_text, 1, 4)
+        window.add(clock_text, 1, 3)
 
         hicp.add_time_handler(ClockHandler(clock_text))
 
