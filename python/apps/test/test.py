@@ -151,26 +151,26 @@ class TestApp(App):
         window.set_text_id(self.WINDOW_TITLE_ID)
         hicp.add(window)
 
-        amazing_panel = Panel()
-        window.add(amazing_panel, 0, 0)
-
         amazing_label = Label()
         amazing_label.set_text_id(self.AMAZING_ID)
-        amazing_panel.add(amazing_label, 0, 0)
+        window.add(amazing_label, 0, 0)
 
-        click_label = Label()
-        click_label.set_text_id(self.LABEL_CLICK_ID)
-        click_label.set_size(1, 1)  # debug
-        window.add(click_label, 1, 0)
+        # Components being tested get their own panel
+        component_panel = Panel()
+
+        status_label = Label()
+        status_label.set_text_id(self.LABEL_CLICK_ID)
+        status_label.set_size(1, 1)  # debug
+        component_panel.add(status_label, 1, 0)
 
         button = Button()
         button.set_text_id(self.BUTTON_ID)
         button.set_size(1, 1)  # debug
         button.set_handler(
             EventType.CLICK,
-            ButtonHandler(click_label, self.LABEL_THANKS_ID)
+            ButtonHandler(status_label, self.LABEL_THANKS_ID)
         )
-        window.add(button, 1, 1)
+        component_panel.add(button, 0, 0)
 
         text_field = TextField()
         text_field.set_content("This is text.")
@@ -182,19 +182,15 @@ class TestApp(App):
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
         text_field.set_handler(
             EventType.CHANGED,
-            TextFieldHandler(click_label, self.LABEL_CHANGED_ID)
+            TextFieldHandler(status_label, self.LABEL_CHANGED_ID)
         )
-        window.add(text_field, 1, 2)
-
-        list_panel = Panel()
-        list_panel.set_size(1, 3)
-        window.add(list_panel, 2, 1)
+        component_panel.add(text_field, 0, 1)
 
         selection_label = Label()
         selection_label.set_text_id(self.SELECTION_LABEL_ID)
-        list_panel.add(selection_label, 0, 0)
+        component_panel.add(selection_label, 0, 2)
 
-        # Add selection list to list_panel
+        # Add selection list to component_panel
         selection = Selection()
         item_list = {}
         for item_id in range(1, 4):
@@ -206,17 +202,20 @@ class TestApp(App):
                 item = SelectionItem(item_id, item_text_id, events=Message.DISABLED)
             item_list[item_id] = item
         selection.add_items(item_list)
-        list_panel.add(selection, 0, 1)
+        component_panel.add(selection, 0, 3)
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        list_panel.add(selection_field, 0, 2)
+        component_panel.add(selection_field, 0, 4)
 
         selection.set_handler(
             EventType.CHANGED,
             SelectionHandler(selection_field)
         )
 
+        window.add(component_panel, 1, 1)
+
+        # Button to emable/disable component panel stuff.
         able_button = Button()
         able_button.set_text_id(self.DISABLE_BUTTON_ID)
         able_button.set_handler(
@@ -225,24 +224,24 @@ class TestApp(App):
                 button, text_field, selection, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
             )
         )
-        window.add(able_button, 1, 3)
+        window.add(able_button, 0, 1)
 
         path_label = Label()
         path_label.set_text_id(self.LABEL_PATH_ID)
-        window.add(path_label, 0, 4)
+        window.add(path_label, 0, 3)
 
         path_field = TextField()
         path_field.set_content(os.getcwd())
         path_field.set_events(TextField.DISABLED)
-        window.add(path_field, 1, 4)
+        window.add(path_field, 1, 3)
 
         clock_label = Label()
         clock_label.set_text_id(self.LABEL_CLOCK_ID)
-        window.add(clock_label, 0, 5)
+        window.add(clock_label, 0, 4)
 
         clock_text = TextField()
         clock_text.set_events(TextField.DISABLED)
-        window.add(clock_text, 1, 5)
+        window.add(clock_text, 1, 4)
 
         hicp.add_time_handler(ClockHandler(clock_text))
 
