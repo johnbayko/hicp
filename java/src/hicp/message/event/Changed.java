@@ -23,7 +23,7 @@ public class Changed
 
     public String content = null;
     public TextAttributes attributes = null;
-    public int[] selected = {};
+    public String[] selected = {};
 
     public Changed(String name) {
         super(name);
@@ -47,7 +47,6 @@ public class Changed
         if ((null != selected) && (0 < selected.length)) {
             String selectedStr =
                 Arrays.stream(selected)
-                    .mapToObj(String::valueOf)
                     .collect(Collectors.joining(", "));
                 writeHeader(out, SELECTED, selectedStr);
         }

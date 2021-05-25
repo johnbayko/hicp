@@ -160,6 +160,7 @@ public class GUISelectionItem
             _selectionItemList = new ArrayList<>(itemsList.length);
 
             for (final String itemStr : itemsList) {
+                LOGGER.log(Level.FINE, "itemStr " + itemStr);  // debug
                 try {
                     // Index from 0 to size - 1, next index will be size.
                     final int newIdx = _selectionItemList.size();
@@ -529,7 +530,22 @@ public class GUISelectionItem
                                 return;
                             }
                             final JList source = (JList)e.getSource();
-                            final int[] selected = source.getSelectedIndices();
+                            final int[] selectedIndices =
+                                source.getSelectedIndices();
+
+                            // Convert indexes to IDs.
+                            final String[] selected =
+                                new String[selectedIndices.length];
+
+                            for (int idx = 0;
+                                idx < selectedIndices.length;
+                                idx++
+                            ) {
+                                final int selectedIdx = selectedIndices[idx];
+                                SelectionItem si =
+                                    _listModel.getElementAt(selectedIdx);
+                                selected[idx] = si.id;
+                            }
 
                             final Changed changedEvent =
                                 (Changed)EventEnum.CHANGED.newEvent();

@@ -43,6 +43,21 @@ class SelectionHandler:
                 event.message.get_header(Message.SELECTED) )
         self.__selection_field.update()
 
+class SelectionAddHandler:
+    def __init__(self, selection, selection_items):
+        self.__selection = selection
+        self.__selection_items = selection_items.copy()
+        self.__next_id = len(selection_items) + 1
+
+    def update(self, hicp, event, selection):
+        item_text_id = hicp.add_text_get_id('Number ' + str(self.__next_id))
+        new_item = SelectionItem(self.__next_id, item_text_id)
+
+        self.__selection_items[self.__next_id] = new_item
+        self.__next_id += 1
+
+        self.__selection.set_items(self.__selection_items)
+        self.__selection.update()
 
 class AbleButtonHandler:
     def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
@@ -111,6 +126,7 @@ class TestApp(App):
     DISABLE_BUTTON_ID = 9
     ENABLE_BUTTON_ID = 10
     SELECTION_LABEL_ID = 11
+    SELECTION_ADD_ID = 12
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -144,6 +160,7 @@ class TestApp(App):
             self.DISABLE_BUTTON_ID : "Disable",
             self.ENABLE_BUTTON_ID : "Enable",
             self.SELECTION_LABEL_ID : "Selection",
+            self.SELECTION_ADD_ID : "Add new",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -186,14 +203,18 @@ class TestApp(App):
         )
         component_panel.add(text_field, 0, 1)
 
+        # There's going to be a bunch of controls for testing the selection
+        # component, so make a panel for them.
+        selection_panel = Panel()
+
         selection_label = Label()
         selection_label.set_text_id(self.SELECTION_LABEL_ID)
-        component_panel.add(selection_label, 0, 2)
+        selection_panel.add(selection_label, 0, 0)
 
-        # Add selection list to component_panel
+        # Add selection list to selection_panel
         selection = Selection()
         item_list = {}
-        for item_id in range(1, 4):
+        for item_id in range(1, 5):
             item_text_id = hicp.add_text_get_id('Number ' + str(item_id))
             # Disable item 2 for testing.
             if item_id != 2:
@@ -202,16 +223,32 @@ class TestApp(App):
                 item = SelectionItem(item_id, item_text_id, events=Message.DISABLED)
             item_list[item_id] = item
         selection.add_items(item_list)
-        component_panel.add(selection, 0, 3)
+#        selection.set_selection_mode(Selection.SINGLE)  # debug
+        selection_panel.add(selection, 0, 1)
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        component_panel.add(selection_field, 0, 4)
+        selection_panel.add(selection_field, 0, 2)
 
         selection.set_handler(
             EventType.CHANGED,
             SelectionHandler(selection_field)
         )
+
+        # Add random button
+        selection_add_button = Button()
+        selection_add_button.set_text_id(self.SELECTION_ADD_ID)
+        selection_add_button.set_handler(
+            EventType.CLICK,
+            SelectionAddHandler(selection, item_list)
+        )
+        selection_panel.add(selection_add_button, 1, 1)
+
+        # Remove random button
+        # Disable random button
+        # Enable tandom button
+
+        component_panel.add(selection_panel, 0, 2)
 
         window.add(component_panel, 1, 1)
 

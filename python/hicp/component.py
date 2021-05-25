@@ -763,6 +763,10 @@ class Selection(ContainedComponent):
         self.__presentation = None
         self.__height = None
 
+    def set_items(self, item_list):
+        self.__item_list = item_list.copy()
+        self.items_changed()
+
     def add_items(self, item_list):
         self.__item_list.update(item_list)
         self.items_changed()
