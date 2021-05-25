@@ -44,19 +44,18 @@ class SelectionHandler:
         self.__selection_field.update()
 
 class SelectionAddHandler:
-    def __init__(self, selection, selection_items):
+    def __init__(self, selection, next_id):
         self.__selection = selection
-        self.__selection_items = selection_items.copy()
-        self.__next_id = len(selection_items) + 1
+        self.__next_id = next_id
 
     def update(self, hicp, event, selection):
         item_text_id = hicp.add_text_get_id('Number ' + str(self.__next_id))
-        new_item = SelectionItem(self.__next_id, item_text_id)
-
-        self.__selection_items[self.__next_id] = new_item
+        new_item_list = {
+            self.__next_id : SelectionItem(self.__next_id, item_text_id)
+        }
         self.__next_id += 1
 
-        self.__selection.set_items(self.__selection_items)
+        self.__selection.add_items(new_item_list)
         self.__selection.update()
 
 class AbleButtonHandler:
@@ -127,6 +126,7 @@ class TestApp(App):
     ENABLE_BUTTON_ID = 10
     SELECTION_LABEL_ID = 11
     SELECTION_ADD_ID = 12
+    SELECTION_REMOVE_ID = 13
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -161,6 +161,7 @@ class TestApp(App):
             self.ENABLE_BUTTON_ID : "Enable",
             self.SELECTION_LABEL_ID : "Selection",
             self.SELECTION_ADD_ID : "Add new",
+            self.SELECTION_REMOVE_ID : "Remove",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -235,18 +236,18 @@ class TestApp(App):
             SelectionHandler(selection_field)
         )
 
-        # Add random button
+        # Add button
         selection_add_button = Button()
         selection_add_button.set_text_id(self.SELECTION_ADD_ID)
         selection_add_button.set_handler(
             EventType.CLICK,
-            SelectionAddHandler(selection, item_list)
+            SelectionAddHandler(selection, len(item_list) + 1)
         )
         selection_panel.add(selection_add_button, 1, 1)
 
-        # Remove random button
-        # Disable random button
-        # Enable tandom button
+        # Remove button
+        # Disable button
+        # Enable button
 
         component_panel.add(selection_panel, 0, 2)
 
