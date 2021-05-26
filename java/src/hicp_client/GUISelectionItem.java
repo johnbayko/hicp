@@ -153,14 +153,19 @@ public class GUISelectionItem
 
         // GUI thread (modifyInvoked()).
         public void updateItems(final String itemsStr) {
-            final int oldSize = _selectionItemList.size();
+            // When items change, selection no longer applies so must be
+            // cleared.
+            // Might not have been set yet, check for null first.
+            if (null != _listSelectionModel) {
+                _listSelectionModel.clearSelection();
+            }
 
             final String[] itemsList = lineSplitter.split(itemsStr);
 
+            final int oldSize = _selectionItemList.size();
             _selectionItemList = new ArrayList<>(itemsList.length);
 
             for (final String itemStr : itemsList) {
-                LOGGER.log(Level.FINE, "itemStr " + itemStr);  // debug
                 try {
                     // Index from 0 to size - 1, next index will be size.
                     final int newIdx = _selectionItemList.size();
@@ -173,7 +178,6 @@ public class GUISelectionItem
                     // Just skip.
                 }
             }
-
             final int newSize = _selectionItemList.size();
             final int size = Math.max(oldSize, newSize);
 
@@ -469,6 +473,10 @@ public class GUISelectionItem
 //        public void setLeadSelectionIndex(int leadIndex) {
 //            super.setLeadSelectionIndex(leadIndex);
 //        }
+
+        public void clearSelection() {
+            super.clearSelection();
+        }
     }
 
     public GUISelectionItem(

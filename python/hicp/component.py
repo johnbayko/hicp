@@ -753,10 +753,10 @@ class Selection(ContainedComponent):
         ContainedComponent.__init__(self)
         self.component = Component.SELECTION
 
-        self.__item_list = {}
+        self.__item_list = {} # Key is int
         self.__items = None
 
-        self.__selected_list = []
+        self.__selected_list = [] # ID is int
         self.__selected = None
 
         self.__mode = None

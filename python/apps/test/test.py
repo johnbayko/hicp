@@ -48,14 +48,22 @@ class SelectionAddHandler:
         self.__selection = selection
         self.__next_id = next_id
 
-    def update(self, hicp, event, selection):
+    def update(self, hicp, event, selection_add_button):
         item_text_id = hicp.add_text_get_id('Number ' + str(self.__next_id))
         new_item_list = {
             self.__next_id : SelectionItem(self.__next_id, item_text_id)
         }
         self.__next_id += 1
-
         self.__selection.add_items(new_item_list)
+        self.__selection.update()
+
+class SelectionRemoveHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, selection_remove_button):
+        selected_list = self.__selection.copy_selected_list()
+        self.__selection.del_items(selected_list)
         self.__selection.update()
 
 class AbleButtonHandler:
@@ -229,7 +237,7 @@ class TestApp(App):
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        selection_panel.add(selection_field, 0, 2)
+        selection_panel.add(selection_field, 0, 3)
 
         selection.set_handler(
             EventType.CHANGED,
@@ -246,6 +254,14 @@ class TestApp(App):
         selection_panel.add(selection_add_button, 1, 1)
 
         # Remove button
+        selection_remove_button = Button()
+        selection_remove_button.set_text_id(self.SELECTION_REMOVE_ID)
+        selection_remove_button.set_handler(
+            EventType.CLICK,
+            SelectionRemoveHandler(selection)
+        )
+        selection_panel.add(selection_remove_button, 1, 2)
+
         # Disable button
         # Enable button
 
