@@ -780,6 +780,9 @@ class Selection(ContainedComponent):
                 pass
         self.items_changed()
 
+    def copy_items(self):
+        return self.__item_list.copy()
+
     def items_changed(self):
         item_str_list = []
         for item_id, selection_item in self.__item_list.items():
@@ -806,17 +809,32 @@ class Selection(ContainedComponent):
         self.__presentation = presentation
         self.set_changed_header(Message.PRESENTATION, self.__presentation)
 
-    def set_selected(self, selected_list):
+    def set_selected_string(self, selected_list_str):
+        # Split by ','.
+        # ''.split(',') will create a 1 element list of [''], not a 0
+        split_str = selected_list_str.split(',')
+        try:
+            selected_list = [int(s) for s in split_str]
+            self.set_selected_list(selected_list)
+        except ValueError:
+            # Not valid selection string
+            self.__selected_list = []
+            self.__selected = None
+
+    def set_selected_list(self, selected_list):
         # Verify that selected items are actual items
         valid_list = []
         valid_str_list = []
-        for selected_item in selected_list:
+        for selected_item in selected_list: # Integers
             if selected_item in self.__item_list:
                 valid_list.append(selected_item)
                 valid_str_list.append(str(selected_item))
 
         self.__selected_list = valid_list
-        self.__selected = ",".join(valid_str_list)
+        self.__selected = ", ".join(valid_str_list)
+
+    def copy_selected_list(self):
+        return self.__selected_list.copy()
 
     def set_height(self, height):
         self.__height = str(height)
@@ -847,12 +865,17 @@ class Selection(ContainedComponent):
             return handler
 
         if EventType.CHANGED == event.event_type:
-            return self.get_handle_changed()
+            return self.get_handle_changed(event)
         else:
             # Not an event type this component supports.
             return None
 
-    def get_handle_changed(self):
+    def get_handle_changed(self, event):
+        # Get selection from event.
+        selection_header = event.message.get_header(Message.SELECTED)
+        if selection_header is not None:
+            self.set_selected_string(selection_header)
+
         try:
             return self.__handle_changed
         except AttributeError:
