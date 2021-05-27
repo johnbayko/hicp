@@ -749,6 +749,10 @@ class Selection(ContainedComponent):
     TOGGLE = Message.TOGGLE
     DROPDOWN = Message.DROPDOWN
 
+    ENABLED = Message.ENABLED
+    DISABLED = Message.DISABLED
+    UNSELECT = Message.UNSELECT
+
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.SELECTION
@@ -801,6 +805,10 @@ class Selection(ContainedComponent):
         self.__items = '\r\n'.join(item_str_list)
         self.set_changed_header(Message.ITEMS, self.__items)
 
+        # Delete selection (it needs to be set with IDs for these items if you
+        # want to keep the selections)
+        self.set_selected_list(None)
+
     def set_selection_mode(self, mode):
         self.__mode = mode
         self.set_changed_header(Message.MODE, self.__mode)
@@ -825,10 +833,11 @@ class Selection(ContainedComponent):
         # Verify that selected items are actual items
         valid_list = []
         valid_str_list = []
-        for selected_item in selected_list: # Integers
-            if selected_item in self.__item_list:
-                valid_list.append(selected_item)
-                valid_str_list.append(str(selected_item))
+        if selected_list is not None:
+            for selected_item in selected_list: # Integers
+                if selected_item in self.__item_list:
+                    valid_list.append(selected_item)
+                    valid_str_list.append(str(selected_item))
 
         self.__selected_list = valid_list
         self.__selected = ", ".join(valid_str_list)

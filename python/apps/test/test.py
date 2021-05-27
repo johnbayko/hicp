@@ -66,6 +66,26 @@ class SelectionRemoveHandler:
         self.__selection.del_items(selected_list)
         self.__selection.update()
 
+class SelectionDisableHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, selection_remove_button):
+        item_list = self.__selection.copy_items()
+
+        selected_list = self.__selection.copy_selected_list()
+        for selected_id in selected_list:
+            try:
+                si = item_list[selected_id]
+                if si.item_id == selected_id:
+                    si.events = Selection.DISABLED
+            except KeyError:
+                # Don'e disable what's not there.
+                pass
+
+        self.__selection.set_items(item_list)
+        self.__selection.update()
+
 class AbleButtonHandler:
     def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
@@ -135,6 +155,7 @@ class TestApp(App):
     SELECTION_LABEL_ID = 11
     SELECTION_ADD_ID = 12
     SELECTION_REMOVE_ID = 13
+    SELECTION_DISABLE_ID = 14
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -169,7 +190,8 @@ class TestApp(App):
             self.ENABLE_BUTTON_ID : "Enable",
             self.SELECTION_LABEL_ID : "Selection",
             self.SELECTION_ADD_ID : "Add new",
-            self.SELECTION_REMOVE_ID : "Remove",
+            self.SELECTION_REMOVE_ID : "Remove selected",
+            self.SELECTION_DISABLE_ID : "Disable selected",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -237,7 +259,7 @@ class TestApp(App):
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        selection_panel.add(selection_field, 0, 3)
+        selection_panel.add(selection_field, 0, 4)
 
         selection.set_handler(
             EventType.CHANGED,
@@ -263,7 +285,16 @@ class TestApp(App):
         selection_panel.add(selection_remove_button, 1, 2)
 
         # Disable button
+        selection_disable_button = Button()
+        selection_disable_button.set_text_id(self.SELECTION_DISABLE_ID)
+        selection_disable_button.set_handler(
+            EventType.CLICK,
+            SelectionDisableHandler(selection)
+        )
+        selection_panel.add(selection_disable_button, 1, 3)
+
         # Enable button
+        # Select random
 
         component_panel.add(selection_panel, 0, 2)
 
