@@ -86,6 +86,23 @@ class SelectionDisableHandler:
         self.__selection.set_items(item_list)
         self.__selection.update()
 
+class SelectionEnableHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, selection_remove_button):
+        # Items don't actually change, want to keep selection after updating
+        # item list.
+        selected_list = self.__selection.copy_selected_list()
+
+        item_list = self.__selection.copy_items()
+        for _, item in item_list.items():
+            item.events = Selection.ENABLED
+
+        self.__selection.set_items(item_list)
+        self.__selection.set_selected_list(selected_list)
+        self.__selection.update()
+
 class AbleButtonHandler:
     def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
         self.__other_button = other_button
@@ -156,6 +173,7 @@ class TestApp(App):
     SELECTION_ADD_ID = 12
     SELECTION_REMOVE_ID = 13
     SELECTION_DISABLE_ID = 14
+    SELECTION_ENABLE_ID = 15
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -192,6 +210,7 @@ class TestApp(App):
             self.SELECTION_ADD_ID : "Add new",
             self.SELECTION_REMOVE_ID : "Remove selected",
             self.SELECTION_DISABLE_ID : "Disable selected",
+            self.SELECTION_ENABLE_ID : "Enable all",
         })
         self.__logger.debug("TestApp done add text")
 
@@ -257,15 +276,6 @@ class TestApp(App):
 #        selection.set_selection_mode(Selection.SINGLE)  # debug
         selection_panel.add(selection, 0, 1)
 
-        selection_field = TextField()
-        selection_field.set_events(TextField.DISABLED)
-        selection_panel.add(selection_field, 0, 4)
-
-        selection.set_handler(
-            EventType.CHANGED,
-            SelectionHandler(selection_field)
-        )
-
         # Add button
         selection_add_button = Button()
         selection_add_button.set_text_id(self.SELECTION_ADD_ID)
@@ -294,7 +304,24 @@ class TestApp(App):
         selection_panel.add(selection_disable_button, 1, 3)
 
         # Enable button
+        selection_enable_button = Button()
+        selection_enable_button.set_text_id(self.SELECTION_ENABLE_ID)
+        selection_enable_button.set_handler(
+            EventType.CLICK,
+            SelectionEnableHandler(selection)
+        )
+        selection_panel.add(selection_enable_button, 1, 4)
+
         # Select random
+
+        selection_field = TextField()
+        selection_field.set_events(TextField.DISABLED)
+        selection_panel.add(selection_field, 0, 5)
+
+        selection.set_handler(
+            EventType.CHANGED,
+            SelectionHandler(selection_field)
+        )
 
         component_panel.add(selection_panel, 0, 2)
 
