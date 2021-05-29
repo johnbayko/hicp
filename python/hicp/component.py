@@ -841,6 +841,7 @@ class Selection(ContainedComponent):
 
         self.__selected_list = valid_list
         self.__selected = ", ".join(valid_str_list)
+        self.set_changed_header(Message.SELECTED, self.__selected)
 
     def copy_selected_list(self):
         return self.__selected_list.copy()

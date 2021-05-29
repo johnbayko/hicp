@@ -182,7 +182,7 @@ public class Controller
                         final GUIItem guiItem =
                             GUIItemSource.newGUIItem(
                                 addCmd, _textLibrary, _messageExchange
-                                );
+                            );
 
                         if (null != guiItem) {
                             _guiMap.put(addCmd.id, guiItem);

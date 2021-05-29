@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +145,9 @@ public class GUISelectionItem
         // Empty list by default.
         private List<SelectionItem> _selectionItemList = new ArrayList<>();
 
+        // Also need to map by item ID.
+        private Map<String, SelectionItem> _selectionItemMap = new HashMap<>();
+
         // GUI thread (addInvoked()).
         public SelectionListModel(
             final String itemsStr
@@ -164,6 +168,7 @@ public class GUISelectionItem
 
             final int oldSize = _selectionItemList.size();
             _selectionItemList = new ArrayList<>(itemsList.length);
+            _selectionItemMap = new HashMap<>();
 
             for (final String itemStr : itemsList) {
                 try {
@@ -174,6 +179,7 @@ public class GUISelectionItem
                         new SelectionItem(this, newIdx, itemStr);
 
                     _selectionItemList.add(si);
+                    _selectionItemMap.put(si.id, si);
                 } catch (ParseException | NumberFormatException ex) {
                     // Just skip.
                 }
@@ -190,6 +196,10 @@ public class GUISelectionItem
 
         public int getSize() {
             return _selectionItemList.size();
+        }
+
+        public SelectionItem getElementForId(final String itemId) {
+            return _selectionItemMap.get(itemId);
         }
 
         // GUI thread.
@@ -360,20 +370,71 @@ public class GUISelectionItem
     {
         private Events events = Events.ENABLED;
 
-        public SelectionItemSelection() {
-        }
-
-        public SelectionItemSelection(Events newEvents) {
+        public SelectionItemSelection(
+            final Events newEvents,
+            final String[] newSelected
+        ) {
             setEvents(newEvents);
+            updateSelected(newSelected);
         }
 
-        public SelectionItemSelection setEvents(Events newEvents) {
+        public SelectionItemSelection setEvents(final Events newEvents) {
+            if (null == newEvents) {
+                return this;
+            }
             events = newEvents;
             return this;
         }
 
         public Events getEvents() {
             return events;
+        }
+
+        public SelectionItemSelection updateSelected(final String[] selected) {
+            super.clearSelection();
+            if ((null == selected) || (0 == selected.length)) {
+                // No selection.
+                return this;
+            }
+            // selected[0] must exist, no check needed below.
+
+            // Find idx for each selected id.
+            final int[] selectedIdxList = new int[selected.length];
+            for (int scanIdx = 0;
+                scanIdx < selected.length;
+                scanIdx++)
+            {
+                final String selectedId = selected[scanIdx];
+                final SelectionItem si = _listModel.getElementForId(selectedId);
+
+                selectedIdxList[scanIdx] = si.idx;
+            }
+
+            // Go through array, add selection interval when indexes are
+            // discontinuous or end of array.
+            int prevIdx = selectedIdxList[0];
+            int startIdx = prevIdx;
+            for (int scanIdx = 1;
+                scanIdx < selectedIdxList.length;
+                scanIdx++)
+            {
+                final int expectedIdx = prevIdx + 1;
+                final int selectedIdx = selectedIdxList[scanIdx];
+
+                if (selectedIdx != expectedIdx) {
+                    addSelectionInterval(startIdx, prevIdx);
+                    startIdx = selectedIdx;
+                }
+                prevIdx = selectedIdx;
+            }
+            // Final interval (even if intervals were added in the loop, there
+            // will always be an interval at the end).
+            final int selectedIdxLast = selectedIdxList.length - 1;
+            final int endIdx = selectedIdxList[selectedIdxLast];
+
+            addSelectionInterval(startIdx, endIdx);
+
+            return this;
         }
 
         /**
@@ -495,11 +556,8 @@ public class GUISelectionItem
         final Presentation presentation =
             Presentation.getEnum(addCmd.presentation);
 
-        final Mode mode =
-            Mode.getEnum(addCmd.mode);
-
-        final Events events =
-            Events.getEnum(addCmd.events);
+        final Mode mode = Mode.getEnum(addCmd.mode);
+        final Events events = Events.getEnum(addCmd.events);
 
         switch (presentation) {
           case SCROLL:
@@ -510,7 +568,8 @@ public class GUISelectionItem
 
             newList.setCellRenderer(new SelectionItemRenderer());
 
-            _listSelectionModel = new SelectionItemSelection(events);
+            _listSelectionModel =
+                new SelectionItemSelection(events, addCmd.selected);
             newList.setSelectionModel(_listSelectionModel);
 
             switch (mode) {
@@ -621,6 +680,9 @@ public class GUISelectionItem
         // See what's changed.
         if (null != modifyCmd.items) {
             _listModel.updateItems(modifyCmd.items);
+        }
+        if (null != modifyCmd.selected) {
+            _listSelectionModel.updateSelected(modifyCmd.selected);
         }
         if (null != modifyCmd.events) {
             setEventsInvoked(modifyCmd.events);

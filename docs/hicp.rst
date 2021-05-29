@@ -1103,12 +1103,16 @@ items: <item list>
         disabled selected item will still be unselected when another enabled
         item is selected.
 
-selected: <integer> [ "," <integer> ]*
+selected: [<integer> [ "," <integer> ]*]
   If specified, this is used by these components:
 
   "selection"
-    A list of items IDs from the "items" header. Any item not in the list is
-    unselected. Any ID not in the "items" header list must be ignored.
+    A list of items IDs from the "items" header, or empty to select no items.
+    Any item not in the list is unselected. Any ID not in the "items" header
+    list must be ignored. If multiple items are in the list but the mode is
+    single selection, the client can decide how to deal with it in a way that
+    makes sense (e.g. first, last, highest, lowest, etc., but probably not
+    changing the mode to "multiple").
 
 width: <string>
   If specified, this is used by these components:

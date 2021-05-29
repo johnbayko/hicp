@@ -37,6 +37,7 @@ public abstract class AddModify
     public final static String ITEMS = "items";
     public final static String PARENT = "parent";
     public final static String POSITION = "position";
+    public final static String SELECTED = "selected";
     public final static String SIZE = "size";
     public final static String TEXT_DIRECTION = "text-direction";
     public final static String VISIBLE = "visible";
@@ -54,6 +55,7 @@ public abstract class AddModify
     public String items = null;
     public String component = null;
     public String parent = null;
+    public String[] selected = null;
     public String text = null;
     public boolean visible = false;
     public String events = null;
@@ -114,11 +116,11 @@ readLoop:   for (;;) {
         } else if (CONTENT.equals(hicpHeader.name)) {
             content = hicpHeader.value.getString();
             return true;
-        } else if (ITEMS.equals(hicpHeader.name)) {
-            items = hicpHeader.value.getString();
-            return true;
         } else if (COMPONENT.equals(hicpHeader.name)) {
             component = hicpHeader.value.getString();
+            return true;
+        } else if (ITEMS.equals(hicpHeader.name)) {
+            items = hicpHeader.value.getString();
             return true;
         } else if (PARENT.equals(hicpHeader.name)) {
             parent = hicpHeader.value.getString();
@@ -144,6 +146,16 @@ readLoop:   for (;;) {
                 } catch (NumberFormatException ex) {
                     verticalPosition = 0;
                 }
+            }
+            return true;
+        } else if (SELECTED.equals(hicpHeader.name)) {
+            // List of integers, but actually strings (can't do math on them).
+            selected = commaSplitter.split(hicpHeader.value.getString());
+
+            // split("") will create a 1 element array of [""], treat that as
+            // null.
+            if ((1 == selected.length) && ("".equals(selected[0]))) {
+                selected = null;
             }
             return true;
         } else if (SIZE.equals(hicpHeader.name)) {
