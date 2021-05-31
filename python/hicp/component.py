@@ -784,6 +784,9 @@ class Selection(ContainedComponent):
                 pass
         self.items_changed()
 
+    def get_item(self, item_id):
+        return self.__item_list[item_id]
+
     def copy_items(self):
         return self.__item_list.copy()
 
@@ -840,6 +843,30 @@ class Selection(ContainedComponent):
                     valid_str_list.append(str(selected_item))
 
         self.__selected_list = valid_list
+        self.__selected = ", ".join(valid_str_list)
+        self.set_changed_header(Message.SELECTED, self.__selected)
+
+    def add_selected_item(self, item_id):
+        if self.__selected_list is None:
+            self.__selected_list = [item_id]
+        else:
+            if item_id in self.__item_list:
+                self.__selected_list.append(item_id)
+            
+        self._update_selected()
+
+    def del_selected_item(self, item_id):
+        try:
+            self.__selected_list.remove(item_id)
+
+            self._update_selected()
+        except ValueError:
+            # Not there, so removed, so ignore
+            pass
+
+    # Update selected string from selected list and add to changed header list.
+    def _update_selected(self):
+        valid_str_list = [str(s) for s in self.__selected_list]
         self.__selected = ", ".join(valid_str_list)
         self.set_changed_header(Message.SELECTED, self.__selected)
 

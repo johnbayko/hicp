@@ -1,4 +1,5 @@
 import os
+import random
 
 from datetime import datetime
 
@@ -48,7 +49,7 @@ class SelectionAddHandler:
         self.__selection = selection
         self.__next_id = next_id
 
-    def update(self, hicp, event, selection_add_button):
+    def update(self, hicp, event, button):
         item_text_id = hicp.add_text_get_id('Number ' + str(self.__next_id))
         new_item_list = {
             self.__next_id : SelectionItem(self.__next_id, item_text_id)
@@ -61,7 +62,7 @@ class SelectionRemoveHandler:
     def __init__(self, selection):
         self.__selection = selection
 
-    def update(self, hicp, event, selection_remove_button):
+    def update(self, hicp, event, button):
         selected_list = self.__selection.copy_selected_list()
         self.__selection.del_items(selected_list)
         self.__selection.update()
@@ -70,7 +71,7 @@ class SelectionDisableHandler:
     def __init__(self, selection):
         self.__selection = selection
 
-    def update(self, hicp, event, selection_remove_button):
+    def update(self, hicp, event, button):
         item_list = self.__selection.copy_items()
 
         selected_list = self.__selection.copy_selected_list()
@@ -90,7 +91,7 @@ class SelectionEnableHandler:
     def __init__(self, selection):
         self.__selection = selection
 
-    def update(self, hicp, event, selection_remove_button):
+    def update(self, hicp, event, button):
         # Items don't actually change, want to keep selection after updating
         # item list.
         selected_list = self.__selection.copy_selected_list()
@@ -100,6 +101,34 @@ class SelectionEnableHandler:
             item.events = Selection.ENABLED
 
         self.__selection.set_items(item_list)
+        self.__selection.set_selected_list(selected_list)
+        self.__selection.update()
+
+class SelectionRandomHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, button):
+        item_list = self.__selection.copy_items()
+        selected_list = self.__selection.copy_selected_list()
+
+        # Find what's availebld (not selected, enabled)
+        selectable_list = []
+        selected_set = set(selected_list)
+        for item_id, item in item_list.items():
+            if item_id not in selected_set:
+                if item.events != Selection.DISABLED:
+                    selectable_list.append(item_id)
+
+        if len(selectable_list) == 0:
+            # Nothin available, nothing to select.
+            return
+
+        # Select one.
+        rand_item_id = random.choice(selectable_list)
+
+        # Add to current selection
+        selected_list.append(rand_item_id)
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
 
@@ -174,6 +203,7 @@ class TestApp(App):
     SELECTION_REMOVE_ID = 13
     SELECTION_DISABLE_ID = 14
     SELECTION_ENABLE_ID = 15
+    SELECTION_RANDOM_ID = 16
 
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
@@ -210,6 +240,7 @@ class TestApp(App):
             self.SELECTION_REMOVE_ID : "Remove selected",
             self.SELECTION_DISABLE_ID : "Disable selected",
             self.SELECTION_ENABLE_ID : "Enable all",
+            self.SELECTION_RANDOM_ID : 'Select random',
         })
         self.__logger.debug("TestApp done add text")
 
@@ -308,10 +339,17 @@ class TestApp(App):
         selection_panel.add(selection_enable_button, 1, 4)
 
         # Select random
+        selection_random_button = Button()
+        selection_random_button.set_text_id(self.SELECTION_RANDOM_ID)
+        selection_random_button.set_handler(
+            EventType.CLICK,
+            SelectionRandomHandler(selection)
+        )
+        selection_panel.add(selection_random_button, 1, 5)
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        selection_panel.add(selection_field, 0, 5)
+        selection_panel.add(selection_field, 0, 6)
 
         selection.set_handler(
             EventType.CHANGED,
