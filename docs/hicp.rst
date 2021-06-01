@@ -1130,6 +1130,10 @@ width: <string>
     how many columns are desired. Non-positive or non-integer values are
     ignored.  Default is 1.
 
+    This is a suggestion, and can be adjusted by the user agent, e.g if height
+    is smaller than the number of items and the user agent wants to avoid
+    scrolling this can be increased.
+
 height: <integer>
   If specified, this is used by these components:
 
@@ -1141,8 +1145,8 @@ height: <integer>
     This value can be ignored.
 
   "selection":
-    Modifies how a "scroll" presentation is displayed, or the number of items
-    displayed in a dropdown list when selecting one.
+    Modifies how "scroll" or "toggle" presentation is displayed, or the number
+    of items displayed in a dropdown list without scrolling when selecting one.
 
     This is a suggestion, and can be adjusted by the user agent if it's large
     (e.g. past end of display) or small (e.g. minimum of 3).
