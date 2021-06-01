@@ -44,11 +44,11 @@ public class Changed
                 writeHeader(out, ATTRIBUTES, attributes.toString());
             }
         }
-        if ((null != selected) && (0 < selected.length)) {
+        if (null != selected) {
             String selectedStr =
                 Arrays.stream(selected)
                     .collect(Collectors.joining(", "));
-                writeHeader(out, SELECTED, selectedStr);
+            writeHeader(out, SELECTED, selectedStr);
         }
 
         writeEndOfMessage(out);
