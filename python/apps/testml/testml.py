@@ -1,4 +1,5 @@
 import os
+import random
 
 from datetime import datetime
 
@@ -55,6 +56,97 @@ class SelectionHandler:
         self.__selection_field.set_content(
                 event.message.get_header(Message.SELECTED) )
         self.__selection_field.update()
+
+class SelectionAddHandler:
+    def __init__(self, selection, next_id):
+        self.__selection = selection
+        self.__next_id = next_id
+
+    def update(self, hicp, event, button):
+        item_text_id = hicp.add_groups_text_get_id( [
+                ("Number " + str(self.__next_id), TestAppML.LANG_EN),
+                ("Numero " + str(self.__next_id), TestAppML.LANG_FR, TestAppML.LANG__CA)
+            ])
+        new_item_list = {
+            self.__next_id : SelectionItem(self.__next_id, item_text_id)
+        }
+        self.__next_id += 1
+        self.__selection.add_items(new_item_list)
+        self.__selection.update()
+
+class SelectionRemoveHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, button):
+        selected_list = self.__selection.copy_selected_list()
+        self.__selection.del_items(selected_list)
+        self.__selection.update()
+
+class SelectionDisableHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, button):
+        item_list = self.__selection.copy_items()
+
+        selected_list = self.__selection.copy_selected_list()
+        for selected_id in selected_list:
+            try:
+                si = item_list[selected_id]
+                if si.item_id == selected_id:
+                    si.events = Selection.DISABLED
+            except KeyError:
+                # Don'e disable what's not there.
+                pass
+
+        self.__selection.set_items(item_list)
+        self.__selection.update()
+
+class SelectionEnableHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, button):
+        # Items don't actually change, want to keep selection after updating
+        # item list.
+        selected_list = self.__selection.copy_selected_list()
+
+        item_list = self.__selection.copy_items()
+        for _, item in item_list.items():
+            item.events = Selection.ENABLED
+
+        self.__selection.set_items(item_list)
+        self.__selection.set_selected_list(selected_list)
+        self.__selection.update()
+
+class SelectionRandomHandler:
+    def __init__(self, selection):
+        self.__selection = selection
+
+    def update(self, hicp, event, button):
+        item_list = self.__selection.copy_items()
+        selected_list = self.__selection.copy_selected_list()
+
+        # Find what's available (not selected, enabled)
+        selectable_list = []
+        selected_set = set(selected_list)
+        for item_id, item in item_list.items():
+            if item_id not in selected_set:
+                if item.events != Selection.DISABLED:
+                    selectable_list.append(item_id)
+
+        if len(selectable_list) == 0:
+            # Nothin available, nothing to select.
+            return
+
+        # Select one.
+        rand_item_id = random.choice(selectable_list)
+
+        # Add to current selection
+        selected_list.append(rand_item_id)
+        self.__selection.set_selected_list(selected_list)
+        self.__selection.update()
 
 
 class AbleButtonHandler:
@@ -265,38 +357,100 @@ class TestAppML(App):
         )
         component_panel.add(text_field, 0, 1)
 
+        # There's going to be a bunch of controls for testing the selection
+        # component, so make a panel for them.
+        selection_panel = Panel()
+
         selection_label = Label()
         selection_label.set_groups_text( [
                 ( "Selection", self.LANG_EN),
                 ( "Sélection", self.LANG_FR, self.LANG__CA)
             ], hicp)
-        component_panel.add(selection_label, 0, 2)
+        selection_panel.add(selection_label, 0, 0)
 
         # Add selection list to list_panel
         selection = Selection()
         item_list = {}
-        for item_id in range(1, 4):
+        for item_id in range(1, 5):
             item_text_id = hicp.add_groups_text_get_id( [
                     ("Number " + str(item_id), self.LANG_EN),
                     ("Numero " + str(item_id), self.LANG_FR, self.LANG__CA)
                 ])
-            # Disable item 2 for testing.
-            if item_id != 2:
-                item = SelectionItem(item_id, item_text_id)
-            else:
-                item = SelectionItem(item_id, item_text_id, events=Message.DISABLED)
+            item = SelectionItem(item_id, item_text_id)
             item_list[item_id] = item
         selection.add_items(item_list)
-        component_panel.add(selection, 0, 3)
+        selection_panel.add(selection, 0, 1)
+
+        # Add button
+        selection_add_button = Button()
+        selection_add_button.set_groups_text( [
+                ( "Add new", self.LANG_EN),
+                ( "Ajouter nouveau", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        selection_add_button.set_handler(
+            EventType.CLICK,
+            SelectionAddHandler(selection, len(item_list) + 1)
+        )
+        selection_panel.add(selection_add_button, 1, 1)
+
+        # Remove button
+        selection_remove_button = Button()
+        selection_remove_button.set_groups_text( [
+                ( "Remove selected", self.LANG_EN),
+                ( "Supprimer choix", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        selection_remove_button.set_handler(
+            EventType.CLICK,
+            SelectionRemoveHandler(selection)
+        )
+        selection_panel.add(selection_remove_button, 1, 2)
+
+        # Disable button
+        selection_disable_button = Button()
+        selection_disable_button.set_groups_text( [
+                ( "Disable selected", self.LANG_EN),
+                ( "Désactiver choix", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        selection_disable_button.set_handler(
+            EventType.CLICK,
+            SelectionDisableHandler(selection)
+        )
+        selection_panel.add(selection_disable_button, 1, 3)
+
+        # Enable button
+        selection_enable_button = Button()
+        selection_enable_button.set_groups_text( [
+                ( "Enable all", self.LANG_EN),
+                ( "Activer tout", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        selection_enable_button.set_handler(
+            EventType.CLICK,
+            SelectionEnableHandler(selection)
+        )
+        selection_panel.add(selection_enable_button, 1, 4)
+
+        # Select random
+        selection_random_button = Button()
+        selection_random_button.set_groups_text( [
+                ( "Select random", self.LANG_EN),
+                ( "Choisir au hazard", self.LANG_FR, self.LANG__CA)
+            ], hicp)
+        selection_random_button.set_handler(
+            EventType.CLICK,
+            SelectionRandomHandler(selection)
+        )
+        selection_panel.add(selection_random_button, 1, 5)
 
         selection_field = TextField()
         selection_field.set_events(TextField.DISABLED)
-        component_panel.add(selection_field, 0, 4)
+        selection_panel.add(selection_field, 0, 6)
 
         selection.set_handler(
             EventType.CHANGED,
             SelectionHandler(selection_field)
         )
+
+        component_panel.add(selection_panel, 0, 2)
 
         window.add(component_panel, 1, 1)
 

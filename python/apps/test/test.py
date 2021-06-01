@@ -112,7 +112,7 @@ class SelectionRandomHandler:
         item_list = self.__selection.copy_items()
         selected_list = self.__selection.copy_selected_list()
 
-        # Find what's availebld (not selected, enabled)
+        # Find what's available (not selected, enabled)
         selectable_list = []
         selected_set = set(selected_list)
         for item_id, item in item_list.items():
@@ -131,6 +131,7 @@ class SelectionRandomHandler:
         selected_list.append(rand_item_id)
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
+
 
 class AbleButtonHandler:
     def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
