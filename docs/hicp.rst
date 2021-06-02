@@ -1127,7 +1127,8 @@ width: <string>
 
   "selection":
     For "toggle" presentation, this is interpreted as an integet to indicate
-    how many columns are desired. Non-positive or non-integer values are
+    how many columns are desired. Items are arranged vertically, and wrapped to
+    the next column. Non-positive or non-integer values are
     ignored.  Default is 1.
 
     This is a suggestion, and can be adjusted by the user agent, e.g if height

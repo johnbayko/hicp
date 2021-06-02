@@ -301,6 +301,7 @@ class TestApp(App):
             item_list[item_id] = item
         selection.add_items(item_list)
 #        selection.set_selection_mode(Selection.SINGLE)  # debug
+#        selection.set_height(5)  # debug
         selection_panel.add(selection, 0, 1)
 
         # Add button

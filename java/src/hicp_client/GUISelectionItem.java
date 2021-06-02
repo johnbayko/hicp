@@ -391,9 +391,14 @@ public class GUISelectionItem
         }
 
         public SelectionItemSelection updateSelected(final String[] selected) {
+            if (null == selected) {
+                // Selection not being updated.
+                return this;
+            }
             super.clearSelection();
-            if ((null == selected) || (0 == selected.length)) {
-                // No selection.
+
+            if (0 == selected.length) {
+                // Empty selection, nothing to add.
                 return this;
             }
             // selected[0] must exist, no check needed below.
@@ -624,6 +629,21 @@ public class GUISelectionItem
                         }
                     }
                 );
+
+            if (null != addCmd.height) {
+                try {
+                    final int height = Integer.parseInt(addCmd.height);
+
+                    final int minHeight = 2;
+                    final int useHeight =
+                        (height < minHeight) ? minHeight : height;
+
+                    newList.setVisibleRowCount(useHeight);
+                } catch (NumberFormatException ex) {
+                    // No big deal, just skip and use default.
+                    // Maybe log?
+                }
+            }
 
             _component = new JScrollPane(newList);
             break;
