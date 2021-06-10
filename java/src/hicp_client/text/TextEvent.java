@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.text;
 
 public class TextEvent
     extends java.util.EventObject

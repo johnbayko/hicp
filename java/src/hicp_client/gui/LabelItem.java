@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
@@ -8,16 +8,18 @@ import javax.swing.SwingUtilities;
 import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
+import hicp_client.text.TextItemAdapterListener;
+import hicp_client.text.TextItemAdapter;
 
-public class GUILabelItem
-    extends GUIItem
+public class LabelItem
+    extends Item
     implements TextItemAdapterListener
 {
     protected TextItemAdapter _textItemAdapter;
 
     protected JLabel _component;
 
-    public GUILabelItem(final Add addCmd) {
+    public LabelItem(final Add addCmd) {
         super(addCmd);
     }
 
@@ -29,7 +31,7 @@ public class GUILabelItem
     /**
         GUI thread.
      */
-    protected GUIItem addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Add addCmd) {
         _component = new JLabel();
 
         // Label string.
@@ -71,7 +73,7 @@ public class GUILabelItem
         _component = null;
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
 
         // New text item?

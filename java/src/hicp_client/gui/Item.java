@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import javax.swing.SwingUtilities;
@@ -6,7 +6,7 @@ import javax.swing.SwingUtilities;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 
-public abstract class GUIItem
+public abstract class Item
 {
     public final String idString;
     public final String component;
@@ -16,12 +16,12 @@ public abstract class GUIItem
     public int verticalSize = 0;
 
     /** What this is contained by. */
-    protected GUIContainerItem _parent = null;
+    protected ContainerItem _parent = null;
 
     /**
         Non-GUI thread.
      */
-    public GUIItem(Add addCmd) {
+    public Item(Add addCmd) {
         idString = addCmd.id;
         component = addCmd.component;
         horizontalPosition = addCmd.horizontalPosition;
@@ -30,12 +30,12 @@ public abstract class GUIItem
         verticalSize = addCmd.verticalSize;
     }
 
-    public GUIItem() {
+    public Item() {
         idString = null;
         component = null;
     }
 
-    public final GUIItem add(Add addCmd) {
+    public final Item add(Add addCmd) {
         SwingUtilities.invokeLater(
             new RunAdd(addCmd)
         );
@@ -59,9 +59,9 @@ public abstract class GUIItem
     /**
         GUI thread.
      */
-    protected abstract GUIItem addInvoked(Add addCmd);
+    protected abstract Item addInvoked(Add addCmd);
 
-    public final GUIItem modify(Modify modifyCmd) {
+    public final Item modify(Modify modifyCmd) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
         );
@@ -85,12 +85,12 @@ public abstract class GUIItem
     /**
         GUI thread.
      */
-    protected abstract GUIItem modifyInvoked(Modify modifyCmd);
+    protected abstract Item modifyInvoked(Modify modifyCmd);
 
     /**
         GUI thread.
      */
-    public GUIItem setParent(GUIContainerItem parent) {
+    public Item setParent(ContainerItem parent) {
         _parent = parent;
         _parent.add(this);
 

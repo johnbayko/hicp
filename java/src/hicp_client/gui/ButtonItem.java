@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -13,13 +13,15 @@ import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Click;
 import hicp.message.event.EventEnum;
+import hicp_client.text.TextItemAdapterListener;
+import hicp_client.text.TextItemAdapter;
 
-public class GUIButtonItem
-    extends GUIItem
+public class ButtonItem
+    extends Item
     implements TextItemAdapterListener
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIButtonItem.class.getName() );
+        Logger.getLogger( ButtonItem.class.getName() );
 
     protected final MessageExchange _messageExchange;
 
@@ -27,7 +29,7 @@ public class GUIButtonItem
 
     protected JButton _component;
 
-    public GUIButtonItem(
+    public ButtonItem(
         final Add addCmd,
         final MessageExchange messageExchange
     ) {
@@ -41,7 +43,7 @@ public class GUIButtonItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected GUIItem addInvoked(Add addCmd) {
+    protected Item addInvoked(Add addCmd) {
         _component = new JButton();
 
         _component.addActionListener(
@@ -101,7 +103,7 @@ public class GUIButtonItem
         _component = null;
     }
 
-    protected GUIItem setEventsInvoked(final String eventsValue) {
+    protected Item setEventsInvoked(final String eventsValue) {
         final boolean enabled = eventsValue.equals(Add.ENABLED);
 
         if (_component.isEnabled() != enabled) {
@@ -110,7 +112,7 @@ public class GUIButtonItem
         return this;
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
 
         // New text item?

@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.text;
 
 public interface TextItemAdapterListener {
     /**

@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -25,13 +25,15 @@ import hicp.message.command.Modify;
 import hicp.message.event.Close;
 import hicp.message.event.Event;
 import hicp.message.event.EventEnum;
+import hicp_client.text.TextItemAdapterListener;
+import hicp_client.text.TextItemAdapter;
 
-public class GUIWindowItem
-    extends GUILayoutItem
+public class WindowItem
+    extends LayoutItem
     implements TextItemAdapterListener
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIWindowItem.class.getName() );
+        Logger.getLogger( WindowItem.class.getName() );
 
     protected final MessageExchange _messageExchange;
 
@@ -41,7 +43,7 @@ public class GUIWindowItem
     protected JFrame _component;
     protected JPanel _panel;
 
-    public GUIWindowItem(
+    public WindowItem(
         final Add addCmd,
         final MessageExchange messageExchange
     ) {
@@ -55,7 +57,7 @@ public class GUIWindowItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected GUIItem addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Add addCmd) {
         _component = new JFrame();
 
         _component.getContentPane().setLayout(new BorderLayout());
@@ -125,7 +127,7 @@ public class GUIWindowItem
         return super.addInvoked(addCmd);
     }
 
-    protected GUIItem remove(GUIItem guiItem) {
+    protected Item remove(Item guiItem) {
         super.remove(guiItem);
 
         // Run an event to remove guiItem's component from this item's
@@ -136,9 +138,9 @@ public class GUIWindowItem
     }
 
     class RunRemove
-        extends GUILayoutItem.RunRemove
+        extends LayoutItem.RunRemove
     {
-        public RunRemove(GUIItem guiItem)
+        public RunRemove(Item guiItem)
         {
             super(guiItem);
         }
@@ -191,7 +193,7 @@ public class GUIWindowItem
     }
 
     public void dispose() {
-        // GUIContainerItem will remove any items added to this.
+        // ContainerItem will remove any items added to this.
         super.dispose();
 
         if (null == _component) {
@@ -200,7 +202,7 @@ public class GUIWindowItem
 
         // Remove this from its parent.
 //        if (null != _parent) {
-//log("GUIWindowItem.dispose() about to _parent.remove()");  // debug
+//log("WindowItem.dispose() about to _parent.remove()");  // debug
 //            _parent.remove(this);
 //        }
 
@@ -225,7 +227,7 @@ public class GUIWindowItem
         }
     }
 
-    public GUIItem add(GUIItem guiItem) {
+    public Item add(Item guiItem) {
         super.add(guiItem);
 
         // Run an event to add guiItem's component to this item's
@@ -236,9 +238,9 @@ public class GUIWindowItem
     }
 
     class RunAdd
-        extends GUILayoutItem.RunAdd
+        extends LayoutItem.RunAdd
     {
-        public RunAdd(GUIItem guiItem)
+        public RunAdd(Item guiItem)
         {
             super(guiItem);
         }
@@ -264,7 +266,7 @@ public class GUIWindowItem
         }
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         super.modifyInvoked(modifyCmd);
         // See what's changed.
 
@@ -284,7 +286,7 @@ public class GUIWindowItem
         return this;
     }
 
-    protected GUIItem applyTextDirectionInvoked() {
+    protected Item applyTextDirectionInvoked() {
         // Set component orientation for component.
         // Only need horizontal orientation - vertial orientation
         // only applies to text/labels.

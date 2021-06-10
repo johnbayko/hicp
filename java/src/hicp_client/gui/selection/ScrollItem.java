@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui.selection;
 
 import java.awt.Component;
 import java.text.ParseException;
@@ -25,12 +25,18 @@ import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Changed;
 import hicp.message.event.EventEnum;
+import hicp_client.gui.Item;
+import hicp_client.text.TextEvent;
+import hicp_client.text.TextItem;
+import hicp_client.text.TextLibrary;
+import hicp_client.text.TextListener;
+import hicp_client.text.TextListenerInvoker;
 
-public class GUIScrollItem
-    extends GUIItem
+public class ScrollItem
+    extends Item
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIItem.class.getName() );
+        Logger.getLogger( Item.class.getName() );
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -56,7 +62,7 @@ public class GUIScrollItem
 
     protected Component _component;
 
-    class SelectionItem
+    class SelectionListItem
         implements TextListener
     {
         // Model and index in model, needed for fireContentsChanged().
@@ -70,7 +76,7 @@ public class GUIScrollItem
 
         private boolean enabled = true;
 
-        public SelectionItem(
+        public SelectionListItem(
             final SelectionListModel newSelectionListModel,
             final int newIdx,
             final String itemStr
@@ -160,13 +166,13 @@ public class GUIScrollItem
     }
 
     class SelectionListModel
-        extends AbstractListModel<SelectionItem>
+        extends AbstractListModel<SelectionListItem>
     {
         // Empty list by default.
-        private List<SelectionItem> _selectionItemList = new ArrayList<>();
+        private List<SelectionListItem> _selectionItemList = new ArrayList<>();
 
         // Also need to map by item ID.
-        private Map<String, SelectionItem> _selectionItemMap = new HashMap<>();
+        private Map<String, SelectionListItem> _selectionItemMap = new HashMap<>();
 
         // GUI thread (addInvoked()).
         public SelectionListModel(
@@ -195,8 +201,8 @@ public class GUIScrollItem
                     // Index from 0 to size - 1, next index will be size.
                     final int newIdx = _selectionItemList.size();
 
-                    final SelectionItem si =
-                        new SelectionItem(this, newIdx, itemStr);
+                    final SelectionListItem si =
+                        new SelectionListItem(this, newIdx, itemStr);
 
                     _selectionItemList.add(si);
                     _selectionItemMap.put(si.id, si);
@@ -210,7 +216,7 @@ public class GUIScrollItem
             fireContentsChanged(this, 0, size-1);
         }
 
-        public SelectionItem getElementAt(final int index) {
+        public SelectionListItem getElementAt(final int index) {
             return _selectionItemList.get(index);
         }
 
@@ -218,13 +224,13 @@ public class GUIScrollItem
             return _selectionItemList.size();
         }
 
-        public SelectionItem getElementForId(final String itemId) {
+        public SelectionListItem getElementForId(final String itemId) {
             return _selectionItemMap.get(itemId);
         }
 
         // GUI thread.
         // Inform JList that this item changed.
-        public void itemChangedInvoked(final SelectionItem si) {
+        public void itemChangedInvoked(final SelectionListItem si) {
             final int idx = si.idx;
 
             fireContentsChanged(this, idx, idx);
@@ -237,11 +243,11 @@ public class GUIScrollItem
 
     static class SelectionItemRenderer
         extends JLabel
-        implements ListCellRenderer<SelectionItem>
+        implements ListCellRenderer<SelectionListItem>
     {
         public Component getListCellRendererComponent(
-            JList<? extends SelectionItem> list,
-            SelectionItem value,
+            JList<? extends SelectionListItem> list,
+            SelectionListItem value,
             int index,
             boolean isSelected,
             boolean cellHasFocus
@@ -257,7 +263,7 @@ public class GUIScrollItem
             final SelectionItemSelection sm =
                 (SelectionItemSelection)list.getSelectionModel();
             setEnabled(
-                (GUISelectionItem.Events.ENABLED == sm.getEvents())
+                (EventsEnum.ENABLED == sm.getEvents())
               && value.isEnabled()
             );
             setFont(list.getFont());
@@ -285,17 +291,17 @@ public class GUIScrollItem
     class SelectionItemSelection
         extends DefaultListSelectionModel
     {
-        private GUISelectionItem.Events events = GUISelectionItem.Events.ENABLED;
+        private EventsEnum events = EventsEnum.ENABLED;
 
         public SelectionItemSelection(
-            final GUISelectionItem.Events newEvents,
+            final EventsEnum newEvents,
             final String[] newSelected
         ) {
             setEvents(newEvents);
             updateSelected(newSelected);
         }
 
-        public SelectionItemSelection setEvents(final GUISelectionItem.Events newEvents) {
+        public SelectionItemSelection setEvents(final EventsEnum newEvents) {
             if (null == newEvents) {
                 return this;
             }
@@ -303,7 +309,7 @@ public class GUIScrollItem
             return this;
         }
 
-        public GUISelectionItem.Events getEvents() {
+        public EventsEnum getEvents() {
             return events;
         }
 
@@ -327,7 +333,7 @@ public class GUIScrollItem
                 scanIdx++)
             {
                 final String selectedId = selected[scanIdx];
-                final SelectionItem si = _listModel.getElementForId(selectedId);
+                final SelectionListItem si = _listModel.getElementForId(selectedId);
 
                 selectedIdxList[scanIdx] = si.idx;
             }
@@ -377,7 +383,7 @@ public class GUIScrollItem
             for (int scanIdx = index0; scanIdx != stopIdx;scanIdx += step) {
                 // Find range start or end - that is, current and previous item
                 // enabled value changes.
-                final SelectionItem si = _listModel.getElementAt(scanIdx);
+                final SelectionListItem si = _listModel.getElementAt(scanIdx);
                 final boolean isEnabled = si.isEnabled();
 
                 if (prevIsEnabled && !isEnabled) {
@@ -401,7 +407,7 @@ public class GUIScrollItem
 
         @Override
         public void setSelectionInterval(int index0, int index1) {
-            if (GUISelectionItem.Events.ENABLED == events) {
+            if (EventsEnum.ENABLED == events) {
                 // First call should be super.setSelectionInterval(),
                 // all others should be super.addSelectionInterval().
                 boolean isFirstRange = true;
@@ -418,7 +424,7 @@ public class GUIScrollItem
         }
         @Override
         public void addSelectionInterval(int index0, int index1) {
-            if (GUISelectionItem.Events.ENABLED == events) {
+            if (EventsEnum.ENABLED == events) {
                 for (final SelectionRange r : enabledRanges(index0, index1)) {
                     super.addSelectionInterval(r.index0, r.index1);
                 }
@@ -426,8 +432,8 @@ public class GUIScrollItem
         }
         @Override
         public void removeSelectionInterval(int index0, int index1) {
-            if ( (GUISelectionItem.Events.ENABLED == events)
-              || (GUISelectionItem.Events.UNSELECT == events) )
+            if ( (EventsEnum.ENABLED == events)
+              || (EventsEnum.UNSELECT == events) )
             {
                 for (final SelectionRange r : enabledRanges(index0, index1)) {
                     super.removeSelectionInterval(r.index0, r.index1);
@@ -463,7 +469,7 @@ public class GUIScrollItem
     }
 
 
-    public GUIScrollItem(
+    public ScrollItem(
         Add addCmd,
         TextLibrary textLibrary,
         MessageExchange messageExchange
@@ -475,14 +481,12 @@ public class GUIScrollItem
 
     }
 
-    protected GUIItem addInvoked(final Add addCmd) {
-        final GUISelectionItem.Mode mode =
-            GUISelectionItem.Mode.getEnum(addCmd.mode);
+    protected Item addInvoked(final Add addCmd) {
+        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
 
-        final GUISelectionItem.Events events =
-            GUISelectionItem.Events.getEnum(addCmd.events);
+        final EventsEnum events = EventsEnum.getEnum(addCmd.events);
 
-        final JList<SelectionItem> newList = new JList<>();
+        final JList<SelectionListItem> newList = new JList<>();
 
         _listModel = new SelectionListModel(addCmd.items);
         newList.setModel(_listModel);
@@ -530,7 +534,7 @@ public class GUIScrollItem
                             idx++
                         ) {
                             final int selectedIdx = selectedIndices[idx];
-                            SelectionItem si =
+                            SelectionListItem si =
                                 _listModel.getElementAt(selectedIdx);
                             selected[idx] = si.id;
                         }
@@ -587,9 +591,8 @@ public class GUIScrollItem
         _component = null;
     }
 
-    protected GUIItem setEventsInvoked(final String eventsValue) {
-        final GUISelectionItem.Events events =
-            GUISelectionItem.Events.getEnum(eventsValue);
+    protected Item setEventsInvoked(final String eventsValue) {
+        final EventsEnum events = EventsEnum.getEnum(eventsValue);
 
         if (events != _listSelectionModel.getEvents()) {
             _listSelectionModel.setEvents(events);
@@ -599,7 +602,7 @@ public class GUIScrollItem
         return this;
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
         if (null != modifyCmd.items) {
             _listModel.updateItems(modifyCmd.items);

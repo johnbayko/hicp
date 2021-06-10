@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
@@ -20,30 +20,30 @@ import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Event;
 
-public abstract class GUIContainerItem
-    extends GUIItem
+public abstract class ContainerItem
+    extends Item
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIContainerItem.class.getName() );
+        Logger.getLogger( ContainerItem.class.getName() );
 
     protected TextDirection _firstTextDirection = null;
     protected TextDirection _secondTextDirection = null;
 
     /** List of items this contains, if it's able to contain items. */
-    protected List<GUIItem> _itemList = new LinkedList<>();
+    protected List<Item> _itemList = new LinkedList<>();
 
     /**
         Non-GUI thread.
      */
-    public GUIContainerItem(final Add addCmd) {
+    public ContainerItem(final Add addCmd) {
         super(addCmd);
     }
 
-    public GUIContainerItem() {
+    public ContainerItem() {
         super();
     }
 
-    public GUIItem add(GUIItem guiItem) {
+    public Item add(Item guiItem) {
         synchronized (_itemList) {
             _itemList.add(guiItem);
         }
@@ -51,7 +51,7 @@ public abstract class GUIContainerItem
     }
 
     // Socket thread.
-    protected GUIItem remove(GUIItem guiItem) {
+    protected Item remove(Item guiItem) {
         synchronized (_itemList) {
             _itemList.remove(guiItem);
         }
@@ -61,7 +61,7 @@ public abstract class GUIContainerItem
     /**
         GUI thread.
      */
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         if ( (null != modifyCmd.firstTextDirection)
           || (null != modifyCmd.secondTextDirection)
         ) {
@@ -77,7 +77,7 @@ public abstract class GUIContainerItem
         Text direction can't be set to null, so don't change if
         parameter is null.
      */
-    public GUIItem setTextDirectionInvoked(
+    public Item setTextDirectionInvoked(
         TextDirection firstTextDirection,
         TextDirection secondTextDirection
     ) {
@@ -136,7 +136,7 @@ public abstract class GUIContainerItem
         synchronized (_itemList) {
             final Iterator itemIterator = _itemList.iterator();
             while (itemIterator.hasNext()) {
-                GUIItem item = (GUIItem)itemIterator.next();
+                Item item = (Item)itemIterator.next();
 
                 // Item will tell this object to remove it.
                 item.dispose();

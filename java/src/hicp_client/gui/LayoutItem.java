@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -13,11 +13,11 @@ import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.command.Add;
 
-public abstract class GUILayoutItem
-    extends GUIContainerItem
+public abstract class LayoutItem
+    extends ContainerItem
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUILayoutItem.class.getName() );
+        Logger.getLogger( LayoutItem.class.getName() );
 
     public final static int POSITION_LIMIT = 255;
 
@@ -38,7 +38,7 @@ public abstract class GUILayoutItem
 
     protected List<SizeInfo> _itemSizeList = new LinkedList<>();
 
-    protected GUILayoutItem(
+    protected LayoutItem(
         final Add addCmd
     ) {
         super(addCmd);
@@ -47,7 +47,7 @@ public abstract class GUILayoutItem
     /**
         GUI thread.
      */
-    protected GUIItem addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Add addCmd) {
         // Text direction.
         if ( (null != addCmd.firstTextDirection)
           || (null != addCmd.secondTextDirection)
@@ -66,10 +66,10 @@ public abstract class GUILayoutItem
     class RunAdd
         implements Runnable
     {
-        protected final GUIItem _guiItem;
+        protected final Item _guiItem;
         protected boolean _addSuccessful = false;
 
-        public RunAdd(GUIItem guiItem)
+        public RunAdd(Item guiItem)
         {
             _guiItem = guiItem;
         }
@@ -94,9 +94,9 @@ public abstract class GUILayoutItem
     class RunRemove
         implements Runnable
     {
-        protected final GUIItem _guiItem;
+        protected final Item _guiItem;
 
-        public RunRemove(GUIItem guiItem)
+        public RunRemove(Item guiItem)
         {
             _guiItem = guiItem;
         }
@@ -126,7 +126,7 @@ public abstract class GUILayoutItem
             Component component, GridBagConstraints gridBagConstraints
         );
 
-    protected GUIItem adjustSizesInvoked() {
+    protected Item adjustSizesInvoked() {
         final SizeInfo[][] sizeGrid =
             new SizeInfo[POSITION_LIMIT][POSITION_LIMIT];
 
@@ -137,7 +137,7 @@ public abstract class GUILayoutItem
             sizeInfo.oldHorizontalSize = sizeInfo.horizontalSize;
             sizeInfo.oldVerticalSize = sizeInfo.verticalSize;
 
-            final GUIItem guiItem = sizeInfo.guiItem;
+            final Item guiItem = sizeInfo.guiItem;
 
             final int horizontalPosition = guiItem.horizontalPosition;
             final int verticalPosition = guiItem.verticalPosition;
@@ -167,7 +167,7 @@ public abstract class GUILayoutItem
                     _positionGrid[horizontalPosition][verticalPosition];
 
                 if (null != sizeInfo) {
-                    final GUIItem guiItem = sizeInfo.guiItem;
+                    final Item guiItem = sizeInfo.guiItem;
 
                     if ( (1 <= guiItem.horizontalSize)
                       && (1 <= guiItem.verticalSize) )
@@ -266,7 +266,7 @@ adjustSizeLoop:
                     _positionGrid[horizontalPosition][verticalPosition];
 
                 if (null != sizeInfo) {
-                    final GUIItem guiItem = sizeInfo.guiItem;
+                    final Item guiItem = sizeInfo.guiItem;
 
                     if ( (0 == guiItem.horizontalSize)
                       && (0 != guiItem.verticalSize) )
@@ -452,7 +452,7 @@ adjustZeroSizeLoop:
         return this;
     }
 
-    protected GUIItem fillPositionGridArea(
+    protected Item fillPositionGridArea(
         final SizeInfo[][] sizeGrid,
         final SizeInfo sizeInfo,
         final int horizontalStart,
@@ -474,7 +474,7 @@ adjustZeroSizeLoop:
         return this;
     }
 
-    public GUIItem setParent(GUIContainerItem parent) {
+    public Item setParent(ContainerItem parent) {
         super.setParent(parent);
 
         SwingUtilities.invokeLater(_runApplyTextDirection);
@@ -482,7 +482,7 @@ adjustZeroSizeLoop:
         return this;
     }
 
-    public GUIItem setTextDirectionInvoked(
+    public Item setTextDirectionInvoked(
         TextDirection firstTextDirection,
         TextDirection secondTextDirection
     ) {
@@ -493,11 +493,11 @@ adjustZeroSizeLoop:
         return this;
     }
 
-    protected abstract GUIItem applyTextDirectionInvoked();
+    protected abstract Item applyTextDirectionInvoked();
 }
 
 class SizeInfo {
-    public final GUIItem guiItem;
+    public final Item guiItem;
 
     public int horizontalSize = 0;
     public int verticalSize = 0;
@@ -505,8 +505,8 @@ class SizeInfo {
     public int oldHorizontalSize = 0;
     public int oldVerticalSize = 0;
 
-    public SizeInfo(GUIItem newGUIItem) {
-        guiItem = newGUIItem;
+    public SizeInfo(Item newItem) {
+        guiItem = newItem;
     }
 
     public boolean equals(Object o) {
@@ -517,9 +517,9 @@ class SizeInfo {
         if (null == sizeInfo.guiItem) {
             return (null == guiItem);
         }
-        final GUIItem otherGUIItem = sizeInfo.guiItem;
-        return ( (otherGUIItem.horizontalSize == horizontalSize)
-            && (otherGUIItem.verticalSize == verticalSize) );
+        final Item otherItem = sizeInfo.guiItem;
+        return ( (otherItem.horizontalSize == horizontalSize)
+            && (otherItem.verticalSize == verticalSize) );
     }
 
     public int hashCode() {

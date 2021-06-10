@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -20,11 +20,11 @@ import hicp.message.event.Changed;
 import hicp.message.event.EventEnum;
 import hicp_client.text.AttributeTrackDocument;
 
-public class GUITextFieldItem
-    extends GUIItem
+public class TextFieldItem
+    extends Item
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIItem.class.getName() );
+        Logger.getLogger( TextFieldItem.class.getName() );
 
     protected final MessageExchange _messageExchange;
 
@@ -33,7 +33,7 @@ public class GUITextFieldItem
     protected AttributeTrackDocument _document;
     protected TextAttributes _attributes;
 
-    public GUITextFieldItem(
+    public TextFieldItem(
         Add addCmd,
         MessageExchange messageExchange
     ) {
@@ -42,7 +42,7 @@ public class GUITextFieldItem
         _messageExchange = messageExchange;
     }
 
-    protected GUIItem addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Add addCmd) {
         _component = new JTextField();
         _document = new AttributeTrackDocument();
         _component.setDocument(_document);
@@ -168,7 +168,7 @@ public class GUITextFieldItem
         _component = null;
     }
 
-    protected GUIItem setEventsInvoked(final String eventsValue) {
+    protected Item setEventsInvoked(final String eventsValue) {
         final boolean enabled = eventsValue.equals(Add.ENABLED);
 
         if (_component.isEditable() != enabled) {
@@ -177,7 +177,7 @@ public class GUITextFieldItem
         return this;
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         // See what's changed.
         if (null != modifyCmd.content) {
             final String modifyContent = modifyCmd.content;

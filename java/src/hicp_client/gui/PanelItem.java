@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -14,23 +14,23 @@ import hicp.TextDirection;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 
-public class GUIPanelItem
-    extends GUILayoutItem
+public class PanelItem
+    extends LayoutItem
 {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIPanelItem.class.getName() );
+        Logger.getLogger( PanelItem.class.getName() );
 
     // Should be used only from GUI thread.
     protected JPanel _component;
 
-    public GUIPanelItem(final Add addCmd) {
+    public PanelItem(final Add addCmd) {
         super(addCmd);
     }
 
     /**
         GUI thread.
      */
-    protected GUIItem addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Add addCmd) {
         _component = new JPanel();
 
         _component.setLayout(new GridBagLayout());
@@ -38,7 +38,7 @@ public class GUIPanelItem
         return super.addInvoked(addCmd);
     }
 
-    protected GUIItem remove(GUIItem guiItem) {
+    protected Item remove(Item guiItem) {
         super.remove(guiItem);
 
         // Run an event to remove guiItem's component from this item's
@@ -49,9 +49,9 @@ public class GUIPanelItem
     }
 
     class RunRemove
-        extends GUILayoutItem.RunRemove
+        extends LayoutItem.RunRemove
     {
-        public RunRemove(GUIItem guiItem)
+        public RunRemove(Item guiItem)
         {
             super(guiItem);
         }
@@ -85,30 +85,30 @@ public class GUIPanelItem
     }
 
     public void dispose() {
-LOGGER.log(Level.FINE, "GUIPanelItem.dispose() entered");  // debug
-        // GUIContainerItem will remove any items added to this.
+LOGGER.log(Level.FINE, "PanelItem.dispose() entered");  // debug
+        // ContainerItem will remove any items added to this.
         super.dispose();
-LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done super.dispose()");  // debug
+LOGGER.log(Level.FINE, "PanelItem.dispose() done super.dispose()");  // debug
 
         if (null == _component) {
-LOGGER.log(Level.FINE, "GUIItem has no component");  // debug
+LOGGER.log(Level.FINE, "Item has no component");  // debug
             return;
         }
 
         // Remove this from its parent.
 //        if (null != _parent) {
-//LOGGER.log(Level.FINE, "GUIPanelItem.dispose() about to _parent.remove()");  // debug
+//LOGGER.log(Level.FINE, "PanelItem.dispose() about to _parent.remove()");  // debug
 //            _parent.remove(this);
 //        }
 
         // Dispose of this object.
-LOGGER.log(Level.FINE, "GUIPanelItem.dispose() invokeLater(RunDispose)");  // debug
+LOGGER.log(Level.FINE, "PanelItem.dispose() invokeLater(RunDispose)");  // debug
         _component = null;
 
-LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
+LOGGER.log(Level.FINE, "PanelItem.dispose() done remove");  // debug
     }
 
-    public GUIItem add(GUIItem guiItem) {
+    public Item add(Item guiItem) {
         super.add(guiItem);
 
         // Run an event to add guiItem's component to this item's
@@ -119,9 +119,9 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
     }
 
     class RunAdd
-        extends GUILayoutItem.RunAdd
+        extends LayoutItem.RunAdd
     {
-        public RunAdd(GUIItem guiItem)
+        public RunAdd(Item guiItem)
         {
             super(guiItem);
         }
@@ -141,14 +141,14 @@ LOGGER.log(Level.FINE, "GUIPanelItem.dispose() done remove");  // debug
         }
     }
 
-    protected GUIItem modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Modify modifyCmd) {
         super.modifyInvoked(modifyCmd);
         // See what's changed.
 
         return this;
     }
 
-    protected GUIItem applyTextDirectionInvoked() {
+    protected Item applyTextDirectionInvoked() {
         // Set component orientation for component.
         // Only need horizontal orientation - vertial orientation
         // only applies to text/labels.

@@ -1,4 +1,4 @@
-package hicp_client;
+package hicp_client.text;
 
 import java.util.HashMap;
 import java.util.logging.Level;

@@ -1,16 +1,21 @@
-package hicp_client;
+package hicp_client.gui;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
+import hicp_client.gui.*;
+import hicp_client.gui.selection.SelectionItem;
+import hicp_client.text.TextItemAdapter;
+import hicp_client.text.TextItemAdapterListener;
+import hicp_client.text.TextLibrary;
 
-public class GUIItemSource {
+public class ItemSource {
     private static final Logger LOGGER =
-        Logger.getLogger( GUIItemSource.class.getName() );
+        Logger.getLogger( ItemSource.class.getName() );
 
-    public static GUIItem newGUIItem(
+    public static Item newItem(
         final Add addCmd,
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
@@ -18,26 +23,27 @@ public class GUIItemSource {
         try {
             // Make sure it's a real integer - not used.
             final int id = Integer.parseInt(addCmd.id);
-            final GUIItem guiItem;
+            final Item guiItem;
 
             if (Add.BUTTON.equals(addCmd.component)) {
                 guiItem =
-                    new GUIButtonItem(addCmd, messageExchange);
+                    new ButtonItem(addCmd, messageExchange);
             } else if (Add.LABEL.equals(addCmd.component)) {
                 guiItem =
-                    new GUILabelItem(addCmd);
+                    new LabelItem(addCmd);
             } else if (Add.PANEL.equals(addCmd.component)) {
                 guiItem =
-                    new GUIPanelItem(addCmd);
+                    new PanelItem(addCmd);
             } else if (Add.TEXTFIELD.equals(addCmd.component)) {
                 guiItem =
-                    new GUITextFieldItem(addCmd, messageExchange);
+                    new TextFieldItem(addCmd, messageExchange);
             } else if (Add.WINDOW.equals(addCmd.component)) {
                 guiItem =
-                    new GUIWindowItem(addCmd, messageExchange);
+                    new WindowItem(addCmd, messageExchange);
             } else if (Add.SELECTION.equals(addCmd.component)) {
                 guiItem =
-                    GUISelectionItem.newGUIItem(addCmd, textLibrary, messageExchange);
+                    SelectionItem
+                        .newItem(addCmd, textLibrary, messageExchange);
             } else {
                 // Unrecognized category.
                 LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
@@ -61,7 +67,7 @@ public class GUIItemSource {
         }
     }
 
-    public static void disposeGUIItem(final GUIItem guiItem) {
+    public static void disposeItem(final Item guiItem) {
         if (TextItemAdapterListener.class.isInstance(guiItem)) {
             ((TextItemAdapterListener)guiItem).removeAdapter();
         }

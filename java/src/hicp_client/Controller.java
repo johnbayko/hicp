@@ -12,6 +12,11 @@ import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
 import hicp.message.event.Connect;
 import hicp.message.event.EventEnum;
+import hicp_client.gui.ContainerItem;
+import hicp_client.gui.Item;
+import hicp_client.gui.ItemSource;
+import hicp_client.gui.RootItem;
+import hicp_client.text.TextLibrary;
 
 // Main controller for handling HICP communication.
 public class Controller
@@ -27,9 +32,9 @@ public class Controller
     protected boolean _isConnected = false;
 
     protected TextLibrary _textLibrary = new TextLibrary();  // debug
-    protected Map<String, GUIItem> _guiMap = new HashMap<>();
+    protected Map<String, Item> _guiMap = new HashMap<>();
 
-    protected GUIRootItem _root = null;
+    protected RootItem _root = null;
 
     public Controller(Session session, Monitor monitor)
         throws UnsupportedEncodingException
@@ -45,7 +50,7 @@ public class Controller
 
         // TODO Is text library needed? Can constructor without parameters be
         // made?
-        _root = new GUIRootItem();
+        _root = new RootItem();
     }
 
 // Called by owner.
@@ -170,17 +175,17 @@ public class Controller
                         break;
                     }
                     {
-                        final GUIItem oldGUIItem = _guiMap.get(addCmd.id);
+                        final Item oldItem = _guiMap.get(addCmd.id);
 
-                        if (null != oldGUIItem) {
+                        if (null != oldItem) {
                             // Remove the old one.
-                            GUIItemSource.disposeGUIItem(oldGUIItem);
+                            ItemSource.disposeItem(oldItem);
                             _guiMap.remove(addCmd.id);
                         }
                     }
                     {
-                        final GUIItem guiItem =
-                            GUIItemSource.newGUIItem(
+                        final Item guiItem =
+                            ItemSource.newItem(
                                 addCmd, _textLibrary, _messageExchange
                             );
 
@@ -193,8 +198,8 @@ public class Controller
                                 guiItem.setParent(_root);
                             } else {
                                 if (null != addCmd.parent) {
-                                    final GUIContainerItem parentItem =
-                                        (GUIContainerItem)
+                                    final ContainerItem parentItem =
+                                        (ContainerItem)
                                             _guiMap.get(addCmd.parent);
                                     guiItem.setParent(parentItem);
                                 }
@@ -222,7 +227,7 @@ public class Controller
                 if (modifyCmd.TEXT.equals(modifyCmd.category)) {
                     _textLibrary.addModify(modifyCmd);
                 } else if (modifyCmd.GUI.equals(modifyCmd.category)) {
-                    final GUIItem guiItem;
+                    final Item guiItem;
                     if (null != modifyCmd.id) {
                         // Get GUI item based on id field.
                         guiItem = _guiMap.get(modifyCmd.id);
@@ -267,13 +272,13 @@ public class Controller
                     }
 
                     // find the GUI item to remove.
-                    final GUIItem guiItem = _guiMap.get(removeCmd.id);
+                    final Item guiItem = _guiMap.get(removeCmd.id);
                     if (null == guiItem) {
                         // No item to remove.
                         break;
                     }
 
-                    GUIItemSource.disposeGUIItem(guiItem);
+                    ItemSource.disposeItem(guiItem);
 
                     // Remove it from the GUI item list.
                     _guiMap.remove(removeCmd.id);
