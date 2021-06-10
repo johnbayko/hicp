@@ -37,14 +37,18 @@ public class GUIItemSource {
                     new GUIWindowItem(addCmd, messageExchange);
             } else if (Add.SELECTION.equals(addCmd.component)) {
                 guiItem =
-                    new GUISelectionItem(addCmd, textLibrary, messageExchange);
+                    GUISelectionItem.newGUIItem(addCmd, textLibrary, messageExchange);
             } else {
                 // Unrecognized category.
                 LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
+                guiItem = null;
+            }
+            if (null == guiItem) {
                 return null;
             }
             if (TextItemAdapterListener.class.isInstance(guiItem)) {
-                ((TextItemAdapterListener)guiItem).setAdapter(new TextItemAdapter(textLibrary));
+                ((TextItemAdapterListener)guiItem)
+                    .setAdapter(new TextItemAdapter(textLibrary));
             }
             guiItem.add(addCmd);
 
