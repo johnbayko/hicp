@@ -18,7 +18,7 @@ public class SelectionItem
     extends Item  // TODO becoming a factory, no longer needed?
 {
     private static final Logger LOGGER =
-        Logger.getLogger( Item.class.getName() );
+        Logger.getLogger( SelectionItem.class.getName() );
 
     protected Component _component;
 

@@ -20,7 +20,7 @@ public abstract class AddModify
     extends AddModifyRemove
 {
     private static final Logger LOGGER =
-        Logger.getLogger( HICPReader.class.getName() );
+        Logger.getLogger( AddModify.class.getName() );
 
     public final static String COMPONENT = "component";
 

@@ -36,7 +36,7 @@ public class ScrollItem
     extends Item
 {
     private static final Logger LOGGER =
-        Logger.getLogger( Item.class.getName() );
+        Logger.getLogger( ScrollItem.class.getName() );
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
