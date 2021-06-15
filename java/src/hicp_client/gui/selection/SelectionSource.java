@@ -2,6 +2,7 @@ package hicp_client.gui.selection;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
@@ -11,6 +12,9 @@ import hicp_client.text.TextLibrary;
 public class SelectionSource {
     private static final Logger LOGGER =
         Logger.getLogger( SelectionSource.class.getName() );
+
+    public static final Pattern LINE_SPLITTER =
+        Pattern.compile("\r\n", Pattern.LITERAL);
 
     public static Item newItem(
         final Add addCmd,

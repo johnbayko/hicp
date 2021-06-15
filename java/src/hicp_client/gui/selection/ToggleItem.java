@@ -1,9 +1,12 @@
 package hicp_client.gui.selection;
 
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
@@ -38,7 +41,20 @@ public class ToggleItem
 
         switch (mode) {
           case SINGLE:
-            _component = new JLabel("radio selection list");  // debug
+            final JPanel newPanel = new JPanel(new GridBagLayout());
+            final GridBagConstraints c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 0;
+
+            final String[] itemsList =
+                SelectionSource.LINE_SPLITTER.split(addCmd.items);
+
+            for (final String itemStr : itemsList) {
+                newPanel.add(new JLabel(itemStr), c);
+                c.gridy++;
+            }
+
+            _component = newPanel;
             break;
           case MULTIPLE:
             _component = new JLabel("checkbox selection list");  // debug

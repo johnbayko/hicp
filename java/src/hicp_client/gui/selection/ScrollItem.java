@@ -41,9 +41,6 @@ public class ScrollItem
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
-    public static final Pattern lineSplitter =
-        Pattern.compile("\r\n", Pattern.LITERAL);
-
     public static final Pattern colonSplitter =
         Pattern.compile("\\s*:\\s*");
     public final int ID_IDX = 0;
@@ -190,7 +187,8 @@ public class ScrollItem
                 _listSelectionModel.clearSelection();
             }
 
-            final String[] itemsList = lineSplitter.split(itemsStr);
+            final String[] itemsList =
+                SelectionSource.LINE_SPLITTER.split(itemsStr);
 
             final int oldSize = _selectionItemList.size();
             _selectionItemList = new ArrayList<>(itemsList.length);
