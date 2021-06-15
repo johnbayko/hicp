@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp_client.gui.*;
-import hicp_client.gui.selection.SelectionItem;
+import hicp_client.gui.selection.SelectionSource;
 import hicp_client.text.TextItemAdapter;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextLibrary;
@@ -42,7 +42,7 @@ public class ItemSource {
                     new WindowItem(addCmd, messageExchange);
             } else if (Add.SELECTION.equals(addCmd.component)) {
                 guiItem =
-                    SelectionItem
+                    SelectionSource
                         .newItem(addCmd, textLibrary, messageExchange);
             } else {
                 // Unrecognized category.

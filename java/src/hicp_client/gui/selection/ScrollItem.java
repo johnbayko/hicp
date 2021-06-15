@@ -478,7 +478,6 @@ public class ScrollItem
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
-
     }
 
     protected Item addInvoked(final Add addCmd) {
