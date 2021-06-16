@@ -3,6 +3,7 @@ package hicp_client.gui.selection;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
@@ -12,7 +13,11 @@ import hicp.MessageExchange;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp_client.gui.Item;
+import hicp_client.text.TextEvent;
+import hicp_client.text.TextItem;
 import hicp_client.text.TextLibrary;
+import hicp_client.text.TextListener;
+import hicp_client.text.TextListenerInvoker;
 
 public class ToggleItem
     extends Item
@@ -24,6 +29,38 @@ public class ToggleItem
     protected final MessageExchange _messageExchange;
 
     protected Component _component;
+
+    class SelectionItem
+        implements TextListener
+    {
+        public final String id;
+
+        public final JLabel component;
+
+        public SelectionItem(
+            final ItemInfo itemInfo
+        ) {
+            id = itemInfo.id;
+
+            final JLabel newLabel = new JLabel();
+
+            final TextItem textItem = _textLibrary.get(itemInfo.textId);
+            newLabel.setText(textItem.getText());
+            textItem.addTextListener(new TextListenerInvoker(this));
+
+            // TODO enabled
+
+
+
+            component = newLabel;
+        }
+
+        // GUI thread.
+        public void textChanged(TextEvent e) {
+            TextItem ti = (TextItem)e.getSource();
+            component.setText(ti.getText());
+        }
+    }
 
     public ToggleItem(
         Add addCmd,
@@ -46,11 +83,12 @@ public class ToggleItem
             c.gridx = 0;
             c.gridy = 0;
 
-            final String[] itemsList =
-                SelectionSource.LINE_SPLITTER.split(addCmd.items);
+            final List<ItemInfo> itemList =
+                SelectionSource.itemList(addCmd.items);
 
-            for (final String itemStr : itemsList) {
-                newPanel.add(new JLabel(itemStr), c);
+            for (final ItemInfo itemInfo : itemList) {
+                final SelectionItem si = new SelectionItem(itemInfo);
+                newPanel.add(si.component, c);
                 c.gridy++;
             }
 

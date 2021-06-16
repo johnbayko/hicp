@@ -86,9 +86,7 @@ public class ScrollItem
             return enabled;
         }
 
-        /*
-            GUI thread.
-         */
+        // GUI thread.
         public void textChanged(TextEvent e) {
             TextItem ti = (TextItem)e.getSource();
             text = ti.getText();
