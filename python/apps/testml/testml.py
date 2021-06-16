@@ -379,6 +379,12 @@ class TestAppML(App):
             item = SelectionItem(item_id, item_text_id)
             item_list[item_id] = item
         selection.add_items(item_list)
+#        selection.set_presentation(Selection.SCROLL)  # debug
+        selection.set_presentation(Selection.TOGGLE)  # debug
+#        selection.set_presentation(Selection.DROPDOWN)  # debug
+        selection.set_selection_mode(Selection.SINGLE)  # debug
+#        selection.set_selection_mode(Selection.MULTIPLE)  # debug
+#        selection.set_height(5)  # debug
         selection_panel.add(selection, 0, 1)
 
         # Add button

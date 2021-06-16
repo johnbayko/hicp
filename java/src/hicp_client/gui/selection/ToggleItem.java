@@ -6,8 +6,10 @@ import java.awt.GridBagLayout;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
@@ -30,29 +32,33 @@ public class ToggleItem
 
     protected Component _component;
 
+    protected ButtonGroup _buttonGroup = null;
+    protected JRadioButton _noneButton = null;
+
     class SelectionItem
         implements TextListener
     {
         public final String id;
 
-        public final JLabel component;
+        public final JRadioButton component;
 
         public SelectionItem(
             final ItemInfo itemInfo
         ) {
             id = itemInfo.id;
 
-            final JLabel newLabel = new JLabel();
+            final JRadioButton newComponent = new JRadioButton();
+            _buttonGroup.add(newComponent);
 
             final TextItem textItem = _textLibrary.get(itemInfo.textId);
-            newLabel.setText(textItem.getText());
+            newComponent.setText(textItem.getText());
             textItem.addTextListener(new TextListenerInvoker(this));
 
             // TODO enabled
 
 
 
-            component = newLabel;
+            component = newComponent;
         }
 
         // GUI thread.
@@ -78,6 +84,14 @@ public class ToggleItem
 
         switch (mode) {
           case SINGLE:
+            // Single selection needs a button group and undisplayed "none"
+            // button.
+            _buttonGroup = new ButtonGroup();
+            _noneButton = new JRadioButton();
+            _noneButton.setSelected(true);  // By default, only one selected.
+            _buttonGroup.add(_noneButton);
+
+
             final JPanel newPanel = new JPanel(new GridBagLayout());
             final GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
