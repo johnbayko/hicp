@@ -41,106 +41,41 @@ public class ScrollItem
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
-    public static final Pattern colonSplitter =
-        Pattern.compile("\\s*:\\s*");
-    public final int ID_IDX = 0;
-    public final int INFO_IDX = 1;
-
-    public static final Pattern commaSplitter =
-        Pattern.compile("\\s*,\\s*");
-
-    public static final Pattern keyValueSplitter =
-        Pattern.compile("\\s*=\\s*");
-    public final int KEY_IDX = 0;
-    public final int VALUE_IDX = 1;
-
     private SelectionListModel _listModel = null;
     private SelectionItemSelection _listSelectionModel = null;
 
     protected Component _component;
 
-    class SelectionListItem
+    class SelectionItem
         implements TextListener
     {
-        // Model and index in model, needed for fireContentsChanged().
-        public final SelectionListModel selectionListModel;
+        // Model and index in model are needed for fireContentsChanged().
         public final int idx;
-
         public final String id;
 
-        public final String textId;
         private String text = "";
 
-        private boolean enabled = true;
+        private final SelectionListModel selectionListModel;
+        private final boolean enabled;
 
-        public SelectionListItem(
+        public SelectionItem(
             final SelectionListModel newSelectionListModel,
             final int newIdx,
-            final String itemStr
-        )
-            throws ParseException, NumberFormatException
-        {
+            final ItemInfo itemInfo
+        ) {
             selectionListModel = newSelectionListModel;
             idx = newIdx;
 
-            // <id>:<type-value list>
-            final String[] idInfoSplit =
-                colonSplitter.split(itemStr);
-
-            // Needs at least 2 results.
-            if (idInfoSplit.length < 2) {
-                throw new ParseException(
-                        "Expected <id>:<item info>, missing separator ':'", 0
-                    );
-            }
-            id = idInfoSplit[ID_IDX];
-
-            final String[] infoList =
-                commaSplitter.split(idInfoSplit[INFO_IDX]);
-
-            // Needs at least 1 result.
-            if (infoList.length < 1) {
-                throw new ParseException("No selection item info found.", 0);
-            }
-
-            String textIdStr = null;
-            String eventsStr = null;
-            for (final String typeValueStr : infoList) {
-                final String[] typeValueSplit =
-                    keyValueSplitter.split(typeValueStr);
-
-                if (typeValueSplit.length < 2) {
-                    // Just skip this one.
-                    continue;
-                }
-                final String type = typeValueSplit[KEY_IDX];
-                final String value = typeValueSplit[VALUE_IDX];
-
-                if ("text".equals(type) && (null == textIdStr)) {
-                    textIdStr = value;
-                } else if ("events".equals(type) && (null == eventsStr)) {
-                    eventsStr = value;
-                }
-            }
-            if (null != textIdStr) {
-                textId = textIdStr;
-
-                final TextItem textItem = _textLibrary.get(textId);
+            id = itemInfo.id;
+            {
+                final TextItem textItem = _textLibrary.get(itemInfo.textId);
                 text = textItem.getText();
 
                 // Adds this as a listener to the text item, but through
                 // SwingUtilities.invokeLater().
                 textItem.addTextListener(new TextListenerInvoker(this));
-            } else {
-                throw new ParseException(
-                    "Expected at text ID in type info, found none.", 0
-                    );
             }
-            if (null != eventsStr) {
-                // Default is enabled, explicitly disable.
-                // If not "disabled", don't disable.
-                enabled = !"disabled".equals(eventsStr);
-            }
+            enabled = itemInfo.events != EventsEnum.DISABLED;
         }
 
         public String getText() {
@@ -163,13 +98,13 @@ public class ScrollItem
     }
 
     class SelectionListModel
-        extends AbstractListModel<SelectionListItem>
+        extends AbstractListModel<SelectionItem>
     {
         // Empty list by default.
-        private List<SelectionListItem> _selectionItemList = new ArrayList<>();
+        private List<SelectionItem> _selectionItemList = new ArrayList<>();
 
         // Also need to map by item ID.
-        private Map<String, SelectionListItem> _selectionItemMap = new HashMap<>();
+        private Map<String, SelectionItem> _selectionItemMap = new HashMap<>();
 
         // GUI thread (addInvoked()).
         public SelectionListModel(
@@ -187,26 +122,21 @@ public class ScrollItem
                 _listSelectionModel.clearSelection();
             }
 
-            final String[] itemsList =
-                SelectionSource.LINE_SPLITTER.split(itemsStr);
+            final List<ItemInfo> itemList = SelectionSource.itemList(itemsStr);
 
             final int oldSize = _selectionItemList.size();
-            _selectionItemList = new ArrayList<>(itemsList.length);
+            _selectionItemList = new ArrayList<>(itemList.size());
             _selectionItemMap = new HashMap<>();
 
-            for (final String itemStr : itemsList) {
-                try {
-                    // Index from 0 to size - 1, next index will be size.
-                    final int newIdx = _selectionItemList.size();
+            for (final ItemInfo itemInfo : itemList) {
+                // Index from 0 to size - 1, next index will be size.
+                final int newIdx = _selectionItemList.size();
 
-                    final SelectionListItem si =
-                        new SelectionListItem(this, newIdx, itemStr);
+                final SelectionItem si =
+                    new SelectionItem(this, newIdx, itemInfo);
 
-                    _selectionItemList.add(si);
-                    _selectionItemMap.put(si.id, si);
-                } catch (ParseException | NumberFormatException ex) {
-                    // Just skip.
-                }
+                _selectionItemList.add(si);
+                _selectionItemMap.put(si.id, si);
             }
             final int newSize = _selectionItemList.size();
             final int size = Math.max(oldSize, newSize);
@@ -214,7 +144,7 @@ public class ScrollItem
             fireContentsChanged(this, 0, size-1);
         }
 
-        public SelectionListItem getElementAt(final int index) {
+        public SelectionItem getElementAt(final int index) {
             return _selectionItemList.get(index);
         }
 
@@ -222,13 +152,13 @@ public class ScrollItem
             return _selectionItemList.size();
         }
 
-        public SelectionListItem getElementForId(final String itemId) {
+        public SelectionItem getElementForId(final String itemId) {
             return _selectionItemMap.get(itemId);
         }
 
         // GUI thread.
         // Inform JList that this item changed.
-        public void itemChangedInvoked(final SelectionListItem si) {
+        public void itemChangedInvoked(final SelectionItem si) {
             final int idx = si.idx;
 
             fireContentsChanged(this, idx, idx);
@@ -241,11 +171,11 @@ public class ScrollItem
 
     static class SelectionItemRenderer
         extends JLabel
-        implements ListCellRenderer<SelectionListItem>
+        implements ListCellRenderer<SelectionItem>
     {
         public Component getListCellRendererComponent(
-            JList<? extends SelectionListItem> list,
-            SelectionListItem value,
+            JList<? extends SelectionItem> list,
+            SelectionItem value,
             int index,
             boolean isSelected,
             boolean cellHasFocus
@@ -331,7 +261,7 @@ public class ScrollItem
                 scanIdx++)
             {
                 final String selectedId = selected[scanIdx];
-                final SelectionListItem si = _listModel.getElementForId(selectedId);
+                final SelectionItem si = _listModel.getElementForId(selectedId);
 
                 selectedIdxList[scanIdx] = si.idx;
             }
@@ -381,7 +311,7 @@ public class ScrollItem
             for (int scanIdx = index0; scanIdx != stopIdx;scanIdx += step) {
                 // Find range start or end - that is, current and previous item
                 // enabled value changes.
-                final SelectionListItem si = _listModel.getElementAt(scanIdx);
+                final SelectionItem si = _listModel.getElementAt(scanIdx);
                 final boolean isEnabled = si.isEnabled();
 
                 if (prevIsEnabled && !isEnabled) {
@@ -483,7 +413,7 @@ public class ScrollItem
 
         final EventsEnum events = EventsEnum.getEnum(addCmd.events);
 
-        final JList<SelectionListItem> newList = new JList<>();
+        final JList<SelectionItem> newList = new JList<>();
 
         _listModel = new SelectionListModel(addCmd.items);
         newList.setModel(_listModel);
@@ -531,7 +461,7 @@ public class ScrollItem
                             idx++
                         ) {
                             final int selectedIdx = selectedIndices[idx];
-                            SelectionListItem si =
+                            SelectionItem si =
                                 _listModel.getElementAt(selectedIdx);
                             selected[idx] = si.id;
                         }

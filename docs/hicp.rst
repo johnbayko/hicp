@@ -762,10 +762,11 @@ presentation: <string>
       Items are displayed as individual items on a panel which the user agent
       determins based on the GUI style and other attributes, such as single /
       multi selection or scroll height settings, That could be check boxes,
-      switch tools, or radio buttons (normally vertically, not scrollable).
+      switches, or radio buttons (normally vertically, not scrollable).
 
     "dropdown":
-      For single selection lists only, a dropdown tool presents the available
+      For single selection lists only (selection mode of "multiple" is
+      ignored), a dropdown tool presents the available
       items for the user to select, with only the selected item visible when
       not being changed. This is the default for single selection.
 
