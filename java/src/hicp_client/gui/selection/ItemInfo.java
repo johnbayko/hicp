@@ -3,32 +3,20 @@ package hicp_client.gui.selection;
 import java.text.ParseException;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
-import java.util.regex.Pattern;
+
+import hicp.message.Message;
 
 public class ItemInfo {
     public final String id;
     public final String textId;
     public final EventsEnum events;
 
-    public static final Pattern COLON_SPLITTER =
-        Pattern.compile("\\s*:\\s*");
-    public static final int ID_IDX = 0;
-    public static final int INFO_IDX = 1;
-
-    public static final Pattern COMMA_SPLITTER =
-        Pattern.compile("\\s*,\\s*");
-
-    public static final Pattern KEY_VALUE_SPLITTER =
-        Pattern.compile("\\s*=\\s*");
-    public static final int KEY_IDX = 0;
-    public static final int VALUE_IDX = 1;
-
     public ItemInfo(final String itemStr)
         throws ParseException
     {
         // <id>:<type-value list>
         final String[] idInfoSplit =
-            COLON_SPLITTER.split(itemStr);
+            Message.COLON_SPLITTER.split(itemStr);
 
         // Needs at least 2 results.
         if (idInfoSplit.length < 2) {
@@ -36,10 +24,12 @@ public class ItemInfo {
                     "Expected <id>:<item info>, missing separator ':'", 0
                 );
         }
-        id = idInfoSplit[ID_IDX];
+        id = idInfoSplit[Message.ID_IDX];
 
         final String[] infoList =
-            COMMA_SPLITTER.split(idInfoSplit[INFO_IDX]);
+            Message.COMMA_SPLITTER.split(
+                idInfoSplit[Message.INFO_IDX]
+            );
 
         // Needs at least 1 result.
         if (infoList.length < 1) {
@@ -50,14 +40,14 @@ public class ItemInfo {
         String eventsStr = null;
         for (final String typeValueStr : infoList) {
             final String[] typeValueSplit =
-                KEY_VALUE_SPLITTER.split(typeValueStr);
+                Message.KEY_VALUE_SPLITTER.split(typeValueStr);
 
             if (typeValueSplit.length < 2) {
                 // Just skip this one.
                 continue;
             }
-            final String type = typeValueSplit[KEY_IDX];
-            final String value = typeValueSplit[VALUE_IDX];
+            final String type = typeValueSplit[Message.KEY_IDX];
+            final String value = typeValueSplit[Message.VALUE_IDX];
 
             if ("text".equals(type) && (null == textIdStr)) {
                 textIdStr = value;

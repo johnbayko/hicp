@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
@@ -43,7 +45,8 @@ public class ToggleItem
         public final JRadioButton component;
 
         public SelectionItem(
-            final ItemInfo itemInfo
+            final ItemInfo itemInfo,
+            final boolean isSelected
         ) {
             id = itemInfo.id;
 
@@ -52,6 +55,7 @@ public class ToggleItem
 
             final TextItem textItem = _textLibrary.get(itemInfo.textId);
             newComponent.setText(textItem.getText());
+            newComponent.setSelected(isSelected);
             textItem.addTextListener(new TextListenerInvoker(this));
 
             // TODO enabled
@@ -91,17 +95,27 @@ public class ToggleItem
             _noneButton.setSelected(true);  // By default, only one selected.
             _buttonGroup.add(_noneButton);
 
-
             final JPanel newPanel = new JPanel(new GridBagLayout());
             final GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = 0;
 
+            final Set<String> selectionSet =
+                (null != addCmd.selected)
+                    ? Set.of(addCmd.selected)
+                    : new TreeSet<>();  // Nothing selected, empty (unused) set.
+            // Note I think TreeSet allocates nothing when empty, so is a
+            // better unused set than HashSet.
+
             final List<ItemInfo> itemList =
                 SelectionSource.itemList(addCmd.items);
 
             for (final ItemInfo itemInfo : itemList) {
-                final SelectionItem si = new SelectionItem(itemInfo);
+                final boolean isSelected = selectionSet.contains(itemInfo.id);
+
+                final SelectionItem si =
+                    new SelectionItem(itemInfo, isSelected);
+
                 newPanel.add(si.component, c);
                 c.gridy++;
             }

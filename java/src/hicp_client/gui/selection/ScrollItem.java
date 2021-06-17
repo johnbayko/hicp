@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JLabel;

@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hicp.message.Message;
+
 public class TextAttributes {
     private static final Logger LOGGER =
         Logger.getLogger( TextAttributes.class.getName() );
@@ -40,7 +42,7 @@ public class TextAttributes {
         {
             // Split by = to convert to value and length,
             final String[] valueLengthSplit =
-                keyValueSplitter.split(attributeRangeStr);
+                Message.KEY_VALUE_SPLITTER.split(attributeRangeStr);
 
             final String lengthStr;
 
@@ -150,7 +152,7 @@ public class TextAttributes {
         {
             // For each string, split to attribute and indexes by ":"
             final String[] attributeTypeInfoSplit =
-                colonSplitter.split(attributeTypeStr);
+                Message.COLON_SPLITTER.split(attributeTypeStr);
 
             // Must have at least one ":", non empty attribute. Ignore
             // additional ":" separators.
@@ -177,7 +179,8 @@ public class TextAttributes {
 
             // Split range list string by "," to get range string list.
             // Empty range list is allowed.
-            final String[] rangeStrList = commaSplitter.split(rangeStr);
+            final String[] rangeStrList =
+                Message.COMMA_SPLITTER.split(rangeStr);
 
             for (var valueLengthStr : rangeStrList) {
                 try {
@@ -485,18 +488,6 @@ public class TextAttributes {
         }
     }
 
-    public static final Pattern lineSplitter =
-        Pattern.compile("\r\n", Pattern.LITERAL);
-
-    public static final Pattern commaSplitter =
-        Pattern.compile("\\s*,\\s*");
-
-    public static final Pattern keyValueSplitter =
-        Pattern.compile("\\s*=\\s*");
-
-    public static final Pattern colonSplitter =
-        Pattern.compile("\\s*:\\s*");
-
     private Map<String, AttributeTypeInfo> attributeTypesMap =
         new HashMap<>();
 
@@ -514,7 +505,8 @@ public class TextAttributes {
             return;
         }
         // Split string by line
-        final String[] attributeTypeStrList = lineSplitter.split(attributesStr);
+        final String[] attributeTypeStrList =
+            Message.LINE_SPLITTER.split(attributesStr);
         if (0 == attributeTypeStrList.length) {
             // No attributes.
             return;

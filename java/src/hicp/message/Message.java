@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import hicp.HICPReader;
 
@@ -11,8 +12,24 @@ public abstract class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
 
-    protected final static String TRUE = "true";
-    protected final static String FALSE = "false";
+    public static final Pattern LINE_SPLITTER =
+        Pattern.compile("\r\n", Pattern.LITERAL);
+
+    public static final Pattern COLON_SPLITTER =
+        Pattern.compile("\\s*:\\s*");
+    public static final int ID_IDX = 0;
+    public static final int INFO_IDX = 1;
+
+    public static final Pattern COMMA_SPLITTER =
+        Pattern.compile("\\s*,\\s*");
+
+    public static final Pattern KEY_VALUE_SPLITTER =
+        Pattern.compile("\\s*=\\s*");
+    public static final int KEY_IDX = 0;
+    public static final int VALUE_IDX = 1;
+
+    public final static String TRUE = "true";
+    public final static String FALSE = "false";
 
     protected final String _name;
 

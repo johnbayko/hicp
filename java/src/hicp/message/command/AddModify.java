@@ -69,9 +69,6 @@ public abstract class AddModify
     public int horizontalSize = 0;
     public int verticalSize = 0;
 
-    protected static final Pattern commaSplitter =
-        Pattern.compile("\\s*,\\s*");
-
     public AddModify(String name) {
         super(name);
     }
@@ -131,7 +128,7 @@ readLoop:   for (;;) {
             // split into three - any extra will be separated into third
             // String that's ignored.
             final String[] positions =
-                commaSplitter.split(hicpHeader.value.getString(), 3);
+                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
 
             if (0 < positions.length) {
                 try {
@@ -150,7 +147,7 @@ readLoop:   for (;;) {
             return true;
         } else if (SELECTED.equals(hicpHeader.name)) {
             // List of integers, but actually strings (can't do math on them).
-            selected = commaSplitter.split(hicpHeader.value.getString());
+            selected = COMMA_SPLITTER.split(hicpHeader.value.getString());
 
             // split("") will create a 1 element array of [""], treat that as
             // null.
@@ -161,7 +158,7 @@ readLoop:   for (;;) {
         } else if (SIZE.equals(hicpHeader.name)) {
             // Much like POSITION.
             final String[] sizes =
-                commaSplitter.split(hicpHeader.value.getString(), 3);
+                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
 
             if (0 < sizes.length) {
                 try {
@@ -184,7 +181,7 @@ readLoop:   for (;;) {
             // split into three - any extra will be separated into third
             // String that's ignored.
             final String[] directions =
-                commaSplitter.split(hicpHeader.value.getString(), 3);
+                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
 
             if (0 < directions.length) {
                 firstTextDirection =

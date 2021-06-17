@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import hicp.MessageExchange;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp_client.gui.Item;
 import hicp_client.text.TextLibrary;
@@ -16,12 +16,9 @@ public class SelectionSource {
     private static final Logger LOGGER =
         Logger.getLogger( SelectionSource.class.getName() );
 
-    public static final Pattern LINE_SPLITTER =
-        Pattern.compile("\r\n", Pattern.LITERAL);
-
     public static List<ItemInfo> itemList(final String itemsStr) {
         final String[] itemsList =
-            SelectionSource.LINE_SPLITTER.split(itemsStr);
+            Message.LINE_SPLITTER.split(itemsStr);
 
         final List<ItemInfo> itemList = new ArrayList<>(itemsList.length);
         for (final String itemStr : itemsList) {
