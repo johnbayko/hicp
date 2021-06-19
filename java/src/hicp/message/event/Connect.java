@@ -2,8 +2,11 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
+import hicp.HICPHeader;
 import hicp.HICPReader;
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class Connect
@@ -30,6 +33,10 @@ public class Connect
         writeEndOfMessage(out);
     }
 
-    public void read(HICPReader in) {
+    public Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        // No fields to read.
+        return this;
     }
 }

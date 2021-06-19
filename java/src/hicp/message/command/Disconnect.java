@@ -2,9 +2,11 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class Disconnect
@@ -20,13 +22,14 @@ public class Disconnect
         // No fields to write.
     }
 
-    public void read(HICPReader in)
-        throws IOException
-    {
-        // No fields to read.
-    }
-
     public void clear() {
         // No fields to clear.
+    }
+
+    public Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        // No fields to read.
+        return this;
     }
 }

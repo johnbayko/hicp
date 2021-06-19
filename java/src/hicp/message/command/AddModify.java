@@ -14,6 +14,7 @@ import hicp.HICPHeader;
 import hicp.HICPReader;
 import hicp.TextDirection;
 import hicp.message.TextAttributes;
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public abstract class AddModify
@@ -78,128 +79,120 @@ public abstract class AddModify
     {
     }
 
-    public void read(HICPReader in)
-        throws IOException
-    {
-        try {
-readLoop:   for (;;) {
-                final HICPHeader hicpHeader = in.readHeader();
-                if (null == hicpHeader.name) {
-                    break readLoop;
+    public Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        // TODO make independent from Remove.
+        super.parseHeaders(headerMap);
+
+        for (final HeaderEnum h : headerMap.keySet()) {
+            final HICPHeader v = headerMap.get(h);
+            switch (h) {
+              case COMPONENT:
+                component = v.value.getString();
+                break;
+              case ATTRIBUTES:
+                attributes = v.value.getString();
+                break;
+              case CONTENT:
+                content = v.value.getString();
+                break;
+              case ITEMS:
+                items = v.value.getString();
+                break;
+              case PARENT:
+                parent = v.value.getString();
+                break;
+              case POSITION:
+                // TODO move actual parsing to lower level, keep this a string.
+
+                // Only two values are needed, but if there are more,
+                // shouldn't be appended to the second value by split(), so
+                // split into three - any extra will be separated into third
+                // String that's ignored.
+                final String[] positions =
+                    COMMA_SPLITTER.split(v.value.getString(), 3);
+
+                if (0 < positions.length) {
+                    try {
+                        horizontalPosition = Integer.parseInt(positions[0]);
+                    } catch (NumberFormatException ex) {
+                        horizontalPosition = 0;
+                    }
                 }
-                readField(hicpHeader);
+                if (1 < positions.length) {
+                    try {
+                        verticalPosition = Integer.parseInt(positions[1]);
+                    } catch (NumberFormatException ex) {
+                        verticalPosition = 0;
+                    }
+                }
+                break;
+              case SELECTED:
+                // TODO move actual parsing to lower level, keep this a string.
+
+                // List of integers, but actually strings (can't do math on
+                // them).
+                selected = COMMA_SPLITTER.split(v.value.getString());
+
+                // split("") will create a 1 element array of [""], treat that
+                // as null.
+                if ((1 == selected.length) && ("".equals(selected[0]))) {
+                    selected = null;
+                }
+                break;
+              case SIZE:
+                // TODO move actual parsing to lower level, keep this a string.
+
+                // Much like POSITION.
+                final String[] sizes =
+                    COMMA_SPLITTER.split(v.value.getString(), 3);
+
+                if (0 < sizes.length) {
+                    try {
+                        horizontalSize = Integer.parseInt(sizes[0]);
+                    } catch (NumberFormatException ex) {
+                        horizontalSize = 0;
+                    }
+                }
+                if (1 < sizes.length) {
+                    try {
+                        verticalSize = Integer.parseInt(sizes[1]);
+                    } catch (NumberFormatException ex) {
+                        verticalSize = 0;
+                    }
+                }
+                break;
+              case TEXT:
+                text = v.value.getString();
+                break;
+              case TEXT_DIRECTION:
+                // TODO move actual parsing to lower level, keep this a string.
+
+                // Only two values are needed, but if there are more,
+                // shouldn't be appended to the second value by split(), so
+                // split into three - any extra will be separated into third
+                // String that's ignored.
+                final String[] directions =
+                    COMMA_SPLITTER.split(v.value.getString(), 3);
+
+                if (0 < directions.length) {
+                    firstTextDirection =
+                        TextDirection.getTextDirection(directions[0]);
+                }
+                if (1 < directions.length) {
+                    secondTextDirection =
+                        TextDirection.getTextDirection(directions[1]);
+                }
+                break;
+              case VISIBLE:
+                visible = Message.TRUE.equals(v.value.getString());
+                break;
+              case EVENTS:
+                events = v.value.getString();
+                break;
             }
-            if (null != attributes) {
-                textAttributes = new TextAttributes(attributes, content);
-            }
-        } catch (NullPointerException ex) {
-            // Unexpected end of input - not really an error, so just
-            // quietly return with whatever was read.
         }
-    }
-
-    protected boolean readField(HICPHeader hicpHeader) {
-        if (super.readField(hicpHeader)) {
-            return true;
-        }
-
-        // Extract recognized fields.
-        if (TEXT.equals(hicpHeader.name)) {
-            text = hicpHeader.value.getString();
-            return true;
-        } else if (ATTRIBUTES.equals(hicpHeader.name)) {
-            attributes = hicpHeader.value.getString();
-            return true;
-        } else if (CONTENT.equals(hicpHeader.name)) {
-            content = hicpHeader.value.getString();
-            return true;
-        } else if (COMPONENT.equals(hicpHeader.name)) {
-            component = hicpHeader.value.getString();
-            return true;
-        } else if (ITEMS.equals(hicpHeader.name)) {
-            items = hicpHeader.value.getString();
-            return true;
-        } else if (PARENT.equals(hicpHeader.name)) {
-            parent = hicpHeader.value.getString();
-            return true;
-        } else if (POSITION.equals(hicpHeader.name)) {
-            // Only two values are needed, but if there are more,
-            // shouldn't be appended to the second value by split(), so
-            // split into three - any extra will be separated into third
-            // String that's ignored.
-            final String[] positions =
-                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
-
-            if (0 < positions.length) {
-                try {
-                    horizontalPosition = Integer.parseInt(positions[0]);
-                } catch (NumberFormatException ex) {
-                    horizontalPosition = 0;
-                }
-            }
-            if (1 < positions.length) {
-                try {
-                    verticalPosition = Integer.parseInt(positions[1]);
-                } catch (NumberFormatException ex) {
-                    verticalPosition = 0;
-                }
-            }
-            return true;
-        } else if (SELECTED.equals(hicpHeader.name)) {
-            // List of integers, but actually strings (can't do math on them).
-            selected = COMMA_SPLITTER.split(hicpHeader.value.getString());
-
-            // split("") will create a 1 element array of [""], treat that as
-            // null.
-            if ((1 == selected.length) && ("".equals(selected[0]))) {
-                selected = null;
-            }
-            return true;
-        } else if (SIZE.equals(hicpHeader.name)) {
-            // Much like POSITION.
-            final String[] sizes =
-                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
-
-            if (0 < sizes.length) {
-                try {
-                    horizontalSize = Integer.parseInt(sizes[0]);
-                } catch (NumberFormatException ex) {
-                    horizontalSize = 0;
-                }
-            }
-            if (1 < sizes.length) {
-                try {
-                    verticalSize = Integer.parseInt(sizes[1]);
-                } catch (NumberFormatException ex) {
-                    verticalSize = 0;
-                }
-            }
-            return true;
-        } else if (TEXT_DIRECTION.equals(hicpHeader.name)) {
-            // Only two values are needed, but if there are more,
-            // shouldn't be appended to the second value by split(), so
-            // split into three - any extra will be separated into third
-            // String that's ignored.
-            final String[] directions =
-                COMMA_SPLITTER.split(hicpHeader.value.getString(), 3);
-
-            if (0 < directions.length) {
-                firstTextDirection =
-                    TextDirection.getTextDirection(directions[0]);
-            }
-            if (1 < directions.length) {
-                secondTextDirection =
-                    TextDirection.getTextDirection(directions[1]);
-            }
-            return true;
-        } else if (VISIBLE.equals(hicpHeader.name)) {
-            visible = Message.TRUE.equals(hicpHeader.value.getString());
-            return true;
-        } else if (EVENTS.equals(hicpHeader.name)) {
-            events = hicpHeader.value.getString();
-            return true;
-        }
-
-        return false;
+        return this;
     }
 }

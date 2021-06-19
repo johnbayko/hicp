@@ -2,11 +2,13 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public abstract class AddModifyRemove
@@ -33,32 +35,20 @@ public abstract class AddModifyRemove
     {
     }
 
-    public void read(HICPReader in)
-        throws IOException
-    {
-        try {
-readLoop:   for (;;) {
-                final HICPHeader hicpHeader = in.readHeader();
-                if (null == hicpHeader.name) {
-                    break readLoop;
-                }
-                readField(hicpHeader);
+    public Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        for (final HeaderEnum h : headerMap.keySet()) {
+            final HICPHeader v = headerMap.get(h);
+            switch (h) {
+              case CATEGORY:
+                category = v.value.getString();
+                break;
+              case ID:
+                id = v.value.getString();
+                break;
             }
-        } catch (NullPointerException ex) {
-            // Unexpected end of input - not really an error, so just
-            // quietly return with whatever was read.
         }
-    }
-
-    protected boolean readField(HICPHeader hicpHeader) {
-        // Extract recognized fields.
-        if (CATEGORY.equals(hicpHeader.name)) {
-            category = hicpHeader.value.getString();
-            return true;
-        } else if (ID.equals(hicpHeader.name)) {
-            id = hicpHeader.value.getString();
-            return true;
-        }
-        return false;
+        return this;
     }
 }

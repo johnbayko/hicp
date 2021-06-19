@@ -2,11 +2,14 @@ package hicp.message;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import hicp.HICPHeader;
 import hicp.HICPReader;
+import hicp.message.HeaderEnum;
 
 public abstract class Message {
     private static final Logger LOGGER =
@@ -35,7 +38,14 @@ public abstract class Message {
 
     public abstract void write(Writer out) throws IOException;
 
-    public abstract void read(HICPReader in) throws IOException;
+    /**
+        Parse header values into appropriate message structures, such as
+        strings, integers, internal calsses, lists, etc., for use by other code
+        without needing to know header value formats.
+     */
+    public abstract Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    );
 
     public Message(String name) {
         _name = name;

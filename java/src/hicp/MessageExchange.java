@@ -7,9 +7,12 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
@@ -54,22 +57,35 @@ public class MessageExchange
     public void run() {
         try {
 readLoop:   while (null != _in) {
-                // Read first header.
-                final HICPHeader firstHeader = _in.readHeader();
-                if (null == firstHeader) { 
-                    // Connecton closed.
-                    break readLoop;
+                // Read headers into list.
+                final Map<HeaderEnum, HICPHeader> headerMap = new HashMap<>();
+msgLoop:        for (;;) {
+                    final HICPHeader header = _in.readHeader();
+                    if ((null == header) || (null == header.name)) {
+                        // End of headers, end of message.
+                        break msgLoop;
+                    }
+                    final HeaderEnum headerEnum =
+                        HeaderEnum.getEnum(header.name);
+
+                    // Skip any unrecognized headers.
+                    if (null != headerEnum) {
+                        headerMap.put(headerEnum, header);
+                    }
                 }
-                
-                // If line is blank or not a header (.name is null),
-                // don't do anything.
-                if (null != firstHeader.name) {
+
+                final HICPHeader commandHeader =
+                    headerMap.get(HeaderEnum.COMMAND);
+
+                // If command not found (required), skip and read next message.
+                if (null != commandHeader) { 
                     final CommandEnum commandEnum =
-                        CommandEnum.getEnum(firstHeader.value.getString());
+                        CommandEnum.getEnum(commandHeader.value.getString());
+
                     if (null != commandEnum) {
                         final Command command = commandEnum.newCommand();
 
-                        command.read(_in);
+                        command.parseHeaders(headerMap);
 
                         _controller.receivedMessage(commandEnum, command);
                     }

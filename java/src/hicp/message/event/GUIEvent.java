@@ -26,7 +26,4 @@ public abstract class GUIEvent
             writeHeader(out, ID, id);
         }
     }
-
-    public void read(HICPReader in) {
-    }
 }

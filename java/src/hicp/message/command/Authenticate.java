@@ -2,10 +2,12 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
 import java.util.Set;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
+import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class Authenticate
@@ -28,31 +30,25 @@ public class Authenticate
     {
     }
 
-    public void read(HICPReader in)
-        throws IOException
-    {
-        try {
-readLoop:   for (;;) {
-                final HICPHeader hicpHeader = in.readHeader();
-                if (null == hicpHeader.name) {
-                    break readLoop;
-                }
+    public Message parseHeaders(
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        for (final HeaderEnum h : headerMap.keySet()) {
+            final HICPHeader v = headerMap.get(h);
+            switch (h) {
+              case METHOD:
+                method = v.value.getString();
 
-                // Extract recognized fields.
-                if (METHOD.equals(hicpHeader.name)) {
-                    method = hicpHeader.value.getString();
-
-                    // Extract available methods separated by ",",
-                    // discard spaces
-                    allMethods = Set.of(method.trim().split("\\s*,\\s*"));
-                } else if (PASSWORD.equals(hicpHeader.name)) {
-                    password = hicpHeader.value.getString();
-                }
+                // Extract available methods separated by ",",
+                // discard spaces
+                allMethods = Set.of(method.trim().split("\\s*,\\s*"));
+                break;
+              case PASSWORD:
+                password = v.value.getString();
+                break;
             }
-        } catch (NullPointerException ex) {
-            // Unexpected end of input - not really an error, so just
-            // quietly return with whatever was read.
         }
+        return this;
     }
 
     public boolean hasMethod(final String method) {

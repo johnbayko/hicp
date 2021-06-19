@@ -1,8 +1,5 @@
 package hicp.message.command;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import hicp.message.Message;
 
 public abstract class Command
