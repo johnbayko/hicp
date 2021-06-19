@@ -57,7 +57,8 @@ public class MessageExchange
     public void run() {
         try {
 readLoop:   while (null != _in) {
-                // Read headers into list.
+                // TODO I think this belongs in HICPReader.
+                // Read headers into list. That list is an unprocessed message.
                 final Map<HeaderEnum, HICPHeader> headerMap = new HashMap<>();
 msgLoop:        for (;;) {
                     final HICPHeader header = _in.readHeader();
@@ -85,7 +86,7 @@ msgLoop:        for (;;) {
                     if (null != commandEnum) {
                         final Command command = commandEnum.newCommand();
 
-                        command.parseHeaders(headerMap);
+                        command.addHeaders(headerMap);
 
                         _controller.receivedMessage(commandEnum, command);
                     }

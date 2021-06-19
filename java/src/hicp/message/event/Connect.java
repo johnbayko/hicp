@@ -33,7 +33,7 @@ public class Connect
         writeEndOfMessage(out);
     }
 
-    public Message parseHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // No fields to read.

@@ -35,7 +35,7 @@ public abstract class AddModifyRemove
     {
     }
 
-    public Message parseHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         for (final HeaderEnum h : headerMap.keySet()) {

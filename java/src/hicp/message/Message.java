@@ -15,6 +15,7 @@ public abstract class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
 
+    // Useful regexes for parsing header strings.
     public static final Pattern LINE_SPLITTER =
         Pattern.compile("\r\n", Pattern.LITERAL);
 
@@ -39,11 +40,11 @@ public abstract class Message {
     public abstract void write(Writer out) throws IOException;
 
     /**
-        Parse header values into appropriate message structures, such as
+        Add header values to appropriate message structures, such as
         strings, integers, internal calsses, lists, etc., for use by other code
         without needing to know header value formats.
      */
-    public abstract Message parseHeaders(
+    public abstract Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     );
 
@@ -55,6 +56,8 @@ public abstract class Message {
         return _name;
     }
 
+    // TODO should be HICPWriter for this.
+    // Implement a getHeaders() method to pass to writer.
     protected void writeHeader(Writer out, String name, String value)
         throws IOException
     {

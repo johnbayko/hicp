@@ -22,11 +22,11 @@ public class Disconnect
         // No fields to write.
     }
 
-    public void clear() {
+//    public void clear() {
         // No fields to clear.
-    }
+//    }
 
-    public Message parseHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // No fields to read.

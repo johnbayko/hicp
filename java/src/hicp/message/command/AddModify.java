@@ -79,11 +79,11 @@ public abstract class AddModify
     {
     }
 
-    public Message parseHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // TODO make independent from Remove.
-        super.parseHeaders(headerMap);
+        super.addHeaders(headerMap);
 
         for (final HeaderEnum h : headerMap.keySet()) {
             final HICPHeader v = headerMap.get(h);

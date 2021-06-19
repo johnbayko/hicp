@@ -29,11 +29,11 @@ public class Add
         super(name);
     }
 
-    public Message parseHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // TODO make independent from Modify.
-        super.parseHeaders(headerMap);
+        super.addHeaders(headerMap);
 
         for (final HeaderEnum h : headerMap.keySet()) {
             final HICPHeader v = headerMap.get(h);
