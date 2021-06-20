@@ -276,7 +276,8 @@ readLoop:
                     byte[] termSeqBytes =
                         readToken(_termSeqAcceptor, "").getBytes();
 
-                    if ( ('\r' == termSeqBytes[0])
+                    if ( (2 <= termSeqBytes.length)
+                      && ('\r' == termSeqBytes[0])
                       && ('\n' == termSeqBytes[1])
                     ) {
                         /*
@@ -333,15 +334,6 @@ readLoop:
         }
         return new HICPHeader(headerName, headerValue);
     }
-
-    // Utility
-    private void log(Exception ex) {
-        LOGGER.log(Level.WARNING, ex.toString());
-    }
-
-    private void log(String msg) {
-        LOGGER.log(Level.FINE, msg);
-    }
 }
 
 class TokenIndicator {
@@ -352,9 +344,6 @@ class TokenIndicator {
 }
 
 abstract class Acceptor {
-    private static final Logger LOGGER =
-        Logger.getLogger( Acceptor.class.getName() );
-
     protected Acceptor() {
     }
 
@@ -363,15 +352,6 @@ abstract class Acceptor {
     public abstract void reset();
 
     public abstract int getEndLength();
-
-// Utility
-    private void log(Exception ex) {
-        LOGGER.log(Level.WARNING, ex.toString());
-    }
-
-    private void log(String msg) {
-        LOGGER.log(Level.FINE, msg);
-    }
 }
 
 /** Can be ": " or ":: ". This could be more specific, but for now will
@@ -549,6 +529,11 @@ class BoundaryAcceptor
 
     public BoundaryAcceptor(byte[] termSeq) {
         _termSeq = termSeq;
+        if (0 == termSeq.length) {
+            // No boundary, so nothing to accept.
+            _failIdx = null;
+            return;
+        }
 
         // Build the _failIdx values. This is a Knuth-Morris-Pratt state
         // machine. Briefly, consider pattern "ababc" and text
@@ -584,6 +569,10 @@ findFailIdxLoop:
     }
 
     public TokenIndicator accept(final byte inByte) {
+        if (0 == _termSeq.length) {
+            // No sequence to accept.
+            return TokenIndicator.IS_END;
+        }
         while (_matchIdx > -1) {
             if (inByte == _termSeq[_matchIdx]) {
                 // Matched a byte in termination sequence.
