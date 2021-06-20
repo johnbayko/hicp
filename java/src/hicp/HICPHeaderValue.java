@@ -13,15 +13,19 @@ public class HICPHeaderValue {
 
     /** Construct an empty object. */
     public HICPHeaderValue() {
-        _string = "";
-
         _byteBuffer = null;
         _decoder = null;
+
+        _string = "";
     }
 
     public HICPHeaderValue(ByteBuffer byteBuffer, CharsetDecoder decoder) {
         _byteBuffer = byteBuffer;
         _decoder = decoder;
+
+        // For some reason I've forgotten, can't decode string here, though
+        // it looks like byte buffer has the bytes needed. So decode string
+        // when getString() is called.
     }
 
     public byte[] getBytes() {
