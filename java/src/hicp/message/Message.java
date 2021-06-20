@@ -3,6 +3,7 @@ package hicp.message;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -63,12 +64,38 @@ public abstract class Message {
         return _name;
     }
 
-    public HICPHeader getHeader(final HeaderEnum h) {
+
+    // General header access and string parsing utilities.
+
+    public HICPHeader getHeader(final HeaderEnum e) {
         if (null != _headerMap) {
-            return _headerMap.get(h);
+            return _headerMap.get(e);
         }
         return null;
     }
+
+    public String getHeaderString(final HeaderEnum e) {
+        final HICPHeader h = getHeader(e);
+        if (null == h) {
+            return null;
+        }
+        return h.value.getString();
+    }
+
+    /**
+        Convert comma separated string to Set.
+     */
+    public static Set<String> getStringSet(final String s) {
+        // split("") will create a 1 element array of [""], treat that as
+        // empty.
+        if ((null == s) || "".equals(s)) {
+            // Empty set.
+            return Set.of();
+        }
+        final String[] sSplit = COMMA_SPLITTER.split(s);
+        return Set.of(sSplit);
+    }
+
 
     // TODO should be HICPWriter for this.
     // Implement a getHeaders() method to pass to writer.
