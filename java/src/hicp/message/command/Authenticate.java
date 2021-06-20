@@ -13,16 +13,21 @@ import hicp.message.Message;
 public class Authenticate
     extends Command
 {
-    public final static String METHOD = "method";
-    public final static String PASSWORD = "password";
+    private String _method = null;
+    private String _password = null;
 
-    public String method = null;
-    public String password = null;
-
-    private Set<String> allMethods = null;
+    private Set<String> _allMethods = null;
 
     public Authenticate(final String name) {
         super(name);
+    }
+
+    public Authenticate(
+        final String name,
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        super(name);
+        addHeaders(headerMap);
     }
 
     public void write(Writer out)
@@ -34,25 +39,16 @@ public class Authenticate
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);
-        for (final HeaderEnum h : headerMap.keySet()) {
-            final HICPHeader v = headerMap.get(h);
-            switch (h) {
-              case METHOD:
-                method = v.value.getString();
 
-                // Extract available methods separated by ",",
-                // discard spaces
-                allMethods = Set.of(method.trim().split("\\s*,\\s*"));
-                break;
-              case PASSWORD:
-                password = v.value.getString();
-                break;
-            }
-        }
+        _method = getHeaderString(HeaderEnum.METHOD);
+        _allMethods = getStringSet(_method);
+
+        _password = getHeaderString(HeaderEnum.PASSWORD);
+
         return this;
     }
 
     public boolean hasMethod(final String method) {
-        return allMethods.contains(method);
+        return _allMethods.contains(method);
     }
 }

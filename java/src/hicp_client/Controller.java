@@ -126,8 +126,8 @@ public class Controller
         switch (commandEnum) {
           case AUTHENTICATE:
             {
-                final hicp_client.message.command.Authenticate ac =
-                    new hicp_client.message.command.Authenticate(c);
+                final hicp.message.command.Authenticate authenticateCmd =
+                    (hicp.message.command.Authenticate)c;
 
                 final hicp.message.event.Authenticate authenticateEvent =
                     (hicp.message.event.Authenticate)EventEnum
@@ -147,7 +147,7 @@ public class Controller
                         // side supports this authentication method.
                         final String method = "plain";
 
-                        if (ac.hasMethod(method)) {
+                        if (authenticateCmd.hasMethod(method)) {
                             // Method is supported.
                             authenticateEvent.password = password;
                             authenticateEvent.method = method;
