@@ -60,6 +60,7 @@ public class Changed
     public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
         return this;
     }
 }

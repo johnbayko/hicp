@@ -6,8 +6,8 @@ import java.util.Map;
 
 import hicp.HICPHeader;
 import hicp.HICPReader;
-import hicp.message.Message;
 import hicp.message.HeaderEnum;
+import hicp.message.Message;
 
 public class Authenticate
     extends Event
@@ -48,6 +48,7 @@ public class Authenticate
     public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
         return this;
     }
 }

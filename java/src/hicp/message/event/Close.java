@@ -28,6 +28,7 @@ public class Close
     public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
         return this;
     }
 }

@@ -38,6 +38,8 @@ public abstract class AddModifyRemove
     public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
+
         for (final HeaderEnum h : headerMap.keySet()) {
             final HICPHeader v = headerMap.get(h);
             switch (h) {

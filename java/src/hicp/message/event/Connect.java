@@ -36,6 +36,8 @@ public class Connect
     public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
+
         // No fields to read.
         return this;
     }

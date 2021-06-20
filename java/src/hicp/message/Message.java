@@ -15,6 +15,8 @@ public abstract class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
 
+    // TODO these might be more useful in hicp_client package where they're
+    // actually used.
     // Useful regexes for parsing header strings.
     public static final Pattern LINE_SPLITTER =
         Pattern.compile("\r\n", Pattern.LITERAL);
@@ -37,6 +39,8 @@ public abstract class Message {
 
     protected final String _name;
 
+    protected Map<HeaderEnum, HICPHeader> _headerMap;
+
     public abstract void write(Writer out) throws IOException;
 
     /**
@@ -44,16 +48,26 @@ public abstract class Message {
         strings, integers, internal calsses, lists, etc., for use by other code
         without needing to know header value formats.
      */
-    public abstract Message addHeaders(
+    public Message addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
-    );
+    ) {
+        _headerMap = headerMap;
+        return this;
+    }
 
-    public Message(String name) {
+    public Message( String name) {
         _name = name;
     }
 
     public String getName() {
         return _name;
+    }
+
+    public HICPHeader getHeader(final HeaderEnum h) {
+        if (null != _headerMap) {
+            return _headerMap.get(h);
+        }
+        return null;
     }
 
     // TODO should be HICPWriter for this.
