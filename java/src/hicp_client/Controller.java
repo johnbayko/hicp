@@ -121,9 +121,9 @@ public class Controller
     }
 
 // Called by message exchange (input thread).
-    public void receivedMessage(CommandEnum commandEnum, Command c) {
+    public void receivedMessage(Command c) {
         // Action based on message command.
-        switch (commandEnum) {
+        switch (c.getCommand()) {
           case AUTHENTICATE:
             {
                 final hicp.message.command.Authenticate authenticateCmd =

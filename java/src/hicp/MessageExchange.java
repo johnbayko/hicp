@@ -60,7 +60,7 @@ public class MessageExchange
                 final Command command = _in.readCommand();
 
                 if (null != command) { 
-                    _controller.receivedMessage(command.getCommand(), command);
+                    _controller.receivedMessage(command);
                 }
             }
         } catch (IOException ex) {
