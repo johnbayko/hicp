@@ -6,8 +6,14 @@ import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import hicp.message.HeaderEnum;
+import hicp.message.Message;
+import hicp.message.command.*;
 
 public class HICPReader
 {
@@ -333,6 +339,56 @@ readLoop:
             }
         }
         return new HICPHeader(headerName, headerValue);
+    }
+
+    public Map<HeaderEnum, HICPHeader> readHeaderMap()
+        throws IOException
+    {
+        final Map<HeaderEnum, HICPHeader> headerMap = new HashMap<>();
+        for (;;) {
+            final HICPHeader header = readHeader();
+
+            if ((null == header) || (null == header.name)) {
+                // End of headers, end of message.
+                return headerMap;
+            }
+            final HeaderEnum headerEnum = HeaderEnum.getEnum(header.name);
+
+            if (null != headerEnum) {
+                headerMap.put(headerEnum, header);
+            }
+        }
+    }
+
+    public Command readCommand()
+        throws IOException
+    {
+        final Map<HeaderEnum, HICPHeader> headerMap = readHeaderMap();
+
+        final HICPHeader commandHeader = headerMap.get(HeaderEnum.COMMAND);
+        if (null == commandHeader) {
+            // No actual command.
+            return null;
+        }
+        final CommandEnum commandEnum =
+            CommandEnum.getEnum(commandHeader.value.getString());
+        switch (commandEnum) {
+          case AUTHENTICATE:
+            return new Authenticate(commandEnum.name, headerMap);
+          case ADD:
+            // TODO add more specific messages for component types.
+            return new Add(commandEnum.name).addHeaders(headerMap);
+          case MODIFY:
+            // TODO add more specific messages for component types.
+            return new Modify(commandEnum.name).addHeaders(headerMap);
+          case REMOVE:
+            return new Remove(commandEnum.name).addHeaders(headerMap);
+          case DISCONNECT:
+            return new Disconnect(commandEnum.name).addHeaders(headerMap);
+          // Is there a warning if an enum switch is missing an item?
+          // If not, add a default here.
+        }
+        return null;
     }
 }
 

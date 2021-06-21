@@ -35,7 +35,7 @@ public class Authenticate
     {
     }
 
-    public Message addHeaders(
+    public Authenticate addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);

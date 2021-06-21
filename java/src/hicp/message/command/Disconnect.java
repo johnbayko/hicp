@@ -5,9 +5,7 @@ import java.io.Writer;
 import java.util.Map;
 
 import hicp.HICPHeader;
-import hicp.HICPReader;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class Disconnect
     extends Command
@@ -22,13 +20,11 @@ public class Disconnect
         // No fields to write.
     }
 
-//    public void clear() {
-        // No fields to clear.
-//    }
-
-    public Message addHeaders(
+    public Disconnect addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
+        super.addHeaders(headerMap);
+
         // No fields to read.
         return this;
     }

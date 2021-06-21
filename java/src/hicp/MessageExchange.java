@@ -56,40 +56,11 @@ public class MessageExchange
 
     public void run() {
         try {
-readLoop:   while (null != _in) {
-                // TODO I think this belongs in HICPReader.
-                // Read headers into list. That list is an unprocessed message.
-                final Map<HeaderEnum, HICPHeader> headerMap = new HashMap<>();
-msgLoop:        for (;;) {
-                    final HICPHeader header = _in.readHeader();
-                    if ((null == header) || (null == header.name)) {
-                        // End of headers, end of message.
-                        break msgLoop;
-                    }
-                    final HeaderEnum headerEnum =
-                        HeaderEnum.getEnum(header.name);
+            while (null != _in) {
+                final Command command = _in.readCommand();
 
-                    // Skip any unrecognized headers.
-                    if (null != headerEnum) {
-                        headerMap.put(headerEnum, header);
-                    }
-                }
-
-                final HICPHeader commandHeader =
-                    headerMap.get(HeaderEnum.COMMAND);
-
-                // If command not found (required), skip and read next message.
-                if (null != commandHeader) { 
-                    final CommandEnum commandEnum =
-                        CommandEnum.getEnum(commandHeader.value.getString());
-
-                    if (null != commandEnum) {
-                        final Command command = commandEnum.newCommand();
-
-                        command.addHeaders(headerMap);
-
-                        _controller.receivedMessage(commandEnum, command);
-                    }
+                if (null != command) { 
+                    _controller.receivedMessage(command.getCommand(), command);
                 }
             }
         } catch (IOException ex) {

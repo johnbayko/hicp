@@ -6,62 +6,29 @@ import java.util.stream.Collectors;
 
 public enum CommandEnum
 {
-    AUTHENTICATE("authenticate") {
-        public Command newCommand(final String newMessageName) {
-            return new Authenticate(newMessageName);
-        }
-    },
+    AUTHENTICATE("authenticate"),
+    ADD("add"),
+    MODIFY("modify"),
+    REMOVE("remove"),
+    DISCONNECT("disconnect");
 
-    ADD("add") {
-        public Command newCommand(final String newMessageName) {
-            return new Add(newMessageName);
-        }
-    },
+    public final String name;
 
-    MODIFY("modify") {
-        public Command newCommand(final String newMessageName) {
-            return new Modify(newMessageName);
-        }
-    },
-
-    REMOVE("remove") {
-        public Command newCommand(final String newMessageName) {
-            return new Remove(newMessageName);
-        }
-    },
-
-    DISCONNECT("disconnect") {
-        public Command newCommand(final String newMessageName) {
-            return new Disconnect(newMessageName);
-        }
-    };
-
-
-    public final String messageName;
-
-    private static final Map<String, CommandEnum> messageNameMap =
+    private static final Map<String, CommandEnum> enumMap =
         Arrays.stream(CommandEnum.values())
             .collect(
                 Collectors.toMap(
-                    commandEnum -> commandEnum.messageName,
-                    commandEnum -> commandEnum
+                    e -> e.name,
+                    e -> e
                 )
             );
 
 
-    CommandEnum(final String newMessageName) {
-        messageName = newMessageName;
+    CommandEnum(final String forName) {
+        name = forName;
     }
 
-
-    public abstract Command newCommand(final String newMessageName);
-
-    public Command newCommand() {
-        return newCommand(messageName);
-    }
-
-
-    public static CommandEnum getEnum(String messageName) {
-        return messageNameMap.get(messageName);
+    public static CommandEnum getEnum(String name) {
+        return enumMap.get(name);
     }
 }

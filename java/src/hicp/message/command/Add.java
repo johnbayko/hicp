@@ -29,7 +29,7 @@ public class Add
         super(name);
     }
 
-    public Message addHeaders(
+    public Add addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // TODO make independent from Modify.

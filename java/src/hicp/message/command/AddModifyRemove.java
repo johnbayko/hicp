@@ -35,7 +35,7 @@ public abstract class AddModifyRemove
     {
     }
 
-    public Message addHeaders(
+    public AddModifyRemove addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);

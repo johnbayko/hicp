@@ -79,7 +79,7 @@ public abstract class AddModify
     {
     }
 
-    public Message addHeaders(
+    public AddModify addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         // TODO make independent from Remove.
