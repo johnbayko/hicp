@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class HICPReader
         _termCritAcceptor = new TokenAcceptor('=');
         _termSeqAcceptor = new TermSeqAcceptor();
 
-        _decoder = Charset.forName("UTF-8").newDecoder();
+        _decoder = StandardCharsets.UTF_8.newDecoder();
     }
 
     /**
