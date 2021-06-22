@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.CharsetDecoder;
 import java.util.HashMap;
@@ -22,7 +21,6 @@ public class HICPReader
         Logger.getLogger( HICPReader.class.getName() );
 
     protected final InputStream _in;
-    protected final CharsetDecoder _decoder;
 
     protected boolean _isPreviousByte = false;
     protected int _previousByte = 0;
@@ -47,8 +45,6 @@ public class HICPReader
         _headerValueAcceptor = new TokenAcceptor();
         _termCritAcceptor = new TokenAcceptor('=');
         _termSeqAcceptor = new TermSeqAcceptor();
-
-        _decoder = StandardCharsets.UTF_8.newDecoder();
     }
 
     /**
@@ -163,7 +159,7 @@ readLoop:
 
         // Flip ByteBuffer from input to output.
         readByteBuffer.flip();
-        return new HICPHeaderValue(readByteBuffer, _decoder);
+        return new HICPHeaderValue(readByteBuffer);
     }
 
     /**
@@ -266,7 +262,7 @@ readLoop:
                         final ByteBuffer valueBuffer =
                             ByteBuffer.wrap(valueBytes);
                         headerValue =
-                            new HICPHeaderValue(valueBuffer, _decoder);
+                            new HICPHeaderValue(valueBuffer);
 
                         // Read final EOL and discard.
                         skipToken(_headerValueAcceptor);
