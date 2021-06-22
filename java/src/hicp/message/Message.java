@@ -2,6 +2,7 @@ package hicp.message;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -44,6 +45,14 @@ public abstract class Message {
 
     public abstract void write(Writer out) throws IOException;
 
+    public Message( String name) {
+        _name = name;
+    }
+
+    public String getName() {
+        return _name;
+    }
+
     /**
         Add header values to appropriate message structures, such as
         strings, integers, internal calsses, lists, etc., for use by other code
@@ -56,12 +65,11 @@ public abstract class Message {
         return this;
     }
 
-    public Message( String name) {
-        _name = name;
-    }
-
-    public String getName() {
-        return _name;
+    /**
+        Create a map of headers containing the values of this message.
+     */
+    public Map<HeaderEnum, HICPHeader> getHeaders() {
+        return new HashMap<>();
     }
 
 
