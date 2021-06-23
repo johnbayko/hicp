@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
 import hicp.message.command.*;
+import hicp.message.event.*;
 
 public class HICPReader
 {
@@ -26,25 +27,25 @@ public class HICPReader
     protected int _previousByte = 0;
     protected int _avgTokenByteCnt = 16;
 
-    protected final Acceptor _headerNameAcceptor;
-    protected final Acceptor _separatorAcceptor;
-    protected final Acceptor _headerValueAcceptor;
-    protected final Acceptor _termCritAcceptor;
-    protected final Acceptor _termSeqAcceptor;
+    protected static final Acceptor _headerNameAcceptor =
+        new TokenAcceptor(':');
+
+    protected static final Acceptor _separatorAcceptor =
+        new SeparatorAcceptor();
+
+    protected static final Acceptor _headerValueAcceptor =
+        new TokenAcceptor();
+
+    protected static final Acceptor _termCritAcceptor =
+        new TokenAcceptor('=');
+
+    protected static final Acceptor _termSeqAcceptor =
+        new TermSeqAcceptor();
 
     protected final HICPHeaderValue EMPTY_HEADER_VALUE = new HICPHeaderValue();
 
-    public HICPReader(java.io.InputStream in)
-        throws java.io.UnsupportedEncodingException
-    {
-
+    public HICPReader(InputStream in) {
         _in = in;
-
-        _headerNameAcceptor = new TokenAcceptor(':');
-        _separatorAcceptor = new SeparatorAcceptor();
-        _headerValueAcceptor = new TokenAcceptor();
-        _termCritAcceptor = new TokenAcceptor('=');
-        _termSeqAcceptor = new TermSeqAcceptor();
     }
 
     /**
@@ -230,8 +231,8 @@ readLoop:
             headerName = headerNameToken.getString();
         }
         if ("".equals(headerName)) {
-            // Blank line - header name and field are null, not "".
-            return new HICPHeader(null, null);
+            // Blank line - no name or field.
+            return new HICPHeader();
         }
         {
             final HICPHeaderValue separatorToken =
@@ -357,36 +358,70 @@ readLoop:
         }
     }
 
-    public Command readCommand()
+    public Command newCommand(final Map<HeaderEnum, HICPHeader> headerMap)
         throws IOException
     {
-        final Map<HeaderEnum, HICPHeader> headerMap = readHeaderMap();
-
-        final HICPHeader commandHeader = headerMap.get(HeaderEnum.COMMAND);
-        if (null == commandHeader) {
+        final HICPHeader h = headerMap.get(HeaderEnum.COMMAND);
+        if (null == h) {
             // No actual command.
             return null;
         }
-        final CommandEnum commandEnum =
-            CommandEnum.getEnum(commandHeader.value.getString());
-        switch (commandEnum) {
+        final CommandEnum e = CommandEnum.getEnum(h.value.getString());
+        switch (e) {
           case AUTHENTICATE:
-            return new Authenticate(commandEnum.name, headerMap);
+            return new hicp.message.command.Authenticate(e.name, headerMap);
           case ADD:
             // TODO add more specific messages for component types.
-            return new Add(commandEnum.name).addHeaders(headerMap);
+            return new Add(e.name).addHeaders(headerMap);
           case MODIFY:
             // TODO add more specific messages for component types.
-            return new Modify(commandEnum.name).addHeaders(headerMap);
+            return new Modify(e.name).addHeaders(headerMap);
           case REMOVE:
-            return new Remove(commandEnum.name).addHeaders(headerMap);
+            return new Remove(e.name).addHeaders(headerMap);
           case DISCONNECT:
-            return new Disconnect(commandEnum.name).addHeaders(headerMap);
+            return new Disconnect(e.name).addHeaders(headerMap);
           // Is there a warning if an enum switch is missing an item?
           // If not, add a default here.
         }
         return null;
     }
+
+    public Event newEvent(final Map<HeaderEnum, HICPHeader> headerMap)
+        throws IOException
+    {
+        final HICPHeader h = headerMap.get(HeaderEnum.EVENT);
+        if (null == h) {
+            // No actual event.
+            return null;
+        }
+        final EventEnum e = EventEnum.getEnum(h.value.getString());
+        switch (e) {
+          case AUTHENTICATE:
+            return new hicp.message.event.Authenticate(e.messageName, headerMap);
+          // Is there a warning if an enum switch is missing an item?
+          // If not, add a default here.
+        }
+        return null;
+    }
+
+    public Message readMessage()
+        throws IOException
+     {
+        final Map<HeaderEnum, HICPHeader> headerMap = readHeaderMap();
+        {
+            final Command command = newCommand(headerMap);
+            if (null != command) {
+                return command;
+            }
+        }
+        {
+            final Event event = newEvent(headerMap);
+            if (null != event) {
+                return event;
+            }
+        }
+        return null;
+     }
 }
 
 class TokenIndicator {

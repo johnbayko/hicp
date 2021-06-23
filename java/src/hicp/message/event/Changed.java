@@ -57,7 +57,7 @@ public class Changed
         writeEndOfMessage(out);
     }
 
-    public Message addHeaders(
+    public Changed addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);

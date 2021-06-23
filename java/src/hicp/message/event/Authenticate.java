@@ -20,8 +20,20 @@ public class Authenticate
     public String method = null;
     public String password = null;
 
+    public Authenticate() {
+        super(EventEnum.AUTHENTICATE.messageName, EventEnum.AUTHENTICATE);
+    }
+
     public Authenticate(String name) {
         super(name);
+    }
+
+    public Authenticate(
+        final String name,
+        final Map<HeaderEnum, HICPHeader> headerMap
+    ) {
+        super(name);
+        addHeaders(headerMap);
     }
 
     public void write(Writer out)
@@ -45,10 +57,27 @@ public class Authenticate
         writeEndOfMessage(out);
     }
 
-    public Message addHeaders(
+    public Authenticate addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);
+
+        user = getHeaderString(HeaderEnum.USER);
+        // Method is single string for event
+        method = getHeaderString(HeaderEnum.METHOD);
+        password = getHeaderString(HeaderEnum.PASSWORD);
+
         return this;
     }
+
+    public Map<HeaderEnum, HICPHeader> getHeaders() {
+        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+
+        addHeaderString(headerMap, HeaderEnum.USER, user);
+        addHeaderString(headerMap, HeaderEnum.METHOD, method);
+        addHeaderString(headerMap, HeaderEnum.PASSWORD, password);
+
+        return headerMap;
+    }
+
 }

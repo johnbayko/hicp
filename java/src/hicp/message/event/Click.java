@@ -25,7 +25,7 @@ public class Click
         writeEndOfMessage(out);
     }
 
-    public Message addHeaders(
+    public Click addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);

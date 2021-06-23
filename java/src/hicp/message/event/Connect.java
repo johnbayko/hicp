@@ -33,7 +33,7 @@ public class Connect
         writeEndOfMessage(out);
     }
 
-    public Message addHeaders(
+    public Connect addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);

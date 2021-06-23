@@ -57,10 +57,10 @@ public class MessageExchange
     public void run() {
         try {
             while (null != _in) {
-                final Command command = _in.readCommand();
+                final Message message = _in.readMessage();
 
-                if (null != command) { 
-                    _controller.receivedMessage(command);
+                if (null != message) { 
+                    _controller.receivedMessage(message);
                 }
             }
         } catch (IOException ex) {

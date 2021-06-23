@@ -1,10 +1,9 @@
 package hicp;
 
-import hicp.message.command.Command;
-import hicp.message.command.CommandEnum;
+import hicp.message.Message;
 
 public interface Controller {
-    public void receivedMessage(Command c);
+    public void receivedMessage(Message m);
 
     public void closed();
 }

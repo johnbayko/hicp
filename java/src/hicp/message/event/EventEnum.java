@@ -37,6 +37,7 @@ public enum EventEnum
     };
 
 
+    // TODO change to just name.
     public final String messageName;
 
     private static final Map<String, EventEnum> messageNameMap =

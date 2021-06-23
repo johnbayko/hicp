@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import java.util.Map;
 
 import hicp.MessageExchange;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
@@ -121,7 +122,13 @@ public class Controller
     }
 
 // Called by message exchange (input thread).
-    public void receivedMessage(Command c) {
+    public void receivedMessage(Message m) {
+        if (!(m instanceof Command)) {
+            // Client is not interested in events.
+            return;
+        }
+        final Command c = (Command)m;
+
         // Action based on message command.
         switch (c.getCommand()) {
           case AUTHENTICATE:
@@ -129,10 +136,9 @@ public class Controller
                 final hicp.message.command.Authenticate authenticateCmd =
                     (hicp.message.command.Authenticate)c;
 
+                // Empty event to fill and send back.
                 final hicp.message.event.Authenticate authenticateEvent =
-                    (hicp.message.event.Authenticate)EventEnum
-                        .AUTHENTICATE
-                        .newEvent();
+                    new hicp.message.event.Authenticate();
                 {
                     final String username = _session.params.username;
                     if ((null != username) && (0 != username.length())) {

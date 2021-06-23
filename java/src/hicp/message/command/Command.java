@@ -18,15 +18,22 @@ public abstract class Command
         super(name);
     }
 
+    public Command(String name, final CommandEnum command) {
+        super(name);
+        _command = command;
+    }
+
     public Command addHeaders(
         final Map<HeaderEnum, HICPHeader> headerMap
     ) {
         super.addHeaders(headerMap);
-        {
-            final String commandStr = getHeaderString(HeaderEnum.COMMAND);
-            // getEnum() handles null, may return null.
-            _command = CommandEnum.getEnum(commandStr);
-        }
+
+        // getEnum() handles null, may return null.
+        _command =
+            CommandEnum.getEnum(
+                getHeaderString(HeaderEnum.COMMAND)
+            );
+
         return this;
     }
 
