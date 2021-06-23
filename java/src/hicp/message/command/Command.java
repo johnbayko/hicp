@@ -36,7 +36,7 @@ public abstract class Command
         if (null != _command) {
             final HICPHeader h =
                 new HICPHeader(
-                    _command.name,
+                    HeaderEnum.COMMAND,
                     new HICPHeaderValue(_command.name)
                 );
             headerMap.put(HeaderEnum.COMMAND, h);

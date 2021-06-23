@@ -6,9 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import hicp.HICPHeader;
-import hicp.HICPReader;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class Authenticate
     extends Command
@@ -46,6 +44,15 @@ public class Authenticate
         _password = getHeaderString(HeaderEnum.PASSWORD);
 
         return this;
+    }
+
+    public Map<HeaderEnum, HICPHeader> getHeaders() {
+        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+
+        addHeaderString(headerMap, HeaderEnum.METHOD, _method);
+        addHeaderString(headerMap, HeaderEnum.PASSWORD, _password);
+
+        return headerMap;
     }
 
     public boolean hasMethod(final String method) {

@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import hicp.HICPHeader;
+import hicp.HICPHeaderValue;
 import hicp.HICPReader;
 import hicp.message.HeaderEnum;
 
@@ -104,6 +105,21 @@ public abstract class Message {
         return Set.of(sSplit);
     }
 
+    public static Map<HeaderEnum, HICPHeader> addHeaderString(
+        final Map<HeaderEnum, HICPHeader> headerMap,
+        final HeaderEnum headerEnum,
+        final String valueString
+    ) {
+        if (null != valueString) {
+            final HICPHeader h =
+                new HICPHeader(
+                    headerEnum,
+                    new HICPHeaderValue(valueString)
+                );
+            headerMap.put(headerEnum, h);
+        }
+        return headerMap;
+    }
 
     // TODO should be HICPWriter for this.
     // Implement a getHeaders() method to pass to writer.
