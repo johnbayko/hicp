@@ -313,8 +313,8 @@ class Message:
 
                 # Escape boundary ("\r\n--"), and single ESC.
                 esc_header_value = \
-                    header_value.
-                        replace('\033', '\033\033').
+                    header_value.\
+                        replace('\033', '\033\033').\
                         replace('\r\n--', '\033\r\n--')
                 out_stream.write(esc_header_value)
 

@@ -29,7 +29,8 @@ public class MessageExchange
         Logger.getLogger( MessageExchange.class.getName() );
 
     protected HICPReader _in;
-    protected Writer _out;
+    protected HICPWriter _out;
+    protected Writer _outWriter;  // TODO being replaced by HICPWriter above.
     protected Controller _controller;
 
     /*
@@ -47,7 +48,8 @@ public class MessageExchange
         throws UnsupportedEncodingException
     {
         _in = new HICPReader(in);
-        _out = new OutputStreamWriter(out, "UTF8");
+        _out = new HICPWriter(out);
+        _outWriter = new OutputStreamWriter(out, "UTF8");
         _controller = controller;
 
         // Start this up as a thread to read messages.
@@ -77,7 +79,11 @@ public class MessageExchange
             return this;
         }
         try {
-            m.write(_out);
+            if (m instanceof hicp.message.event.Authenticate) {
+                _out.writeMessage(m);
+            } else {
+                m.write(_outWriter);
+            }
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, ex.toString());
         }
@@ -93,6 +99,7 @@ public class MessageExchange
     public MessageExchange dispose() {
         _in = null;
         _out = null;
+        _outWriter = null;
 
         // Interrupt this thread so that the read loop stops.
         this.interrupt();
