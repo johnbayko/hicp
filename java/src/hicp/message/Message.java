@@ -136,9 +136,10 @@ public abstract class Message {
             // Value has a CR LF, then send in multiple lines.
             out.write(":: boundary=\r\n--\r\n");
 
-            // Escape each occurrence by splitting string with "\r\n--",
-            // write out each with ESC prior to "\r\n--".
-            final String esc_value = value.replace("\r\n--", "\033\r\n--");
+            // Escape boundary ("\r\n--"), and single ESC.
+            final String esc_value =
+                value.replace("\033", "\033\033");
+                value.replace("\r\n--", "\033\r\n--");
             out.write(esc_value);
 
             // Write out terminator sequence and extra "\r\n" as block
@@ -153,14 +154,4 @@ public abstract class Message {
         out.write("\r\n");
         out.flush();
     }
-
-    // Utility
-    protected void log(Exception ex) {
-        LOGGER.log(Level.WARNING, ex.toString());
-    } 
-
-    protected void log(String msg) {
-        LOGGER.log(Level.FINE, msg);
-    }
-
 }

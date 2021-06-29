@@ -311,9 +311,11 @@ class Message:
                 # Data block.
                 out_stream.write(header_key + ":: boundary=\r\n--\r\n")
 
-                # Escape each occurrence by splitting string with "\r\n--",
-                # write out each with ESC prior to "\r\n--".
-                esc_header_value = header_value.replace('\r\n--', '\033\r\n--')
+                # Escape boundary ("\r\n--"), and single ESC.
+                esc_header_value = \
+                    header_value.
+                        replace('\033', '\033\033').
+                        replace('\r\n--', '\033\r\n--')
                 out_stream.write(esc_header_value)
 
                 # Write out terminator sequence and extra "\r\n" as

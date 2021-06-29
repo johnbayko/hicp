@@ -19,28 +19,40 @@ public class HICPHeaderValue {
     protected final static CharsetEncoder _encoder =
         StandardCharsets.UTF_8.newEncoder();
 
+    final public boolean isBinary;
     protected ByteBuffer _byteBuffer = null;
 
     protected String _string = null;
+    protected byte[] _bytes = null;
 
     /** Construct an empty object. */
     public HICPHeaderValue() {
         _byteBuffer = null;
+        isBinary = false;
 
         _string = "";
     }
 
+    // TODO maybe should be byte[], and wrap in a ByteBuffer internally?
     public HICPHeaderValue(final ByteBuffer byteBuffer) {
-        _byteBuffer = byteBuffer;
+        // Assume there is a string representation unless otherwise specified.
+        this(byteBuffer, false);
+    }
 
-        // For some reason I've forgotten, can't decode string here, though
-        // it looks like byte buffer has the bytes needed. So decode string
-        // when getString() is called.
+    public HICPHeaderValue(final ByteBuffer byteBuffer, final boolean newIsBinary) {
+        _byteBuffer = byteBuffer;
+        isBinary = newIsBinary;
+
+        // This could be binary data with no string representation (e.g.
+        // image), and calling code should be able to determine that from
+        // header values, so only decode string when getString() is called.
     }
 
     public HICPHeaderValue(final String string) {
         _string = string;
+        isBinary = false;
 
+        // Should always be a binary representation for string.
         try {
             final CharBuffer charBuffer = CharBuffer.wrap(_string);
             _byteBuffer = _encoder.encode(charBuffer);
@@ -53,9 +65,12 @@ public class HICPHeaderValue {
         if (null == _byteBuffer) {
             return null;
         }
-        final byte[] bytes = new byte[_byteBuffer.remaining()];
-        _byteBuffer.get(bytes);
-        return bytes;
+        // get() only works once without resetting, so only do it once.
+        if (null == _bytes) {
+            _bytes = new byte[_byteBuffer.remaining()];
+            _byteBuffer.get(_bytes);
+        }
+        return _bytes;
     }
 
     public String getString() {
