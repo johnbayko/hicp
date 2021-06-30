@@ -11,6 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
+import hicp.message.command.ItemInfo;
 import hicp.message.event.Connect;
 import hicp.message.event.EventEnum;
 import hicp_client.gui.ContainerItem;
@@ -254,43 +255,57 @@ public class Controller
             break;
           case REMOVE:
             {
-                final hicp.message.command.Remove removeCmd =
+                final hicp.message.command.Remove cmd =
                     (hicp.message.command.Remove)c;
-                if (null == removeCmd.category) {
+
+                final ItemInfo info = cmd.getItemInfo();
+
+                final ItemInfo.CategoryEnum category = info.getCategory();
+                if (null == category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
                     break;
                 }
 
-                if (removeCmd.TEXT.equals(removeCmd.category)) {
-                    // Must have id field.
-                    if (null == removeCmd.id) {
-                        log("Remove text missing id");
-                        break;
+                switch (category) {
+                  case TEXT:
+                    {
+                        final String id = info.getId();
+                        // Must have id field.
+                        if (null == id) {
+                            log("Remove text missing id");
+                            break;
+                        }
+                        _textLibrary.remove(id);
                     }
-                    _textLibrary.remove(removeCmd.id);
-                } else if (removeCmd.GUI.equals(removeCmd.category)) {
-                    log("Remove GUI");
-                    // Must have id field.
-                    if (null == removeCmd.id) {
-                        log("Remove GUI missing id");
-                        break;
+                    break;
+                  case GUI:
+                    {
+                        log("Remove GUI");
+                        final String id = info.getId();
+                        // Must have id field.
+                        if (null == id) {
+                            log("Remove GUI missing id");
+                            break;
+                        }
+
+                        // find the GUI item to remove.
+                        final Item guiItem = _guiMap.get(id);
+                        if (null == guiItem) {
+                            // No item to remove.
+                            break;
+                        }
+
+                        ItemSource.disposeItem(guiItem);
+
+                        // Remove it from the GUI item list.
+                        _guiMap.remove(id);
                     }
-
-                    // find the GUI item to remove.
-                    final Item guiItem = _guiMap.get(removeCmd.id);
-                    if (null == guiItem) {
-                        // No item to remove.
-                        break;
-                    }
-
-                    ItemSource.disposeItem(guiItem);
-
-                    // Remove it from the GUI item list.
-                    _guiMap.remove(removeCmd.id);
-                } else {
+                    break;
+                  default:
                     // Unrecognized category.
-                    log("Remove from unrecognized category: " + removeCmd.category);
+                    log("Remove from unrecognized category: " + category.name);
+                    break;
                 }
             }
             break;

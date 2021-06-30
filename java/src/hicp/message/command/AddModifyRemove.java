@@ -7,9 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.HICPHeader;
-import hicp.HICPReader;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public abstract class AddModifyRemove
     extends Command
