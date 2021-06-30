@@ -19,13 +19,4 @@ public class Disconnect
     {
         // No fields to write.
     }
-
-    public Disconnect addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
-    ) {
-        super.addHeaders(headerMap);
-
-        // No fields to read.
-        return this;
-    }
 }

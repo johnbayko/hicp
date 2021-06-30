@@ -11,7 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
-import hicp.message.command.ItemInfo;
+import hicp.message.command.ItemCommand;
 import hicp.message.event.Connect;
 import hicp.message.event.EventEnum;
 import hicp_client.gui.ContainerItem;
@@ -258,9 +258,7 @@ public class Controller
                 final hicp.message.command.Remove cmd =
                     (hicp.message.command.Remove)c;
 
-                final ItemInfo info = cmd.getItemInfo();
-
-                final ItemInfo.CategoryEnum category = info.getCategory();
+                final ItemCommand.CategoryEnum category = cmd.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
@@ -270,7 +268,7 @@ public class Controller
                 switch (category) {
                   case TEXT:
                     {
-                        final String id = info.getId();
+                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove text missing id");
@@ -282,7 +280,7 @@ public class Controller
                   case GUI:
                     {
                         log("Remove GUI");
-                        final String id = info.getId();
+                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove GUI missing id");
