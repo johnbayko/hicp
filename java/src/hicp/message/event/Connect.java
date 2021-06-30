@@ -16,6 +16,10 @@ public class Connect
 
     public String application = null;
 
+    public Connect() {
+        super(EventEnum.CONNECT.messageName, EventEnum.CONNECT);
+    }
+
     public Connect(String name) {
         super(name);
     }
@@ -38,7 +42,15 @@ public class Connect
     ) {
         super.addHeaders(headerMap);
 
-        // No fields to read.
+        application = getHeaderString(HeaderEnum.APPLICATION);
         return this;
+    }
+
+    public Map<HeaderEnum, HICPHeader> getHeaders() {
+        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+
+        addHeaderString(headerMap, HeaderEnum.APPLICATION, application);
+
+        return headerMap;
     }
 }

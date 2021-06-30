@@ -79,5 +79,4 @@ public class Authenticate
 
         return headerMap;
     }
-
 }

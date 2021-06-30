@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,6 +72,12 @@ public class MessageExchange
         _controller.closed();
     }
 
+    // TODO remove this when all messages are switched over.
+    final static Set<Class<? extends hicp.message.Message>> useHICPWriter =
+        Set.of(
+            hicp.message.event.Authenticate.class,
+            hicp.message.event.Connect.class
+        );
     /*
         Typically called from GUI event thread.
      */
@@ -79,7 +86,7 @@ public class MessageExchange
             return this;
         }
         try {
-            if (m instanceof hicp.message.event.Authenticate) {
+            if ( useHICPWriter.contains(m.getClass()) ) {
                 _out.writeMessage(m);
             } else {
                 m.write(_outWriter);

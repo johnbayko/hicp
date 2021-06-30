@@ -61,7 +61,7 @@ public class Controller
         }
         // Send connect message.
         {
-            Connect connectEvent = (Connect)EventEnum.CONNECT.newEvent();
+            final Connect connectEvent = new Connect();
             {
                 final String application = _session.params.application;
                 if ( (null != application) && (0 != application.length()) )
