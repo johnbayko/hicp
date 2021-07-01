@@ -10,8 +10,8 @@ public class TextItem {
     private static final Logger LOGGER =
         Logger.getLogger( TextItem.class.getName() );
 
-    public final int id;
-    public final String idString;
+    // TODO is this used?
+    public final String id;
 
     protected String _text = "";
 
@@ -23,9 +23,8 @@ public class TextItem {
 
     protected TextEvent _textEvent = new TextEvent(this);
 
-    public TextItem(int newID, String newIDString, String text) {
+    public TextItem(String newID, String text) {
         id = newID;
-        idString = newIDString;
         setText(text);
     }
 

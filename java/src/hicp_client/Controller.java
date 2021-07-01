@@ -166,90 +166,121 @@ public class Controller
             break;
           case ADD:
             {
-                final hicp.message.command.Add addCmd =
+                final hicp.message.command.Add cmd =
                     (hicp.message.command.Add)c;
-                if (null == addCmd.category) {
+                final ItemCommand.CategoryEnum category =
+                    cmd.getCategory();
+                if (null == category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
                     break;
                 }
-                if (addCmd.TEXT.equals(addCmd.category)) {
-                    _textLibrary.addModify(addCmd);
-                } else if (addCmd.GUI.equals(addCmd.category)) {
-                    // Must have id and component fields.
-                    if ((null == addCmd.id) || (null == addCmd.component)) {
-                        LOGGER.log(Level.FINE, "Add gui missing id or component");
-                        break;
-                    }
+                switch (category) {
+                  case TEXT:
                     {
-                        final Item oldItem = _guiMap.get(addCmd.id);
-
-                        if (null != oldItem) {
-                            // Remove the old one.
-                            ItemSource.disposeItem(oldItem);
-                            _guiMap.remove(addCmd.id);
+                        final String id = cmd.getId();
+                        // Must have id field.
+                        if (null == id) {
+                            log("Add text missing id");
+                            break;
                         }
+                        _textLibrary.addModify(cmd);
                     }
+                    break;
+                  case GUI:
                     {
-                        final Item guiItem =
-                            ItemSource.newItem(
-                                addCmd, _textLibrary, _messageExchange
-                            );
+                        // Must have id and component fields.
+                        final String id = cmd.getId();
+                        if ((null == id) || (null == cmd.component)) {
+                            LOGGER.log(Level.FINE, "Add gui missing id or component");
+                            break;
+                        }
+                        {
+                            final Item oldItem = _guiMap.get(id);
 
-                        if (null != guiItem) {
-                            _guiMap.put(addCmd.id, guiItem);
+                            if (null != oldItem) {
+                                // Remove the old one.
+                                ItemSource.disposeItem(oldItem);
+                                _guiMap.remove(id);
+                            }
+                        }
+                        {
+                            final Item guiItem =
+                                ItemSource.newItem(
+                                    cmd, _textLibrary, _messageExchange
+                                );
 
-                            // If this should be added to a parent,
-                            // determine the parent item and add to it.
-                            if (Add.WINDOW.equals(guiItem.component)) {
-                                guiItem.setParent(_root);
-                            } else {
-                                if (null != addCmd.parent) {
-                                    final ContainerItem parentItem =
-                                        (ContainerItem)
-                                            _guiMap.get(addCmd.parent);
-                                    guiItem.setParent(parentItem);
+                            if (null != guiItem) {
+                                _guiMap.put(id, guiItem);
+
+                                // If this should be added to a parent,
+                                // determine the parent item and add to it.
+                                if (Add.WINDOW.equals(guiItem.component)) {
+                                    guiItem.setParent(_root);
+                                } else {
+                                    if (null != cmd.parent) {
+                                        final ContainerItem parentItem =
+                                            (ContainerItem)
+                                                _guiMap.get(cmd.parent);
+                                        guiItem.setParent(parentItem);
+                                    }
                                 }
                             }
                         }
                     }
-                } else {
+                    break;
+                  default:
                     // Unrecognized category.
                     LOGGER.log(Level.FINE,
-                        "Add to unrecognized category: " + addCmd.category
+                        "Add to unrecognized category: " + category.name
                     );
+                    break;
                 }
             }
             break;
           case MODIFY:
             {
-                final hicp.message.command.Modify modifyCmd =
+                final hicp.message.command.Modify cmd =
                     (hicp.message.command.Modify)c;
-                if (null == modifyCmd.category) {
+                final ItemCommand.CategoryEnum category =
+                    cmd.getCategory();
+                if (null == category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
                     break;
                 }
 
-                if (modifyCmd.TEXT.equals(modifyCmd.category)) {
-                    _textLibrary.addModify(modifyCmd);
-                } else if (modifyCmd.GUI.equals(modifyCmd.category)) {
-                    final Item guiItem;
-                    if (null != modifyCmd.id) {
-                        // Get GUI item based on id field.
-                        guiItem = _guiMap.get(modifyCmd.id);
-                    } else {
-                        // No id, modify _root.
-                        guiItem = _root;
+                switch (category) {
+                  case TEXT:
+                    {
+                        final String id = cmd.getId();
+                        // Must have id field.
+                        if (null == id) {
+                            log("Modify text missing id");
+                            break;
+                        }
+                        _textLibrary.addModify(cmd);
                     }
-                    if (null == guiItem) {
-                        // No item to modify.
-                        break;
+                  case GUI:
+                    {
+                        final Item guiItem;
+                        final String id = cmd.getId();
+                        if (null != id) {
+                            // Get GUI item based on id field.
+                            guiItem = _guiMap.get(id);
+                        } else {
+                            // No id, modify _root.
+                            guiItem = _root;
+                        }
+                        if (null == guiItem) {
+                            // No item to modify.
+                            break;
+                        }
+                        guiItem.modify(cmd);
                     }
-                    guiItem.modify(modifyCmd);
-                } else {
+                  default:
                     // Unrecognized category.
-                    log("Add to unrecognized category: " + modifyCmd.category);
+                    log("Add to unrecognized category: " + category.name);
                 }
             }
             break;
@@ -257,8 +288,8 @@ public class Controller
             {
                 final hicp.message.command.Remove cmd =
                     (hicp.message.command.Remove)c;
-
-                final ItemCommand.CategoryEnum category = cmd.getCategory();
+                final ItemCommand.CategoryEnum category =
+                    cmd.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");

@@ -22,7 +22,7 @@ public abstract class Item
         Non-GUI thread.
      */
     public Item(Add addCmd) {
-        idString = addCmd.id;
+        idString = addCmd.getId();
         component = addCmd.component;
         horizontalPosition = addCmd.horizontalPosition;
         verticalPosition = addCmd.verticalPosition;

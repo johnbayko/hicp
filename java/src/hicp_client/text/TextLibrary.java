@@ -52,19 +52,19 @@ public class TextLibrary {
 
     public TextLibrary addModify(hicp.message.command.AddModify addModifyCmd) {
         // Must have id and text fields.
-        if ((null == addModifyCmd.id) || (null == addModifyCmd.text)) {
+        final String id = addModifyCmd.getId();
+        if ((null == id) || (null == addModifyCmd.text)) {
             LOGGER.log(Level.INFO, "Add text missing id or text");
             return this;
         }
         try {
-            TextItem textItem = _textItemMap.get(addModifyCmd.id);
+            TextItem textItem = _textItemMap.get(id);
 
             if (null != textItem) {
                 textItem.setText(addModifyCmd.text);
             } else {
-                final int id = Integer.parseInt(addModifyCmd.id);
-                textItem = new TextItem(id, addModifyCmd.id, addModifyCmd.text);
-                _textItemMap.put(addModifyCmd.id, textItem);
+                textItem = new TextItem(id, addModifyCmd.text);
+                _textItemMap.put(id, textItem);
             }
         } catch (NumberFormatException ex) {
             // Not an integer ID, ignore message.

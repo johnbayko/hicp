@@ -71,9 +71,7 @@ public class ItemCommand
             final HICPHeader v = headerMap.get(h);
             switch (h) {
               case CATEGORY:
-               _category = CategoryEnum.getEnum(
-                       v.value.getString()
-                   );
+                _category = CategoryEnum.getEnum( v.value.getString() );
                 break;
               case ID:
                 _id = v.value.getString();

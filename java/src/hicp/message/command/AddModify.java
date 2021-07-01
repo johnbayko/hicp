@@ -18,7 +18,7 @@ import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public abstract class AddModify
-    extends AddModifyRemove
+    extends ItemCommand
 {
     private static final Logger LOGGER =
         Logger.getLogger( AddModify.class.getName() );

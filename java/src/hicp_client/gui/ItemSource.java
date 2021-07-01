@@ -22,7 +22,7 @@ public class ItemSource {
     ) {
         try {
             // Make sure it's a real integer - not used.
-            final int id = Integer.parseInt(addCmd.id);
+            final int id = Integer.parseInt(addCmd.getId());
             final Item guiItem;
 
             if (Add.BUTTON.equals(addCmd.component)) {
@@ -46,7 +46,7 @@ public class ItemSource {
                         .newItem(addCmd, textLibrary, messageExchange);
             } else {
                 // Unrecognized category.
-                LOGGER.log(Level.FINE, "Add to unrecognized category: " + addCmd.category);
+                LOGGER.log(Level.FINE, "Add unrecognized component: " + addCmd.component);
                 guiItem = null;
             }
             if (null == guiItem) {
