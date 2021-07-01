@@ -295,10 +295,10 @@ public class Controller
             break;
           case REMOVE:
             {
-                final ItemCommand itemCommand =
-                    (ItemCommand)c;
+                final hicp.message.command.Remove cmd =
+                    (hicp.message.command.Remove)c;
                 final ItemCommand.CategoryEnum category =
-                    itemCommand.getCategory();
+                    cmd.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
@@ -308,7 +308,7 @@ public class Controller
                 switch (category) {
                   case TEXT:
                     {
-                        final String id = itemCommand.getId();
+                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove text missing id");
@@ -320,7 +320,7 @@ public class Controller
                   case GUI:
                     {
                         log("Remove GUI");
-                        final String id = itemCommand.getId();
+                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove GUI missing id");

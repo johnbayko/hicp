@@ -19,17 +19,4 @@ public class Remove
         super(name);
         addHeaders(headerMap);
     }
-
-    public Remove addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
-    ) {
-        super.addHeaders(headerMap);
-        return this;
-    }
-
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
-
-        return headerMap;
-    }
 }
