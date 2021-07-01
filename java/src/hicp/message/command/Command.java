@@ -10,8 +10,6 @@ import hicp.message.Message;
 public abstract class Command
     extends Message
 {
-    public static String COMMAND = "command";
-
     private CommandEnum _command = null;
 
     public Command(String name) {

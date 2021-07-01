@@ -5,6 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Map;
 
+import hicp.message.command.TextCommand;
+
 public class TextLibrary {
     private static final Logger LOGGER =
         Logger.getLogger( TextLibrary.class.getName() );
@@ -50,25 +52,21 @@ public class TextLibrary {
         return this;
     }
 
-    public TextLibrary addModify(hicp.message.command.AddModify addModifyCmd) {
+    public TextLibrary update(final TextCommand cmd) {
         // Must have id and text fields.
-        final String id = addModifyCmd.getId();
-        if ((null == id) || (null == addModifyCmd.text)) {
+        final String id = cmd.getId();
+        final String text = cmd.getText();
+        if ((null == id) || (null == text)) {
             LOGGER.log(Level.INFO, "Add text missing id or text");
             return this;
         }
-        try {
-            TextItem textItem = _textItemMap.get(id);
 
-            if (null != textItem) {
-                textItem.setText(addModifyCmd.text);
-            } else {
-                textItem = new TextItem(id, addModifyCmd.text);
-                _textItemMap.put(id, textItem);
-            }
-        } catch (NumberFormatException ex) {
-            // Not an integer ID, ignore message.
-            return this;
+        TextItem textItem = _textItemMap.get(id);
+        if (null != textItem) {
+            textItem.setText(text);
+        } else {
+            textItem = new TextItem(id, text);
+            _textItemMap.put(id, textItem);
         }
         return this;
     }

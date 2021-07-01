@@ -12,6 +12,7 @@ import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
 import hicp.message.command.ItemCommand;
+import hicp.message.command.TextCommand;
 import hicp.message.event.Connect;
 import hicp.message.event.EventEnum;
 import hicp_client.gui.ContainerItem;
@@ -166,10 +167,10 @@ public class Controller
             break;
           case ADD:
             {
-                final hicp.message.command.Add cmd =
-                    (hicp.message.command.Add)c;
+                final ItemCommand itemCommand =
+                    (ItemCommand)c;
                 final ItemCommand.CategoryEnum category =
-                    cmd.getCategory();
+                    itemCommand.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
@@ -178,20 +179,24 @@ public class Controller
                 switch (category) {
                   case TEXT:
                     {
-                        final String id = cmd.getId();
+                        final TextCommand textCommand =
+                            (TextCommand)itemCommand;
+                        final String id = textCommand.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Add text missing id");
                             break;
                         }
-                        _textLibrary.addModify(cmd);
+                        _textLibrary.update(textCommand);
                     }
                     break;
                   case GUI:
                     {
+                        final hicp.message.command.Add addCmd =
+                            (hicp.message.command.Add)itemCommand;
                         // Must have id and component fields.
-                        final String id = cmd.getId();
-                        if ((null == id) || (null == cmd.component)) {
+                        final String id = addCmd.getId();
+                        if ((null == id) || (null == addCmd.component)) {
                             LOGGER.log(Level.FINE, "Add gui missing id or component");
                             break;
                         }
@@ -207,7 +212,7 @@ public class Controller
                         {
                             final Item guiItem =
                                 ItemSource.newItem(
-                                    cmd, _textLibrary, _messageExchange
+                                    addCmd, _textLibrary, _messageExchange
                                 );
 
                             if (null != guiItem) {
@@ -218,10 +223,10 @@ public class Controller
                                 if (Add.WINDOW.equals(guiItem.component)) {
                                     guiItem.setParent(_root);
                                 } else {
-                                    if (null != cmd.parent) {
+                                    if (null != addCmd.parent) {
                                         final ContainerItem parentItem =
                                             (ContainerItem)
-                                                _guiMap.get(cmd.parent);
+                                                _guiMap.get(addCmd.parent);
                                         guiItem.setParent(parentItem);
                                     }
                                 }
@@ -240,10 +245,10 @@ public class Controller
             break;
           case MODIFY:
             {
-                final hicp.message.command.Modify cmd =
-                    (hicp.message.command.Modify)c;
+                final ItemCommand itemCommand =
+                    (ItemCommand)c;
                 final ItemCommand.CategoryEnum category =
-                    cmd.getCategory();
+                    itemCommand.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
@@ -253,18 +258,22 @@ public class Controller
                 switch (category) {
                   case TEXT:
                     {
-                        final String id = cmd.getId();
+                        final TextCommand textCommand =
+                            (TextCommand)itemCommand;
+                        final String id = textCommand.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Modify text missing id");
                             break;
                         }
-                        _textLibrary.addModify(cmd);
+                        _textLibrary.update(textCommand);
                     }
                   case GUI:
                     {
+                        final hicp.message.command.Modify modifyCmd =
+                            (hicp.message.command.Modify)itemCommand;
+                        final String id = modifyCmd.getId();
                         final Item guiItem;
-                        final String id = cmd.getId();
                         if (null != id) {
                             // Get GUI item based on id field.
                             guiItem = _guiMap.get(id);
@@ -276,7 +285,7 @@ public class Controller
                             // No item to modify.
                             break;
                         }
-                        guiItem.modify(cmd);
+                        guiItem.modify(modifyCmd);
                     }
                   default:
                     // Unrecognized category.
@@ -286,10 +295,10 @@ public class Controller
             break;
           case REMOVE:
             {
-                final hicp.message.command.Remove cmd =
-                    (hicp.message.command.Remove)c;
+                final ItemCommand itemCommand =
+                    (ItemCommand)c;
                 final ItemCommand.CategoryEnum category =
-                    cmd.getCategory();
+                    itemCommand.getCategory();
                 if (null == category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
@@ -299,7 +308,7 @@ public class Controller
                 switch (category) {
                   case TEXT:
                     {
-                        final String id = cmd.getId();
+                        final String id = itemCommand.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove text missing id");
@@ -311,7 +320,7 @@ public class Controller
                   case GUI:
                     {
                         log("Remove GUI");
-                        final String id = cmd.getId();
+                        final String id = itemCommand.getId();
                         // Must have id field.
                         if (null == id) {
                             log("Remove GUI missing id");

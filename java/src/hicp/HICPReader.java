@@ -361,25 +361,64 @@ readLoop:
     public Command newCommand(final Map<HeaderEnum, HICPHeader> headerMap)
         throws IOException
     {
-        final HICPHeader h = headerMap.get(HeaderEnum.COMMAND);
-        if (null == h) {
+        final HICPHeader cmdHeader = headerMap.get(HeaderEnum.COMMAND);
+        if (null == cmdHeader) {
             // No actual command.
             return null;
         }
-        final CommandEnum e = CommandEnum.getEnum(h.value.getString());
-        switch (e) {
+        final CommandEnum command =
+            CommandEnum.getEnum(cmdHeader.value.getString());
+        switch (command) {
           case AUTHENTICATE:
-            return new hicp.message.command.Authenticate(e.name, headerMap);
+            return new hicp.message.command.Authenticate(command.name, headerMap);
           case ADD:
-            // TODO add more specific messages for component types.
-            return new Add(e.name).addHeaders(headerMap);
+            {
+                final HICPHeader categoryHeader =
+                    headerMap.get(HeaderEnum.CATEGORY);
+                if (null == categoryHeader) {
+                    // No category.
+                    return null;
+                }
+                final ItemCommand.CategoryEnum category =
+                    ItemCommand.CategoryEnum.getEnum(
+                        categoryHeader.value.getString()
+                    );
+                switch (category) {
+                  case TEXT:
+                    return new TextCommand(command.name, headerMap);
+                  case GUI:
+                    // TODO add more specific messages for component types.
+                    return new Add(command.name).addHeaders(headerMap);
+                  default:
+                    return null;
+                }
+            }
           case MODIFY:
-            // TODO add more specific messages for component types.
-            return new Modify(e.name).addHeaders(headerMap);
+            {
+                final HICPHeader categoryHeader =
+                    headerMap.get(HeaderEnum.CATEGORY);
+                if (null == categoryHeader) {
+                    // No category.
+                    return null;
+                }
+                final ItemCommand.CategoryEnum category =
+                    ItemCommand.CategoryEnum.getEnum(
+                        categoryHeader.value.getString()
+                    );
+                switch (category) {
+                  case TEXT:
+                    return new TextCommand(command.name, headerMap);
+                  case GUI:
+                    // TODO add more specific messages for component types.
+                    return new Modify(command.name).addHeaders(headerMap);
+                  default:
+                    return null;
+                }
+            }
           case REMOVE:
-            return new Remove(e.name).addHeaders(headerMap);
+            return new Remove(command.name, headerMap);
           case DISCONNECT:
-            return new Disconnect(e.name).addHeaders(headerMap);
+            return new Disconnect(command.name).addHeaders(headerMap);
           // Is there a warning if an enum switch is missing an item?
           // If not, add a default here.
         }
