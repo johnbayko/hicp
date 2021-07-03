@@ -371,6 +371,9 @@ readLoop:
         switch (command) {
           case AUTHENTICATE:
             return new hicp.message.command.Authenticate(command.name, headerMap);
+          // TODO Message clss hierarcy will be unified to just Message with
+          // usage specific info objects, which will make this mess go away.
+          // But it's needed until then.
           case ADD:
             {
                 final HICPHeader categoryHeader =
@@ -387,7 +390,6 @@ readLoop:
                   case TEXT:
                     return new TextCommand(command.name, headerMap);
                   case GUI:
-                    // TODO add more specific messages for component types.
                     return new Add(command.name).addHeaders(headerMap);
                   default:
                     return null;
@@ -409,7 +411,6 @@ readLoop:
                   case TEXT:
                     return new TextCommand(command.name, headerMap);
                   case GUI:
-                    // TODO add more specific messages for component types.
                     return new Modify(command.name).addHeaders(headerMap);
                   default:
                     return null;

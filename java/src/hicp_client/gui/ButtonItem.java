@@ -52,9 +52,9 @@ public class ButtonItem
                     // Send a click event with this object's ID.
                     final Click clickEvent =
                         (Click)EventEnum.CLICK.newEvent();
-            
+
                     clickEvent.id = idString;
-        
+
                     _messageExchange.send(clickEvent);
                 }
             }

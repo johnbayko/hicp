@@ -11,8 +11,9 @@ import java.util.regex.Pattern;
 
 import hicp.HICPHeader;
 import hicp.HICPHeaderValue;
-import hicp.HICPReader;
 import hicp.message.HeaderEnum;
+import hicp.message.command.CommandInfo;
+import hicp.message.event.EventInfo;
 
 public abstract class Message {
     private static final Logger LOGGER =
@@ -39,6 +40,9 @@ public abstract class Message {
 
     public final static String TRUE = "true";
     public final static String FALSE = "false";
+
+    protected CommandInfo _commandInfo = null;
+    protected EventInfo _eventInfo = null;
 
     protected final String _name;
 
@@ -71,6 +75,30 @@ public abstract class Message {
      */
     public Map<HeaderEnum, HICPHeader> getHeaders() {
         return new HashMap<>();
+    }
+
+    public CommandInfo getCommandInfo() {
+        if (null == _commandInfo) {
+            if (null == _headerMap) {
+                return null;
+            }
+            if (null != _headerMap.get(HeaderEnum.COMMAND)) {
+                _commandInfo = new CommandInfo(_headerMap);
+            }
+        }
+        return _commandInfo;
+    }
+
+    public EventInfo getEventInfo() {
+        if (null == _eventInfo) {
+            if (null == _headerMap) {
+                return null;
+            }
+            if (null != _headerMap.get(HeaderEnum.COMMAND)) {
+                _eventInfo = new EventInfo(_headerMap);
+            }
+        }
+        return _eventInfo;
     }
 
 
