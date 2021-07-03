@@ -11,6 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
+import hicp.message.command.GUICommand;
 import hicp.message.command.ItemCommand;
 import hicp.message.command.TextCommand;
 import hicp.message.event.Connect;
@@ -34,7 +35,7 @@ public class Controller
     protected MessageExchange _messageExchange;
     protected boolean _isConnected = false;
 
-    protected TextLibrary _textLibrary = new TextLibrary();  // debug
+    protected TextLibrary _textLibrary = new TextLibrary();
     protected Map<String, Item> _guiMap = new HashMap<>();
 
     protected RootItem _root = null;
@@ -125,7 +126,8 @@ public class Controller
 
 // Called by message exchange (input thread).
     public void receivedMessage(Message m) {
-        if (!(m instanceof Command)) {
+//        if (!(m instanceof Command)) {
+        if (!m.isCommand()) {
             // Client is not interested in events.
             return;
         }

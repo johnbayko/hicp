@@ -77,24 +77,38 @@ public abstract class Message {
         return new HashMap<>();
     }
 
+    public boolean isCommand() {
+        if (null == _headerMap) {
+            return false;
+        }
+        if (null == _headerMap.get(HeaderEnum.COMMAND)) {
+            return false;
+        }
+        return true;
+    }
+
     public CommandInfo getCommandInfo() {
         if (null == _commandInfo) {
-            if (null == _headerMap) {
-                return null;
-            }
-            if (null != _headerMap.get(HeaderEnum.COMMAND)) {
+            if (isCommand()) {
                 _commandInfo = new CommandInfo(_headerMap);
             }
         }
         return _commandInfo;
     }
 
+    public boolean isEvent() {
+        if (null == _headerMap) {
+            return false;
+        }
+        if (null == _headerMap.get(HeaderEnum.EVENT)) {
+            return false;
+        }
+        return true;
+    }
+
     public EventInfo getEventInfo() {
         if (null == _eventInfo) {
-            if (null == _headerMap) {
-                return null;
-            }
-            if (null != _headerMap.get(HeaderEnum.COMMAND)) {
+            if (isEvent()) {
                 _eventInfo = new EventInfo(_headerMap);
             }
         }
