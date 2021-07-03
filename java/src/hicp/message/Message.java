@@ -15,7 +15,7 @@ import hicp.message.HeaderEnum;
 import hicp.message.command.CommandInfo;
 import hicp.message.event.EventInfo;
 
-public abstract class Message {
+public class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
 
@@ -48,7 +48,12 @@ public abstract class Message {
 
     protected Map<HeaderEnum, HICPHeader> _headerMap;
 
-    public abstract void write(Writer out) throws IOException;
+    public void write(Writer out)
+        throws IOException
+    {
+        // No fields to write.
+    }
+
 
     public Message( String name) {
         _name = name;

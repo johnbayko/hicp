@@ -358,7 +358,7 @@ readLoop:
         }
     }
 
-    public Command newCommand(final Map<HeaderEnum, HICPHeader> headerMap)
+    public Message newCommand(final Map<HeaderEnum, HICPHeader> headerMap)
         throws IOException
     {
         final HICPHeader cmdHeader = headerMap.get(HeaderEnum.COMMAND);
@@ -419,7 +419,7 @@ readLoop:
           case REMOVE:
             return new Remove(command.name, headerMap);
           case DISCONNECT:
-            return new Disconnect(command.name).addHeaders(headerMap);
+            return new Message(command.name).addHeaders(headerMap);
           // Is there a warning if an enum switch is missing an item?
           // If not, add a default here.
         }
@@ -449,7 +449,7 @@ readLoop:
      {
         final Map<HeaderEnum, HICPHeader> headerMap = readHeaderMap();
         {
-            final Command command = newCommand(headerMap);
+            final Message command = newCommand(headerMap);
             if (null != command) {
                 return command;
             }

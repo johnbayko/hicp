@@ -132,14 +132,13 @@ public class Controller
             return;
         }
         final CommandInfo ci = m.getCommandInfo();
-        final Command c = (Command)m;
 
         // Action based on message command.
         switch (ci.command) {
           case AUTHENTICATE:
             {
                 final hicp.message.command.Authenticate authenticateCmd =
-                    (hicp.message.command.Authenticate)c;
+                    (hicp.message.command.Authenticate)m;
 
                 // Empty event to fill and send back.
                 final hicp.message.event.Authenticate authenticateEvent =
@@ -171,7 +170,7 @@ public class Controller
           case ADD:
             {
                 final ItemCommand itemCommand =
-                    (ItemCommand)c;
+                    (ItemCommand)m;
                 final ItemCommand.CategoryEnum category =
                     itemCommand.getCategory();
                 if (null == category) {
@@ -249,7 +248,7 @@ public class Controller
           case MODIFY:
             {
                 final ItemCommand itemCommand =
-                    (ItemCommand)c;
+                    (ItemCommand)m;
                 final ItemCommand.CategoryEnum category =
                     itemCommand.getCategory();
                 if (null == category) {
@@ -299,7 +298,7 @@ public class Controller
           case REMOVE:
             {
                 final hicp.message.command.Remove cmd =
-                    (hicp.message.command.Remove)c;
+                    (hicp.message.command.Remove)m;
                 final ItemCommand.CategoryEnum category =
                     cmd.getCategory();
                 if (null == category) {
