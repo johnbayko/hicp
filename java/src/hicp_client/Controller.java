@@ -11,6 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Command;
 import hicp.message.command.CommandEnum;
+import hicp.message.command.CommandInfo;
 import hicp.message.command.GUICommand;
 import hicp.message.command.ItemCommand;
 import hicp.message.command.TextCommand;
@@ -126,15 +127,15 @@ public class Controller
 
 // Called by message exchange (input thread).
     public void receivedMessage(Message m) {
-//        if (!(m instanceof Command)) {
         if (!m.isCommand()) {
             // Client is not interested in events.
             return;
         }
+        final CommandInfo ci = m.getCommandInfo();
         final Command c = (Command)m;
 
         // Action based on message command.
-        switch (c.getCommand()) {
+        switch (ci.command) {
           case AUTHENTICATE:
             {
                 final hicp.message.command.Authenticate authenticateCmd =
