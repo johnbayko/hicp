@@ -6,12 +6,21 @@ import hicp.message.HeaderEnum;
 public class CommandInfo {
     // TODO Move command enum into here.
 
-    public final CommandEnum command;
+    public CommandEnum command;
 
-    private AuthenticateInfo _authenticateInfo;
-    private ItemInfo _itemInfo;
+    public static final AuthenticateInfo DEFAULT_AUTHENTICATE_INFO =
+        new AuthenticateInfo();
+    public static final ItemInfo DEFAULT_ITEM_INFO =
+        new ItemInfo();
 
-    private final HeaderMap _headerMap;
+    private AuthenticateInfo _authenticateInfo = DEFAULT_AUTHENTICATE_INFO;
+    private ItemInfo _itemInfo = DEFAULT_ITEM_INFO;
+
+    private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
+    private HeaderMap _headerMap = DEFAULT_HEADER_MAP;
+
+    public CommandInfo() {
+    }
 
     public CommandInfo(final HeaderMap headerMap) {
         _headerMap = headerMap;
@@ -26,20 +35,18 @@ public class CommandInfo {
         final HeaderMap headerMap
     ) {
         headerMap.putString(HeaderEnum.COMMAND, command.name);
-        if (null != _authenticateInfo) {
+
+        if (DEFAULT_AUTHENTICATE_INFO != _authenticateInfo) {
             _authenticateInfo.updateHeaderMap(headerMap);
         }
-        if (null != _itemInfo) {
+        if (DEFAULT_ITEM_INFO != _itemInfo) {
             _itemInfo.updateHeaderMap(headerMap);
         }
         return this;
     }
 
     public AuthenticateInfo getAuthenticateInfo() {
-        if (null == _headerMap) {
-            return null;
-        }
-        if (null == _authenticateInfo) {
+        if (DEFAULT_AUTHENTICATE_INFO == _authenticateInfo) {
             _authenticateInfo = new AuthenticateInfo(_headerMap);
         }
         return _authenticateInfo;
@@ -51,10 +58,7 @@ public class CommandInfo {
     }
 
     public ItemInfo getItemInfo() {
-        if (null == _headerMap) {
-            return null;
-        }
-        if (null == _itemInfo) {
+        if (DEFAULT_ITEM_INFO == _itemInfo) {
             _itemInfo = new ItemInfo(_headerMap);
         }
         return _itemInfo;
@@ -64,5 +68,4 @@ public class CommandInfo {
         _itemInfo = i;
         return this;
     }
-
 }

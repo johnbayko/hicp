@@ -4,7 +4,10 @@ import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 
 public class EventInfo {
-    public final EventEnum event;
+    public EventEnum event;
+
+    public EventInfo() {
+    } 
 
     public EventInfo(final HeaderMap headerMap) {
         event =

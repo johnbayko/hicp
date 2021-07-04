@@ -37,12 +37,16 @@ public class Message {
     public final static String TRUE = "true";
     public final static String FALSE = "false";
 
-    protected CommandInfo _commandInfo = null;
-    protected EventInfo _eventInfo = null;
+    public static final CommandInfo DEFAULT_COMMAND_INFO = new CommandInfo();
+    public static final EventInfo DEFAULT_EVENT_INFO = new EventInfo();
+
+    protected CommandInfo _commandInfo = DEFAULT_COMMAND_INFO;
+    protected EventInfo _eventInfo = DEFAULT_EVENT_INFO;
 
     protected final String _name;
 
-    protected HeaderMap _headerMap;
+    private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
+    protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
 
     public void write(Writer out)
         throws IOException
@@ -84,9 +88,6 @@ public class Message {
     }
 
     public boolean isCommand() {
-        if (null == _headerMap) {
-            return false;
-        }
         if (null == _headerMap.getHeader(HeaderEnum.COMMAND)) {
             return false;
         }
@@ -94,7 +95,7 @@ public class Message {
     }
 
     public CommandInfo getCommandInfo() {
-        if (null == _commandInfo) {
+        if (DEFAULT_COMMAND_INFO == _commandInfo) {
             if (isCommand()) {
                 _commandInfo = new CommandInfo(_headerMap);
             }
@@ -103,9 +104,6 @@ public class Message {
     }
 
     public boolean isEvent() {
-        if (null == _headerMap) {
-            return false;
-        }
         if (null == _headerMap.getHeader(HeaderEnum.EVENT)) {
             return false;
         }
@@ -113,7 +111,7 @@ public class Message {
     }
 
     public EventInfo getEventInfo() {
-        if (null == _eventInfo) {
+        if (DEFAULT_EVENT_INFO == _eventInfo) {
             if (isEvent()) {
                 _eventInfo = new EventInfo(_headerMap);
             }

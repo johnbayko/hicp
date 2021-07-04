@@ -381,7 +381,7 @@ readLoop:
                     );
                 switch (category) {
                   case TEXT:
-                    return new TextCommand(command.name, headerMap);
+                    return new Message(command.name, headerMap);
                   case GUI:
                     return new Add(command.name).addHeaders(headerMap);
                   default:
@@ -402,7 +402,7 @@ readLoop:
                     );
                 switch (category) {
                   case TEXT:
-                    return new TextCommand(command.name, headerMap);
+                    return new Message(command.name, headerMap);
                   case GUI:
                     return new Modify(command.name).addHeaders(headerMap);
                   default:

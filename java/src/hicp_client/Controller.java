@@ -12,7 +12,6 @@ import hicp.message.command.Add;
 import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.ItemInfo;
-import hicp.message.command.TextCommand;
 import hicp.message.event.Connect;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
@@ -50,8 +49,6 @@ public class Controller
         _messageExchange =
             new MessageExchange(_session.in, _session.out, this);
 
-        // TODO Is text library needed? Can constructor without parameters be
-        // made?
         _root = new RootItem();
     }
 
@@ -128,18 +125,15 @@ public class Controller
             // Client is not interested in events.
             return;
         }
-        final CommandInfo ci = m.getCommandInfo();
+        final CommandInfo commandInfo = m.getCommandInfo();
 
         // Action based on message command.
-        switch (ci.command) {
+        switch (commandInfo.command) {
           case AUTHENTICATE:
             {
                 final AuthenticateInfo authenticateInfo =
-                    ci.getAuthenticateInfo();
-                if (null == authenticateInfo) {
-                    LOGGER.log(Level.FINE, "Authenticate without info");
-                    break;
-                }
+                    commandInfo.getAuthenticateInfo();
+
                 // Empty event to fill and send back.
                 final hicp.message.event.Authenticate authenticateEvent =
                     new hicp.message.event.Authenticate();
@@ -169,11 +163,7 @@ public class Controller
             break;
           case ADD:
             {
-                final ItemInfo itemInfo = ci.getItemInfo();
-                if (null == itemInfo) {
-                    LOGGER.log(Level.FINE, "Add without item info");
-                    break;
-                }
+                final ItemInfo itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
@@ -182,15 +172,12 @@ public class Controller
                 switch (itemInfo.category) {
                   case TEXT:
                     {
-                        final TextCommand textCommand =
-                            (TextCommand)m;
-                        final String id = textCommand.getId();
                         // Must have id field.
-                        if (null == id) {
+                        if (null == itemInfo.id) {
                             log("Add text missing id");
                             break;
                         }
-                        _textLibrary.update(textCommand);
+                        _textLibrary.update(m);
                     }
                     break;
                   case GUI:
@@ -247,11 +234,7 @@ public class Controller
             break;
           case MODIFY:
             {
-                final ItemInfo itemInfo = ci.getItemInfo();
-                if (null == itemInfo) {
-                    LOGGER.log(Level.FINE, "Add without item info");
-                    break;
-                }
+                final ItemInfo itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
@@ -261,15 +244,12 @@ public class Controller
                 switch (itemInfo.category) {
                   case TEXT:
                     {
-                        final TextCommand textCommand =
-                            (TextCommand)m;
-                        final String id = textCommand.getId();
                         // Must have id field.
-                        if (null == id) {
+                        if (null == itemInfo.id) {
                             log("Modify text missing id");
                             break;
                         }
-                        _textLibrary.update(textCommand);
+                        _textLibrary.update(m);
                     }
                   case GUI:
                     {
@@ -298,11 +278,7 @@ public class Controller
             break;
           case REMOVE:
             {
-                final ItemInfo itemInfo = ci.getItemInfo();
-                if (null == itemInfo) {
-                    LOGGER.log(Level.FINE, "Add without item info");
-                    break;
-                }
+                final ItemInfo itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
@@ -312,7 +288,6 @@ public class Controller
                 switch (itemInfo.category) {
                   case TEXT:
                     {
-//                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == itemInfo.id) {
                             log("Remove text missing id");
@@ -324,7 +299,6 @@ public class Controller
                   case GUI:
                     {
                         log("Remove GUI");
-//                        final String id = cmd.getId();
                         // Must have id field.
                         if (null == itemInfo.id) {
                             log("Remove GUI missing id");

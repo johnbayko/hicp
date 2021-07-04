@@ -10,14 +10,18 @@ import hicp.message.Message;
 
 public class AuthenticateInfo {
     private String _method;
-    private Set<String> _allMethods;
+    private Set<String> _allMethods = Set.of();
 
     public String password;
 
+    public AuthenticateInfo() {
+    }
+
     public AuthenticateInfo(final HeaderMap headerMap) {
         _method = headerMap.getString(HeaderEnum.METHOD);
-        _allMethods = HeaderMap.makeStringSet(_method);
-
+        if (null != _method) {
+            _allMethods = HeaderMap.makeStringSet(_method);
+        }
         password = headerMap.getString(HeaderEnum.PASSWORD);
     }
 
