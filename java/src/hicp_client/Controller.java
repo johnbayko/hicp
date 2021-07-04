@@ -184,7 +184,7 @@ public class Controller
                     {
                         final Add addCmd = (Add)m;
                         // Must have id and component fields.
-                        final String id = addCmd.getId();
+                        final String id = itemInfo.id;
                         if ((null == id) || (null == addCmd.component)) {
                             LOGGER.log(Level.FINE, "Add gui missing id or component");
                             break;
@@ -255,7 +255,7 @@ public class Controller
                     {
                         final hicp.message.command.Modify modifyCmd =
                             (hicp.message.command.Modify)m;
-                        final String id = modifyCmd.getId();
+                        final String id = itemInfo.id;
                         final Item guiItem;
                         if (null != id) {
                             // Get GUI item based on id field.

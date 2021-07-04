@@ -375,8 +375,8 @@ readLoop:
                     // No category.
                     return null;
                 }
-                final ItemCommand.CategoryEnum category =
-                    ItemCommand.CategoryEnum.getEnum(
+                final ItemInfo.CategoryEnum category =
+                    ItemInfo.CategoryEnum.getEnum(
                         categoryHeader.value.getString()
                     );
                 switch (category) {
@@ -396,8 +396,8 @@ readLoop:
                     // No category.
                     return null;
                 }
-                final ItemCommand.CategoryEnum category =
-                    ItemCommand.CategoryEnum.getEnum(
+                final ItemInfo.CategoryEnum category =
+                    ItemInfo.CategoryEnum.getEnum(
                         categoryHeader.value.getString()
                     );
                 switch (category) {

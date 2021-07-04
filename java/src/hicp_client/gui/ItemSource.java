@@ -22,7 +22,8 @@ public class ItemSource {
     ) {
         try {
             // Make sure it's a real integer - not used.
-            final int id = Integer.parseInt(addCmd.getId());
+            Integer.parseInt(addCmd.getCommandInfo().getItemInfo().id);
+
             final Item guiItem;
 
             if (Add.BUTTON.equals(addCmd.component)) {

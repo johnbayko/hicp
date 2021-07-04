@@ -115,7 +115,9 @@ public class WindowItem
             _textItemAdapter.setTextIdInvoked(addCmd.text);
         } else {
             // No text for title bar, make up something.
-            _component.setTitle("Window " + addCmd.getId()); 
+            _component.setTitle(
+                "Window " + addCmd.getCommandInfo().getItemInfo().id
+            ); 
         }
 
         // Visible.

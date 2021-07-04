@@ -43,6 +43,7 @@ public class Message {
     protected CommandInfo _commandInfo = DEFAULT_COMMAND_INFO;
     protected EventInfo _eventInfo = DEFAULT_EVENT_INFO;
 
+    // TODO pretty sure this isn't needed - check.
     protected final String _name;
 
     private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
