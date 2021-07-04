@@ -357,17 +357,13 @@ readLoop:
     public Message newCommand(final HeaderMap headerMap)
         throws IOException
     {
-        final HICPHeader cmdHeader = headerMap.getHeader(HeaderEnum.COMMAND);
+        final String cmdHeader = headerMap.getString(HeaderEnum.COMMAND);
         if (null == cmdHeader) {
             // No actual command.
             return null;
         }
-        final CommandEnum command =
-            CommandEnum.getEnum(cmdHeader.value.getString());
+        final CommandEnum command = CommandEnum.getEnum(cmdHeader);
         switch (command) {
-          case AUTHENTICATE:
-            return new Message(command.name, headerMap);
-
           // TODO Message clss hierarcy will be unified to just Message with
           // usage specific info objects, which will make this mess go away.
           // But it's needed until then.
@@ -413,8 +409,8 @@ readLoop:
                     return null;
                 }
             }
+          case AUTHENTICATE:
           case REMOVE:
-            return new Remove(command.name, headerMap);
           case DISCONNECT:
             return new Message(command.name, headerMap);
           // Is there a warning if an enum switch is missing an item?

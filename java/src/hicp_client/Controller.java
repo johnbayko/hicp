@@ -11,7 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
-import hicp.message.command.ItemCommand;
+import hicp.message.command.ItemInfo;
 import hicp.message.command.TextCommand;
 import hicp.message.event.Connect;
 import hicp_client.gui.ContainerItem;
@@ -169,20 +169,21 @@ public class Controller
             break;
           case ADD:
             {
-                final ItemCommand itemCommand =
-                    (ItemCommand)m;
-                final ItemCommand.CategoryEnum category =
-                    itemCommand.getCategory();
-                if (null == category) {
+                final ItemInfo itemInfo = ci.getItemInfo();
+                if (null == itemInfo) {
+                    LOGGER.log(Level.FINE, "Add without item info");
+                    break;
+                }
+                if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
                     break;
                 }
-                switch (category) {
+                switch (itemInfo.category) {
                   case TEXT:
                     {
                         final TextCommand textCommand =
-                            (TextCommand)itemCommand;
+                            (TextCommand)m;
                         final String id = textCommand.getId();
                         // Must have id field.
                         if (null == id) {
@@ -194,7 +195,7 @@ public class Controller
                     break;
                   case GUI:
                     {
-                        final Add addCmd = (Add)itemCommand;
+                        final Add addCmd = (Add)m;
                         // Must have id and component fields.
                         final String id = addCmd.getId();
                         if ((null == id) || (null == addCmd.component)) {
@@ -238,7 +239,7 @@ public class Controller
                   default:
                     // Unrecognized category.
                     LOGGER.log(Level.FINE,
-                        "Add to unrecognized category: " + category.name
+                        "Add to unrecognized category: " + itemInfo.category.name
                     );
                     break;
                 }
@@ -246,21 +247,22 @@ public class Controller
             break;
           case MODIFY:
             {
-                final ItemCommand itemCommand =
-                    (ItemCommand)m;
-                final ItemCommand.CategoryEnum category =
-                    itemCommand.getCategory();
-                if (null == category) {
+                final ItemInfo itemInfo = ci.getItemInfo();
+                if (null == itemInfo) {
+                    LOGGER.log(Level.FINE, "Add without item info");
+                    break;
+                }
+                if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
                     break;
                 }
 
-                switch (category) {
+                switch (itemInfo.category) {
                   case TEXT:
                     {
                         final TextCommand textCommand =
-                            (TextCommand)itemCommand;
+                            (TextCommand)m;
                         final String id = textCommand.getId();
                         // Must have id field.
                         if (null == id) {
@@ -272,7 +274,7 @@ public class Controller
                   case GUI:
                     {
                         final hicp.message.command.Modify modifyCmd =
-                            (hicp.message.command.Modify)itemCommand;
+                            (hicp.message.command.Modify)m;
                         final String id = modifyCmd.getId();
                         final Item guiItem;
                         if (null != id) {
@@ -290,46 +292,47 @@ public class Controller
                     }
                   default:
                     // Unrecognized category.
-                    log("Add to unrecognized category: " + category.name);
+                    log("Add to unrecognized category: " + itemInfo.category.name);
                 }
             }
             break;
           case REMOVE:
             {
-                final hicp.message.command.Remove cmd =
-                    (hicp.message.command.Remove)m;
-                final ItemCommand.CategoryEnum category =
-                    cmd.getCategory();
-                if (null == category) {
+                final ItemInfo itemInfo = ci.getItemInfo();
+                if (null == itemInfo) {
+                    LOGGER.log(Level.FINE, "Add without item info");
+                    break;
+                }
+                if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");
                     break;
                 }
 
-                switch (category) {
+                switch (itemInfo.category) {
                   case TEXT:
                     {
-                        final String id = cmd.getId();
+//                        final String id = cmd.getId();
                         // Must have id field.
-                        if (null == id) {
+                        if (null == itemInfo.id) {
                             log("Remove text missing id");
                             break;
                         }
-                        _textLibrary.remove(id);
+                        _textLibrary.remove(itemInfo.id);
                     }
                     break;
                   case GUI:
                     {
                         log("Remove GUI");
-                        final String id = cmd.getId();
+//                        final String id = cmd.getId();
                         // Must have id field.
-                        if (null == id) {
+                        if (null == itemInfo.id) {
                             log("Remove GUI missing id");
                             break;
                         }
 
                         // find the GUI item to remove.
-                        final Item guiItem = _guiMap.get(id);
+                        final Item guiItem = _guiMap.get(itemInfo.id);
                         if (null == guiItem) {
                             // No item to remove.
                             break;
@@ -338,12 +341,12 @@ public class Controller
                         ItemSource.disposeItem(guiItem);
 
                         // Remove it from the GUI item list.
-                        _guiMap.remove(id);
+                        _guiMap.remove(itemInfo.id);
                     }
                     break;
                   default:
                     // Unrecognized category.
-                    log("Remove from unrecognized category: " + category.name);
+                    log("Remove from unrecognized category: " + itemInfo.category.name);
                     break;
                 }
             }
