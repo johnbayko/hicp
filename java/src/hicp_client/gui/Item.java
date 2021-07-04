@@ -4,6 +4,9 @@ import java.awt.Component;
 import javax.swing.SwingUtilities;
 
 import hicp.message.command.Add;
+import hicp.message.command.CommandInfo;
+import hicp.message.command.GUIInfo;
+import hicp.message.command.ItemInfo;
 import hicp.message.command.Modify;
 
 public abstract class Item
@@ -22,8 +25,12 @@ public abstract class Item
         Non-GUI thread.
      */
     public Item(Add addCmd) {
-        idString = addCmd.getCommandInfo().getItemInfo().id;
-        component = addCmd.component;
+        final CommandInfo commandInfo = addCmd.getCommandInfo();
+        final ItemInfo itemInfo = commandInfo.getItemInfo();
+        final GUIInfo guiInfo = itemInfo.getGUIInfo();
+
+        idString = itemInfo.id;
+        component = guiInfo.component.name;
         horizontalPosition = addCmd.horizontalPosition;
         verticalPosition = addCmd.verticalPosition;
         horizontalSize = addCmd.horizontalSize;

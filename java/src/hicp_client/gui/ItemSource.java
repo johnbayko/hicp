@@ -5,6 +5,9 @@ import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
+import hicp.message.command.CommandInfo;
+import hicp.message.command.ItemInfo;
+import hicp.message.command.GUIInfo;
 import hicp_client.gui.*;
 import hicp_client.gui.selection.SelectionSource;
 import hicp_client.text.TextItemAdapter;
@@ -21,34 +24,47 @@ public class ItemSource {
         final MessageExchange messageExchange
     ) {
         try {
+            final CommandInfo commandInfo = addCmd.getCommandInfo();
+            final ItemInfo itemInfo = commandInfo.getItemInfo();
+            final GUIInfo guiInfo = itemInfo.getGUIInfo();
+
             // Make sure it's a real integer - not used.
-            Integer.parseInt(addCmd.getCommandInfo().getItemInfo().id);
+            Integer.parseInt(itemInfo.id);
 
             final Item guiItem;
 
-            if (Add.BUTTON.equals(addCmd.component)) {
-                guiItem =
-                    new ButtonItem(addCmd, messageExchange);
-            } else if (Add.LABEL.equals(addCmd.component)) {
-                guiItem =
-                    new LabelItem(addCmd);
-            } else if (Add.PANEL.equals(addCmd.component)) {
-                guiItem =
-                    new PanelItem(addCmd);
-            } else if (Add.TEXTFIELD.equals(addCmd.component)) {
-                guiItem =
-                    new TextFieldItem(addCmd, messageExchange);
-            } else if (Add.WINDOW.equals(addCmd.component)) {
-                guiItem =
-                    new WindowItem(addCmd, messageExchange);
-            } else if (Add.SELECTION.equals(addCmd.component)) {
+            if (null == guiInfo.component) {
+                LOGGER.log(Level.FINE, "Add has no component");
+                guiItem = null;
+            } else switch (guiInfo.component) {
+              case BUTTON:
+                guiItem = new ButtonItem(addCmd, messageExchange);
+                break;
+              case LABEL:
+                guiItem = new LabelItem(addCmd);
+                break;
+              case PANEL:
+                guiItem = new PanelItem(addCmd);
+                break;
+              case SELECTION:
                 guiItem =
                     SelectionSource
                         .newItem(addCmd, textLibrary, messageExchange);
-            } else {
+                break;
+              case TEXTFIELD:
+                guiItem = new TextFieldItem(addCmd, messageExchange);
+                break;
+              case WINDOW:
+                guiItem = new WindowItem(addCmd, messageExchange);
+                break;
+              default:
                 // Unrecognized category.
-                LOGGER.log(Level.FINE, "Add unrecognized component: " + addCmd.component);
+                LOGGER.log(
+                    Level.FINE,
+                    "Add unrecognized component: " + guiInfo.component.name
+                );
                 guiItem = null;
+                break;
             }
             if (null == guiItem) {
                 return null;

@@ -11,6 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
+import hicp.message.command.GUIInfo;
 import hicp.message.command.ItemInfo;
 import hicp.message.event.Connect;
 import hicp_client.gui.ContainerItem;
@@ -128,6 +129,9 @@ public class Controller
         final CommandInfo commandInfo = m.getCommandInfo();
 
         // Action based on message command.
+        if (null == commandInfo.command) {
+            return;
+        }
         switch (commandInfo.command) {
           case AUTHENTICATE:
             {
@@ -182,10 +186,11 @@ public class Controller
                     break;
                   case GUI:
                     {
+                        final GUIInfo guiInfo = itemInfo.getGUIInfo();
                         final Add addCmd = (Add)m;
                         // Must have id and component fields.
                         final String id = itemInfo.id;
-                        if ((null == id) || (null == addCmd.component)) {
+                        if ((null == id) || (null == guiInfo.component)) {
                             LOGGER.log(Level.FINE, "Add gui missing id or component");
                             break;
                         }
@@ -207,11 +212,15 @@ public class Controller
                             if (null != guiItem) {
                                 _guiMap.put(id, guiItem);
 
-                                // If this should be added to a parent,
-                                // determine the parent item and add to it.
-                                if (Add.WINDOW.equals(guiItem.component)) {
+                                if ( GUIInfo.ComponentEnum.WINDOW.name.equals(
+                                        guiItem.component
+                                    )
+                                ) {
+                                    // Windows all get added to the root.
                                     guiItem.setParent(_root);
                                 } else {
+                                    // If this should be added to a parent,
+                                    // determine the parent item and add to it.
                                     if (null != addCmd.parent) {
                                         final ContainerItem parentItem =
                                             (ContainerItem)

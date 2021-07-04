@@ -363,6 +363,9 @@ readLoop:
             return null;
         }
         final CommandEnum command = CommandEnum.getEnum(cmdHeader);
+        if (null == command) {
+            return null;
+        }
         switch (command) {
           // TODO Message clss hierarcy will be unified to just Message with
           // usage specific info objects, which will make this mess go away.
@@ -379,6 +382,9 @@ readLoop:
                     ItemInfo.CategoryEnum.getEnum(
                         categoryHeader.value.getString()
                     );
+                if (null == category) {
+                    return null;
+                }
                 switch (category) {
                   case TEXT:
                     return new Message(command.name, headerMap);
@@ -400,6 +406,9 @@ readLoop:
                     ItemInfo.CategoryEnum.getEnum(
                         categoryHeader.value.getString()
                     );
+                if (null == category) {
+                    return null;
+                }
                 switch (category) {
                   case TEXT:
                     return new Message(command.name, headerMap);
