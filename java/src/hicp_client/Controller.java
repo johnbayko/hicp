@@ -2,21 +2,18 @@ package hicp_client;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.Add;
-import hicp.message.command.Command;
-import hicp.message.command.CommandEnum;
+import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
-import hicp.message.command.GUICommand;
 import hicp.message.command.ItemCommand;
 import hicp.message.command.TextCommand;
 import hicp.message.event.Connect;
-import hicp.message.event.EventEnum;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
 import hicp_client.gui.ItemSource;
@@ -137,9 +134,12 @@ public class Controller
         switch (ci.command) {
           case AUTHENTICATE:
             {
-                final hicp.message.command.Authenticate authenticateCmd =
-                    (hicp.message.command.Authenticate)m;
-
+                final AuthenticateInfo authenticateInfo =
+                    ci.getAuthenticateInfo();
+                if (null == authenticateInfo) {
+                    LOGGER.log(Level.FINE, "Authenticate without info");
+                    break;
+                }
                 // Empty event to fill and send back.
                 final hicp.message.event.Authenticate authenticateEvent =
                     new hicp.message.event.Authenticate();
@@ -157,7 +157,7 @@ public class Controller
                         // side supports this authentication method.
                         final String method = "plain";
 
-                        if (authenticateCmd.hasMethod(method)) {
+                        if (authenticateInfo.hasMethod(method)) {
                             // Method is supported.
                             authenticateEvent.password = password;
                             authenticateEvent.method = method;
@@ -194,8 +194,7 @@ public class Controller
                     break;
                   case GUI:
                     {
-                        final hicp.message.command.Add addCmd =
-                            (hicp.message.command.Add)itemCommand;
+                        final Add addCmd = (Add)itemCommand;
                         // Must have id and component fields.
                         final String id = addCmd.getId();
                         if ((null == id) || (null == addCmd.component)) {

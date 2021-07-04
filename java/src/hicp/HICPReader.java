@@ -4,10 +4,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
-import java.nio.charset.StandardCharsets;
-import java.nio.charset.CharsetDecoder;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -339,10 +335,10 @@ readLoop:
         return new HICPHeader(headerName, headerValue);
     }
 
-    public Map<HeaderEnum, HICPHeader> readHeaderMap()
+    public HeaderMap readHeaderMap()
         throws IOException
     {
-        final Map<HeaderEnum, HICPHeader> headerMap = new HashMap<>();
+        final HeaderMap headerMap = new HeaderMap();
         for (;;) {
             final HICPHeader header = readHeader();
 
@@ -358,10 +354,10 @@ readLoop:
         }
     }
 
-    public Message newCommand(final Map<HeaderEnum, HICPHeader> headerMap)
+    public Message newCommand(final HeaderMap headerMap)
         throws IOException
     {
-        final HICPHeader cmdHeader = headerMap.get(HeaderEnum.COMMAND);
+        final HICPHeader cmdHeader = headerMap.getHeader(HeaderEnum.COMMAND);
         if (null == cmdHeader) {
             // No actual command.
             return null;
@@ -370,14 +366,15 @@ readLoop:
             CommandEnum.getEnum(cmdHeader.value.getString());
         switch (command) {
           case AUTHENTICATE:
-            return new hicp.message.command.Authenticate(command.name, headerMap);
+            return new Message(command.name, headerMap);
+
           // TODO Message clss hierarcy will be unified to just Message with
           // usage specific info objects, which will make this mess go away.
           // But it's needed until then.
           case ADD:
             {
                 final HICPHeader categoryHeader =
-                    headerMap.get(HeaderEnum.CATEGORY);
+                    headerMap.getHeader(HeaderEnum.CATEGORY);
                 if (null == categoryHeader) {
                     // No category.
                     return null;
@@ -398,7 +395,7 @@ readLoop:
           case MODIFY:
             {
                 final HICPHeader categoryHeader =
-                    headerMap.get(HeaderEnum.CATEGORY);
+                    headerMap.getHeader(HeaderEnum.CATEGORY);
                 if (null == categoryHeader) {
                     // No category.
                     return null;
@@ -419,17 +416,17 @@ readLoop:
           case REMOVE:
             return new Remove(command.name, headerMap);
           case DISCONNECT:
-            return new Message(command.name).addHeaders(headerMap);
+            return new Message(command.name, headerMap);
           // Is there a warning if an enum switch is missing an item?
           // If not, add a default here.
         }
         return null;
     }
 
-    public Event newEvent(final Map<HeaderEnum, HICPHeader> headerMap)
+    public Event newEvent(final HeaderMap headerMap)
         throws IOException
     {
-        final HICPHeader h = headerMap.get(HeaderEnum.EVENT);
+        final HICPHeader h = headerMap.getHeader(HeaderEnum.EVENT);
         if (null == h) {
             // No actual event.
             return null;
@@ -447,7 +444,7 @@ readLoop:
     public Message readMessage()
         throws IOException
      {
-        final Map<HeaderEnum, HICPHeader> headerMap = readHeaderMap();
+        final HeaderMap headerMap = readHeaderMap();
         {
             final Message command = newCommand(headerMap);
             if (null != command) {

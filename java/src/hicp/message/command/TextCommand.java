@@ -2,11 +2,9 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
 
-import hicp.HICPHeader;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class TextCommand
     extends ItemCommand
@@ -19,7 +17,7 @@ public class TextCommand
 
     public TextCommand(
         final String name,
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super(name);
 
@@ -32,25 +30,19 @@ public class TextCommand
     }
 
     public TextCommand addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
 
-        for (final HeaderEnum h : headerMap.keySet()) {
-            final HICPHeader v = headerMap.get(h);
-            switch (h) {
-              case TEXT:
-                _text = v.value.getString();
-                break;
-            }
-        }
+        _text = headerMap.getString(HeaderEnum.TEXT);
+
         return this;
     }
 
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+    public HeaderMap getHeaders() {
+        final HeaderMap headerMap = super.getHeaders();
 
-        Message.addHeaderString(headerMap, HeaderEnum.TEXT, _text);
+        headerMap.putString(HeaderEnum.TEXT, _text);
 
         return headerMap;
     }

@@ -2,6 +2,8 @@ package hicp_client.gui;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
@@ -15,6 +17,9 @@ public class LabelItem
     extends Item
     implements TextItemAdapterListener
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( LabelItem.class.getName() );
+
     protected TextItemAdapter _textItemAdapter;
 
     protected JLabel _component;

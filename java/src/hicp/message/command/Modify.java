@@ -1,9 +1,6 @@
 package hicp.message.command;
 
-import java.util.Map;
-
-import hicp.HICPHeader;
-import hicp.message.HeaderEnum;
+import hicp.HeaderMap;
 
 public class Modify
     extends AddModify
@@ -13,7 +10,7 @@ public class Modify
     }
 
     public Modify addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
         return this;

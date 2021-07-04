@@ -1,12 +1,10 @@
 package hicp.message.command;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hicp.HICPHeader;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class Add
     extends AddModify
@@ -30,28 +28,16 @@ public class Add
     }
 
     public Add addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         // TODO make independent from Modify.
         super.addHeaders(headerMap);
 
-        for (final HeaderEnum h : headerMap.keySet()) {
-            final HICPHeader v = headerMap.get(h);
-            switch (h) {
-              case HEIGHT:
-                height = v.value.getString();
-                break;
-              case MODE:
-                mode = v.value.getString();
-                break;
-              case PRESENTATION:
-                presentation = v.value.getString();
-                break;
-              case WIDTH:
-                width = v.value.getString();
-                break;
-            }
-        }
+        height = headerMap.getString(HeaderEnum.HEIGHT);
+        mode = headerMap.getString(HeaderEnum.MODE);
+        presentation = headerMap.getString(HeaderEnum.PRESENTATION);
+        width = headerMap.getString(HeaderEnum.WIDTH);
+
         return this;
     }
 }

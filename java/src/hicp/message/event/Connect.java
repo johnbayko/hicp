@@ -2,18 +2,13 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class Connect
     extends Event
 {
-    public final static String APPLICATION = "application";
-
     public String application = null;
 
     public Connect() {
@@ -31,25 +26,25 @@ public class Connect
         super.write(out);
 
         if (null != application) {
-            writeHeader(out, APPLICATION, application);
+            writeHeader(out, HeaderEnum.APPLICATION.name, application);
         }
 
         writeEndOfMessage(out);
     }
 
     public Connect addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
 
-        application = getHeaderString(HeaderEnum.APPLICATION);
+        application = headerMap.getString(HeaderEnum.APPLICATION);
         return this;
     }
 
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+    public HeaderMap getHeaders() {
+        final HeaderMap headerMap = super.getHeaders();
 
-        addHeaderString(headerMap, HeaderEnum.APPLICATION, application);
+        headerMap.putString(HeaderEnum.APPLICATION, application);
 
         return headerMap;
     }

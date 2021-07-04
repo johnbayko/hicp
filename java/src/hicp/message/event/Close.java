@@ -2,12 +2,8 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
-import hicp.message.HeaderEnum;
-import hicp.message.Message;
+import hicp.HeaderMap;
 
 public class Close
     extends GUIEvent
@@ -26,7 +22,7 @@ public class Close
     }
 
     public Close addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
         return this;

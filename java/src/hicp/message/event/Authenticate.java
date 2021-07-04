@@ -2,20 +2,13 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class Authenticate
     extends Event
 {
-    public final static String USER = "user";
-    public final static String METHOD = "method";
-    public final static String PASSWORD = "password";
-
     public String user = null;
     public String method = null;
     public String password = null;
@@ -30,7 +23,7 @@ public class Authenticate
 
     public Authenticate(
         final String name,
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super(name);
         addHeaders(headerMap);
@@ -43,39 +36,40 @@ public class Authenticate
         super.write(out);
 
         if (null != user) {
-            writeHeader(out, USER, user);
+            writeHeader(out, HeaderEnum.USER.name, user);
         }
 
         if (null != method) {
-            writeHeader(out, METHOD, method);
+            writeHeader(out, HeaderEnum.METHOD.name, method);
         }
 
         if (null != password) {
-            writeHeader(out, PASSWORD, password);
+            writeHeader(out, HeaderEnum.PASSWORD.name, password);
         }
 
         writeEndOfMessage(out);
     }
 
     public Authenticate addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
 
-        user = getHeaderString(HeaderEnum.USER);
+        user = headerMap.getString(HeaderEnum.USER);
+
         // Method is single string for event
-        method = getHeaderString(HeaderEnum.METHOD);
-        password = getHeaderString(HeaderEnum.PASSWORD);
+        method = headerMap.getString(HeaderEnum.METHOD);
+        password = headerMap.getString(HeaderEnum.PASSWORD);
 
         return this;
     }
 
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+    public HeaderMap getHeaders() {
+        final HeaderMap headerMap = super.getHeaders();
 
-        addHeaderString(headerMap, HeaderEnum.USER, user);
-        addHeaderString(headerMap, HeaderEnum.METHOD, method);
-        addHeaderString(headerMap, HeaderEnum.PASSWORD, password);
+        headerMap.putString(HeaderEnum.USER, user);
+        headerMap.putString(HeaderEnum.METHOD, method);
+        headerMap.putString(HeaderEnum.PASSWORD, password);
 
         return headerMap;
     }

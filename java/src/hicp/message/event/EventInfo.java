@@ -1,31 +1,23 @@
 package hicp.message.event;
 
-import java.util.Map;
-
-import hicp.HICPHeader;
-import hicp.HICPHeaderValue;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 
 public class EventInfo {
     public final EventEnum event;
 
-    public EventInfo(final Map<HeaderEnum, HICPHeader> headerMap) {
+    public EventInfo(final HeaderMap headerMap) {
         event =
             EventEnum.getEnum(
-                headerMap.get(HeaderEnum.EVENT).value.getString()
+                headerMap.getString(HeaderEnum.EVENT)
             );
     }
 
     public EventInfo updateHeaderMap(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         if (null != event) {
-            final HICPHeader h =
-                new HICPHeader(
-                    HeaderEnum.EVENT,
-                    new HICPHeaderValue(event.messageName)
-                );
-            headerMap.put(HeaderEnum.EVENT, h);
+            headerMap.putString(HeaderEnum.EVENT, event.messageName);
         }
         return this;
     }

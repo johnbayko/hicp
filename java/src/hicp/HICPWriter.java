@@ -2,10 +2,10 @@ package hicp;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hicp.HeaderMap;
 import hicp.HICPHeader;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
@@ -71,7 +71,7 @@ public class HICPWriter
     public HICPWriter writeMessage(final Message m)
         throws IOException
     {
-        final Map<HeaderEnum, HICPHeader> headerMap = m.getHeaders();
+        final HeaderMap headerMap = m.getHeaders();
         // First header has to be event or command, so get and remove that
         // before iterating over other headers.
         {

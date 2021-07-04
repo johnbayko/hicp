@@ -3,14 +3,11 @@ package hicp.message.event;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
-import hicp.message.Message;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.TextAttributes;
 
@@ -19,10 +16,6 @@ public class Changed
 {
     private static final Logger LOGGER =
         Logger.getLogger( Changed.class.getName() );
-
-    public static String CONTENT = "content";
-    public static String ATTRIBUTES = "attributes";
-    public static String SELECTED = "selected";
 
     public String content = null;
     public TextAttributes attributes = null;
@@ -39,26 +32,26 @@ public class Changed
         super.write(out);
 
         if (null != content) {
-            writeHeader(out, CONTENT, content);
+            writeHeader(out, HeaderEnum.CONTENT.name, content);
         }
         if (null != attributes) {
             final String attributesStr = attributes.toString();
             if (0 < attributesStr.length()) {
-                writeHeader(out, ATTRIBUTES, attributes.toString());
+                writeHeader(out, HeaderEnum.ATTRIBUTES.name, attributes.toString());
             }
         }
         if (null != selected) {
             String selectedStr =
                 Arrays.stream(selected)
                     .collect(Collectors.joining(", "));
-            writeHeader(out, SELECTED, selectedStr);
+            writeHeader(out, HeaderEnum.SELECTED.name, selectedStr);
         }
 
         writeEndOfMessage(out);
     }
 
     public Changed addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
         return this;

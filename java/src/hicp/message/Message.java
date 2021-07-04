@@ -2,15 +2,11 @@ package hicp.message;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import hicp.HICPHeader;
-import hicp.HICPHeaderValue;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.command.CommandInfo;
 import hicp.message.event.EventInfo;
@@ -19,8 +15,8 @@ public class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
 
-    // TODO these might be more useful in hicp_client package where they're
-    // actually used.
+    // TODO maybe HeaderEnum should go here?
+
     // Useful regexes for parsing header strings.
     public static final Pattern LINE_SPLITTER =
         Pattern.compile("\r\n", Pattern.LITERAL);
@@ -46,7 +42,7 @@ public class Message {
 
     protected final String _name;
 
-    protected Map<HeaderEnum, HICPHeader> _headerMap;
+    protected HeaderMap _headerMap;
 
     public void write(Writer out)
         throws IOException
@@ -59,6 +55,11 @@ public class Message {
         _name = name;
     }
 
+    public Message( String name, final HeaderMap headerMap) {
+        _name = name;
+        addHeaders(headerMap);
+    }
+
     public String getName() {
         return _name;
     }
@@ -69,7 +70,7 @@ public class Message {
         without needing to know header value formats.
      */
     public Message addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         _headerMap = headerMap;
         return this;
@@ -78,15 +79,15 @@ public class Message {
     /**
         Create a map of headers containing the values of this message.
      */
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        return new HashMap<>();
+    public HeaderMap getHeaders() {
+        return new HeaderMap();
     }
 
     public boolean isCommand() {
         if (null == _headerMap) {
             return false;
         }
-        if (null == _headerMap.get(HeaderEnum.COMMAND)) {
+        if (null == _headerMap.getHeader(HeaderEnum.COMMAND)) {
             return false;
         }
         return true;
@@ -105,7 +106,7 @@ public class Message {
         if (null == _headerMap) {
             return false;
         }
-        if (null == _headerMap.get(HeaderEnum.EVENT)) {
+        if (null == _headerMap.getHeader(HeaderEnum.EVENT)) {
             return false;
         }
         return true;
@@ -123,50 +124,6 @@ public class Message {
 
     // General header access and string parsing utilities.
 
-    public HICPHeader getHeader(final HeaderEnum e) {
-        if (null != _headerMap) {
-            return _headerMap.get(e);
-        }
-        return null;
-    }
-
-    public String getHeaderString(final HeaderEnum e) {
-        final HICPHeader h = getHeader(e);
-        if (null == h) {
-            return null;
-        }
-        return h.value.getString();
-    }
-
-    /**
-        Convert comma separated string to Set.
-     */
-    public static Set<String> getStringSet(final String s) {
-        // split("") will create a 1 element array of [""], treat that as
-        // empty.
-        if ((null == s) || "".equals(s)) {
-            // Empty set.
-            return Set.of();
-        }
-        final String[] sSplit = COMMA_SPLITTER.split(s);
-        return Set.of(sSplit);
-    }
-
-    public static Map<HeaderEnum, HICPHeader> addHeaderString(
-        final Map<HeaderEnum, HICPHeader> headerMap,
-        final HeaderEnum headerEnum,
-        final String valueString
-    ) {
-        if (null != valueString) {
-            final HICPHeader h =
-                new HICPHeader(
-                    headerEnum,
-                    new HICPHeaderValue(valueString)
-                );
-            headerMap.put(headerEnum, h);
-        }
-        return headerMap;
-    }
 
     // TODO should be HICPWriter for this.
     // Implement a getHeaders() method to pass to writer.

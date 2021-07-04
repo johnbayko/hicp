@@ -2,18 +2,18 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import hicp.HICPHeader;
-import hicp.HICPHeaderValue;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public abstract class Event
     extends Message
 {
-    public static String EVENT = "event";
+    private static final Logger LOGGER =
+        Logger.getLogger( Event.class.getName() );
 
     private EventEnum _event = null;
 
@@ -27,29 +27,24 @@ public abstract class Event
     }
 
     public Event addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
 
         // getEnum() handles null, may return null.
         _event =
             EventEnum.getEnum(
-                getHeaderString(HeaderEnum.EVENT)
+                headerMap.getString(HeaderEnum.EVENT)
             );
 
         return this;
     }
 
-    public Map<HeaderEnum, HICPHeader> getHeaders() {
-        final Map<HeaderEnum, HICPHeader> headerMap = super.getHeaders();
+    public HeaderMap getHeaders() {
+        final HeaderMap headerMap = super.getHeaders();
 
         if (null != _event) {
-            final HICPHeader h =
-                new HICPHeader(
-                    HeaderEnum.EVENT,
-                    new HICPHeaderValue(_event.messageName)
-                );
-            headerMap.put(HeaderEnum.COMMAND, h);
+            headerMap.putString(HeaderEnum.EVENT, _event.messageName);
         }
         return headerMap;
     }
@@ -61,7 +56,7 @@ public abstract class Event
     public void write(Writer out)
         throws IOException
     {
-        writeHeader(out, EVENT, getName());
+        writeHeader(out, HeaderEnum.EVENT.name, getName());
 
         out.flush();
     }

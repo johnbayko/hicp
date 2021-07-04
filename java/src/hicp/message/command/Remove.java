@@ -1,9 +1,6 @@
 package hicp.message.command;
 
-import java.util.Map;
-
-import hicp.HICPHeader;
-import hicp.message.HeaderEnum;
+import hicp.HeaderMap;
 
 public class Remove
     extends ItemCommand
@@ -14,7 +11,7 @@ public class Remove
 
     public Remove(
         final String name,
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super(name);
         addHeaders(headerMap);

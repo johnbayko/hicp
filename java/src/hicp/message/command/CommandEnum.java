@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// TODO move inside command info class.
 public enum CommandEnum
 {
     AUTHENTICATE("authenticate"),

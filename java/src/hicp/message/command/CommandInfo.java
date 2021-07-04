@@ -1,9 +1,6 @@
 package hicp.message.command;
 
-import java.util.Map;
-
-import hicp.HICPHeader;
-import hicp.HICPHeaderValue;
+import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 
 public class CommandInfo {
@@ -11,24 +8,61 @@ public class CommandInfo {
 
     public final CommandEnum command;
 
-    public CommandInfo(final Map<HeaderEnum, HICPHeader> headerMap) {
+    private AuthenticateInfo _authenticateInfo;
+    private ItemInfo _itemInfo;
+
+    private final HeaderMap _headerMap;
+
+    public CommandInfo(final HeaderMap headerMap) {
+        _headerMap = headerMap;
+
         command =
             CommandEnum.getEnum(
-                headerMap.get(HeaderEnum.COMMAND).value.getString()
+                headerMap.getString(HeaderEnum.COMMAND)
             );
     }
 
     public CommandInfo updateHeaderMap(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
-        if (null != command) {
-            final HICPHeader h =
-                new HICPHeader(
-                    HeaderEnum.COMMAND,
-                    new HICPHeaderValue(command.name)
-                );
-            headerMap.put(HeaderEnum.COMMAND, h);
+        headerMap.putString(HeaderEnum.COMMAND, command.name);
+        if (null != _authenticateInfo) {
+            _authenticateInfo.updateHeaderMap(headerMap);
+        }
+        if (null != _itemInfo) {
+            _itemInfo.updateHeaderMap(headerMap);
         }
         return this;
     }
+
+    public AuthenticateInfo getAuthenticateInfo() {
+        if (null == _headerMap) {
+            return null;
+        }
+        if (null == _authenticateInfo) {
+            _authenticateInfo = new AuthenticateInfo(_headerMap);
+        }
+        return _authenticateInfo;
+    }
+
+    public CommandInfo setAuthenticateInfo(final AuthenticateInfo i) {
+        _authenticateInfo = i;
+        return this;
+    }
+
+    public ItemInfo getItemInfo() {
+        if (null == _headerMap) {
+            return null;
+        }
+        if (null == _itemInfo) {
+            _itemInfo = new ItemInfo(_headerMap);
+        }
+        return _itemInfo;
+    }
+
+    public CommandInfo setItemInfo(final ItemInfo i) {
+        _itemInfo = i;
+        return this;
+    }
+
 }

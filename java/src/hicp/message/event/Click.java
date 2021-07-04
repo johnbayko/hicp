@@ -2,16 +2,17 @@ package hicp.message.event;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
-import hicp.message.HeaderEnum;
-import hicp.message.Message;
+import hicp.HeaderMap;
 
 public class Click
     extends GUIEvent
 {
+    private static final Logger LOGGER =
+        Logger.getLogger( Click.class.getName() );
+
     public Click(String name) {
         super(name);
     }
@@ -26,7 +27,7 @@ public class Click
     }
 
     public Click addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         super.addHeaders(headerMap);
         return this;

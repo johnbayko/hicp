@@ -2,16 +2,10 @@ package hicp.message.command;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.regex.Pattern;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hicp.HICPHeader;
-import hicp.HICPReader;
+import hicp.HeaderMap;
 import hicp.TextDirection;
 import hicp.message.TextAttributes;
 import hicp.message.HeaderEnum;
@@ -80,38 +74,26 @@ public abstract class AddModify
     }
 
     public AddModify addHeaders(
-        final Map<HeaderEnum, HICPHeader> headerMap
+        final HeaderMap headerMap
     ) {
         // TODO make independent from Remove.
         super.addHeaders(headerMap);
 
-        for (final HeaderEnum h : headerMap.keySet()) {
-            final HICPHeader v = headerMap.get(h);
-            switch (h) {
-              case COMPONENT:
-                component = v.value.getString();
-                break;
-              case ATTRIBUTES:
-                attributes = v.value.getString();
-                break;
-              case CONTENT:
-                content = v.value.getString();
-                break;
-              case ITEMS:
-                items = v.value.getString();
-                break;
-              case PARENT:
-                parent = v.value.getString();
-                break;
-              case POSITION:
-                // TODO move actual parsing to lower level, keep this a string.
-
+        component = headerMap.getString(HeaderEnum.COMPONENT);
+        attributes = headerMap.getString(HeaderEnum.ATTRIBUTES);
+        content = headerMap.getString(HeaderEnum.CONTENT);
+        items = headerMap.getString(HeaderEnum.ITEMS);
+        parent = headerMap.getString(HeaderEnum.PARENT);
+        {
+            final String positionsStr =
+                headerMap.getString(HeaderEnum.POSITION);
+            if (null != positionsStr) {
                 // Only two values are needed, but if there are more,
                 // shouldn't be appended to the second value by split(), so
                 // split into three - any extra will be separated into third
                 // String that's ignored.
                 final String[] positions =
-                    COMMA_SPLITTER.split(v.value.getString(), 3);
+                    COMMA_SPLITTER.split(positionsStr, 3);
 
                 if (0 < positions.length) {
                     try {
@@ -127,26 +109,29 @@ public abstract class AddModify
                         verticalPosition = 0;
                     }
                 }
-                break;
-              case SELECTED:
-                // TODO move actual parsing to lower level, keep this a string.
-
+            }
+        }
+        {
+            final String selectedStr = 
+                headerMap.getString(HeaderEnum.SELECTED);
+            if (null != selectedStr) {
                 // List of integers, but actually strings (can't do math on
                 // them).
-                selected = COMMA_SPLITTER.split(v.value.getString());
+                selected = COMMA_SPLITTER.split(selectedStr);
 
                 // split("") will create a 1 element array of [""], treat that
                 // as null.
                 if ((1 == selected.length) && ("".equals(selected[0]))) {
                     selected = null;
                 }
-                break;
-              case SIZE:
-                // TODO move actual parsing to lower level, keep this a string.
-
+            }
+        }
+        {
+            final String sizesStr = 
+                headerMap.getString(HeaderEnum.SIZE);
+            if (null != sizesStr) {
                 // Much like POSITION.
-                final String[] sizes =
-                    COMMA_SPLITTER.split(v.value.getString(), 3);
+                final String[] sizes = COMMA_SPLITTER.split(sizesStr, 3);
 
                 if (0 < sizes.length) {
                     try {
@@ -162,19 +147,19 @@ public abstract class AddModify
                         verticalSize = 0;
                     }
                 }
-                break;
-              case TEXT:
-                text = v.value.getString();
-                break;
-              case TEXT_DIRECTION:
-                // TODO move actual parsing to lower level, keep this a string.
-
+            }
+        }
+        text = headerMap.getString(HeaderEnum.TEXT);
+        {
+            final String directionsStr = 
+                headerMap.getString(HeaderEnum.TEXT_DIRECTION);
+            if (null != directionsStr) {
                 // Only two values are needed, but if there are more,
                 // shouldn't be appended to the second value by split(), so
                 // split into three - any extra will be separated into third
                 // String that's ignored.
                 final String[] directions =
-                    COMMA_SPLITTER.split(v.value.getString(), 3);
+                    COMMA_SPLITTER.split(directionsStr, 3);
 
                 if (0 < directions.length) {
                     firstTextDirection =
@@ -184,15 +169,11 @@ public abstract class AddModify
                     secondTextDirection =
                         TextDirection.getTextDirection(directions[1]);
                 }
-                break;
-              case VISIBLE:
-                visible = Message.TRUE.equals(v.value.getString());
-                break;
-              case EVENTS:
-                events = v.value.getString();
-                break;
             }
         }
+        visible = headerMap.getIsMatch(HeaderEnum.VISIBLE, Message.TRUE);
+        events = headerMap.getString(HeaderEnum.EVENTS);
+
         return this;
     }
 }
