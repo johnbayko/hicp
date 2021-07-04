@@ -187,7 +187,6 @@ public class Controller
                   case GUI:
                     {
                         final GUIInfo guiInfo = itemInfo.getGUIInfo();
-                        final Add addCmd = (Add)m;
                         // Must have id and component fields.
                         final String id = itemInfo.id;
                         if ((null == id) || (null == guiInfo.component)) {
@@ -204,6 +203,7 @@ public class Controller
                             }
                         }
                         {
+                            final Add addCmd = (Add)m;
                             final Item guiItem =
                                 ItemSource.newItem(
                                     addCmd, _textLibrary, _messageExchange
@@ -221,10 +221,10 @@ public class Controller
                                 } else {
                                     // If this should be added to a parent,
                                     // determine the parent item and add to it.
-                                    if (null != addCmd.parent) {
+                                    if (null != guiInfo.parent) {
                                         final ContainerItem parentItem =
                                             (ContainerItem)
-                                                _guiMap.get(addCmd.parent);
+                                                _guiMap.get(guiInfo.parent);
                                         guiItem.setParent(parentItem);
                                     }
                                 }

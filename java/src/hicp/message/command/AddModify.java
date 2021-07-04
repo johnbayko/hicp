@@ -20,7 +20,6 @@ public abstract class AddModify
     public final static String ATTRIBUTES = "attributes";
     public final static String CONTENT = "content";
     public final static String ITEMS = "items";
-    public final static String PARENT = "parent";
     public final static String POSITION = "position";
     public final static String SELECTED = "selected";
     public final static String SIZE = "size";
@@ -38,7 +37,6 @@ public abstract class AddModify
 
     public String content = null;
     public String items = null;
-    public String parent = null;
     public String[] selected = null;
     public String text = null;
     public boolean visible = false;
@@ -71,7 +69,6 @@ public abstract class AddModify
         attributes = headerMap.getString(HeaderEnum.ATTRIBUTES);
         content = headerMap.getString(HeaderEnum.CONTENT);
         items = headerMap.getString(HeaderEnum.ITEMS);
-        parent = headerMap.getString(HeaderEnum.PARENT);
         {
             final String positionsStr =
                 headerMap.getString(HeaderEnum.POSITION);
