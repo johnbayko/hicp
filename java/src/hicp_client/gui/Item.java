@@ -3,8 +3,10 @@ package hicp_client.gui;
 import java.awt.Component;
 import javax.swing.SwingUtilities;
 
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.CommandInfo;
+import hicp.message.command.ContainedGUIInfo;
 import hicp.message.command.GUIInfo;
 import hicp.message.command.ItemInfo;
 import hicp.message.command.Modify;
@@ -24,17 +26,18 @@ public abstract class Item
     /**
         Non-GUI thread.
      */
-    public Item(Add addCmd) {
+    public Item(Message addCmd) {
         final CommandInfo commandInfo = addCmd.getCommandInfo();
         final ItemInfo itemInfo = commandInfo.getItemInfo();
         final GUIInfo guiInfo = itemInfo.getGUIInfo();
+        final ContainedGUIInfo containedGUIInfo = guiInfo.getContainedGUIInfo();
 
         idString = itemInfo.id;
         component = guiInfo.component.name;
-        horizontalPosition = addCmd.horizontalPosition;
-        verticalPosition = addCmd.verticalPosition;
-        horizontalSize = addCmd.horizontalSize;
-        verticalSize = addCmd.verticalSize;
+        horizontalPosition = containedGUIInfo.position.horizontal;
+        verticalPosition = containedGUIInfo.position.vertical;
+        horizontalSize = containedGUIInfo.size.horizontal;
+        verticalSize = containedGUIInfo.size.vertical;
     }
 
     public Item() {

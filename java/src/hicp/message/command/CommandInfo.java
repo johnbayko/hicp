@@ -2,6 +2,7 @@ package hicp.message.command;
 
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
+import hicp.message.Message;
 
 public class CommandInfo {
     // TODO Move command enum into here.
@@ -16,8 +17,7 @@ public class CommandInfo {
     private AuthenticateInfo _authenticateInfo = DEFAULT_AUTHENTICATE_INFO;
     private ItemInfo _itemInfo = DEFAULT_ITEM_INFO;
 
-    private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
-    private HeaderMap _headerMap = DEFAULT_HEADER_MAP;
+    private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
     public CommandInfo() {
     }

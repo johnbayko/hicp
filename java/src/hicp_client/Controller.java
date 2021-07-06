@@ -11,6 +11,7 @@ import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
+import hicp.message.command.ContainedGUIInfo;
 import hicp.message.command.GUIInfo;
 import hicp.message.command.ItemInfo;
 import hicp.message.event.Connect;
@@ -221,10 +222,14 @@ public class Controller
                                 } else {
                                     // If this should be added to a parent,
                                     // determine the parent item and add to it.
-                                    if (null != guiInfo.parent) {
+                                    final ContainedGUIInfo containedGUIInfo =
+                                        guiInfo.getContainedGUIInfo();
+                                    if (null != containedGUIInfo.parent) {
                                         final ContainerItem parentItem =
                                             (ContainerItem)
-                                                _guiMap.get(guiInfo.parent);
+                                                _guiMap.get(
+                                                    containedGUIInfo.parent
+                                                );
                                         guiItem.setParent(parentItem);
                                     }
                                 }

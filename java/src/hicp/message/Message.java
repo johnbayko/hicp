@@ -46,7 +46,7 @@ public class Message {
     // TODO pretty sure this isn't needed - check.
     protected final String _name;
 
-    private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
+    public static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
     protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
 
     public void write(Writer out)

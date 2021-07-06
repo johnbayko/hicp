@@ -45,12 +45,6 @@ public abstract class AddModify
     public TextDirection firstTextDirection = null;
     public TextDirection secondTextDirection = null;
 
-    public int horizontalPosition = 0;
-    public int verticalPosition = 0;
-
-    public int horizontalSize = 0;
-    public int verticalSize = 0;
-
     public AddModify(String name) {
         super(name);
     }
@@ -70,33 +64,6 @@ public abstract class AddModify
         content = headerMap.getString(HeaderEnum.CONTENT);
         items = headerMap.getString(HeaderEnum.ITEMS);
         {
-            final String positionsStr =
-                headerMap.getString(HeaderEnum.POSITION);
-            if (null != positionsStr) {
-                // Only two values are needed, but if there are more,
-                // shouldn't be appended to the second value by split(), so
-                // split into three - any extra will be separated into third
-                // String that's ignored.
-                final String[] positions =
-                    COMMA_SPLITTER.split(positionsStr, 3);
-
-                if (0 < positions.length) {
-                    try {
-                        horizontalPosition = Integer.parseInt(positions[0]);
-                    } catch (NumberFormatException ex) {
-                        horizontalPosition = 0;
-                    }
-                }
-                if (1 < positions.length) {
-                    try {
-                        verticalPosition = Integer.parseInt(positions[1]);
-                    } catch (NumberFormatException ex) {
-                        verticalPosition = 0;
-                    }
-                }
-            }
-        }
-        {
             final String selectedStr = 
                 headerMap.getString(HeaderEnum.SELECTED);
             if (null != selectedStr) {
@@ -108,29 +75,6 @@ public abstract class AddModify
                 // as null.
                 if ((1 == selected.length) && ("".equals(selected[0]))) {
                     selected = null;
-                }
-            }
-        }
-        {
-            final String sizesStr = 
-                headerMap.getString(HeaderEnum.SIZE);
-            if (null != sizesStr) {
-                // Much like POSITION.
-                final String[] sizes = COMMA_SPLITTER.split(sizesStr, 3);
-
-                if (0 < sizes.length) {
-                    try {
-                        horizontalSize = Integer.parseInt(sizes[0]);
-                    } catch (NumberFormatException ex) {
-                        horizontalSize = 0;
-                    }
-                }
-                if (1 < sizes.length) {
-                    try {
-                        verticalSize = Integer.parseInt(sizes[1]);
-                    } catch (NumberFormatException ex) {
-                        verticalSize = 0;
-                    }
                 }
             }
         }

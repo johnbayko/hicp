@@ -44,8 +44,7 @@ public class ItemInfo {
     private TextInfo _textInfo = DEFAULT_TEXT_INFO;
     private GUIInfo _guiInfo = DEFAULT_GUI_INFO;
 
-    private static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
-    private HeaderMap _headerMap = DEFAULT_HEADER_MAP;
+    private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
 
     public ItemInfo() {
