@@ -45,7 +45,7 @@ public class WindowItem
     protected JPanel _panel;
 
     public WindowItem(
-        final Add addCmd,
+        final Message addCmd,
         final MessageExchange messageExchange
     ) {
         super(addCmd);

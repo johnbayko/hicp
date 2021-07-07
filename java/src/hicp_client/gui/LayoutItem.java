@@ -11,6 +11,7 @@ import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
+import hicp.message.Message;
 import hicp.message.command.Add;
 
 public abstract class LayoutItem
@@ -39,7 +40,7 @@ public abstract class LayoutItem
     protected List<SizeInfo> _itemSizeList = new LinkedList<>();
 
     protected LayoutItem(
-        final Add addCmd
+        final Message addCmd
     ) {
         super(addCmd);
     }

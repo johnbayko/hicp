@@ -16,6 +16,7 @@ import javax.swing.WindowConstants;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Event;
@@ -35,7 +36,7 @@ public abstract class ContainerItem
     /**
         Non-GUI thread.
      */
-    public ContainerItem(final Add addCmd) {
+    public ContainerItem(final Message addCmd) {
         super(addCmd);
     }
 
