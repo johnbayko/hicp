@@ -38,7 +38,6 @@ public abstract class AddModify
     public String content = null;
     public String items = null;
     public String[] selected = null;
-    public String text = null;
     public boolean visible = false;
     public String events = null;
 
@@ -78,7 +77,6 @@ public abstract class AddModify
                 }
             }
         }
-        text = headerMap.getString(HeaderEnum.TEXT);
         {
             final String directionsStr = 
                 headerMap.getString(HeaderEnum.TEXT_DIRECTION);

@@ -23,65 +23,63 @@ public class ItemSource {
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
+        final CommandInfo commandInfo = addCmd.getCommandInfo();
+        final ItemInfo itemInfo = commandInfo.getItemInfo();
+        final GUIInfo guiInfo = itemInfo.getGUIInfo();
+
+        // Make sure it's a real integer - not used.
         try {
-            final CommandInfo commandInfo = addCmd.getCommandInfo();
-            final ItemInfo itemInfo = commandInfo.getItemInfo();
-            final GUIInfo guiInfo = itemInfo.getGUIInfo();
-
-            // Make sure it's a real integer - not used.
             Integer.parseInt(itemInfo.id);
-
-            final Item guiItem;
-
-            if (null == guiInfo.component) {
-                LOGGER.log(Level.FINE, "Add has no component");
-                guiItem = null;
-            } else switch (guiInfo.component) {
-              case BUTTON:
-                guiItem = new ButtonItem(addCmd, messageExchange);
-                break;
-              case LABEL:
-                guiItem = new LabelItem(addCmd);
-                break;
-              case PANEL:
-                guiItem = new PanelItem(addCmd);
-                break;
-              case SELECTION:
-                guiItem =
-                    SelectionSource
-                        .newItem(addCmd, textLibrary, messageExchange);
-                break;
-              case TEXTFIELD:
-                guiItem = new TextFieldItem(addCmd, messageExchange);
-                break;
-              case WINDOW:
-                guiItem = new WindowItem(addCmd, messageExchange);
-                break;
-              default:
-                // Unrecognized category.
-                LOGGER.log(
-                    Level.FINE,
-                    "Add unrecognized component: " + guiInfo.component.name
-                );
-                guiItem = null;
-                break;
-            }
-            if (null == guiItem) {
-                return null;
-            }
-            if (TextItemAdapterListener.class.isInstance(guiItem)) {
-                ((TextItemAdapterListener)guiItem)
-                    .setAdapter(new TextItemAdapter(textLibrary));
-            }
-            guiItem.add(addCmd);
-
-            return guiItem;
         } catch (NumberFormatException ex) {
             LOGGER.log(Level.FINE, "ID field not an integer.");
 
             // Not an integer ID, ignore message.
             return null;
         }
+        final Item guiItem;
+
+        if (null == guiInfo.component) {
+            LOGGER.log(Level.FINE, "Add has no component");
+            guiItem = null;
+        } else switch (guiInfo.component) {
+          case BUTTON:
+            guiItem = new ButtonItem(addCmd, messageExchange);
+            break;
+          case LABEL:
+            guiItem = new LabelItem(addCmd);
+        break;
+          case PANEL:
+            guiItem = new PanelItem(addCmd);
+            break;
+          case SELECTION:
+            guiItem =
+                SelectionSource.newItem(addCmd, textLibrary, messageExchange);
+            break;
+          case TEXTFIELD:
+            guiItem = new TextFieldItem(addCmd, messageExchange);
+            break;
+          case WINDOW:
+            guiItem = new WindowItem(addCmd, messageExchange);
+            break;
+          default:
+            // Unrecognized category.
+            LOGGER.log(
+                Level.FINE,
+                "Add unrecognized component: " + guiInfo.component.name
+            );
+            guiItem = null;
+            break;
+        }
+        if (null == guiItem) {
+            return null;
+        }
+        if (TextItemAdapterListener.class.isInstance(guiItem)) {
+            ((TextItemAdapterListener)guiItem)
+                .setAdapter(new TextItemAdapter(textLibrary));
+        }
+        guiItem.add(addCmd);
+
+        return guiItem;
     }
 
     public static void disposeItem(final Item guiItem) {

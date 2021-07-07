@@ -20,6 +20,7 @@ import javax.swing.WindowConstants;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp.message.event.Close;
@@ -58,6 +59,11 @@ public class WindowItem
     }
 
     protected Item addInvoked(final Add addCmd) {
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiWindowInfo = guiInfo.getGUIWindowInfo();
+
         _component = new JFrame();
 
         _component.getContentPane().setLayout(new BorderLayout());
@@ -111,17 +117,15 @@ public class WindowItem
         );
 
         // Frame title.
-        if (null != addCmd.text) {
-            _textItemAdapter.setTextIdInvoked(addCmd.text);
+        if (null != guiWindowInfo.text) {
+            _textItemAdapter.setTextIdInvoked(guiWindowInfo.text);
         } else {
             // No text for title bar, make up something.
-            _component.setTitle(
-                "Window " + addCmd.getCommandInfo().getItemInfo().id
-            ); 
+            _component.setTitle("Window " + itemInfo.id); 
         }
 
         // Visible.
-        if (addCmd.visible) {
+        if (guiWindowInfo.visible) {
             // Default is false, change only if true.
             _component.setVisible(true);
         }
@@ -269,21 +273,26 @@ public class WindowItem
     }
 
     protected Item modifyInvoked(final Modify modifyCmd) {
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiWindowInfo = guiInfo.getGUIWindowInfo();
+
         super.modifyInvoked(modifyCmd);
         // See what's changed.
 
         // New text item?
-        if (null != modifyCmd.text) {
-            _textItemAdapter.setTextIdInvoked(modifyCmd.text);
+        if (null != guiWindowInfo.text) {
+            _textItemAdapter.setTextIdInvoked(guiWindowInfo.text);
         }
 
         // Visible?
-        if (modifyCmd.visible != _component.isVisible()) {
+        if (guiWindowInfo.visible != _component.isVisible()) {
             // Make sure correct size for children.
             _component.pack();
             _component.setSize(_component.getPreferredSize());
 
-            _component.setVisible(modifyCmd.visible);
+            _component.setVisible(guiWindowInfo.visible);
         }
         return this;
     }

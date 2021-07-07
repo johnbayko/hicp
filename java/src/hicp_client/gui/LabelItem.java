@@ -8,6 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
 import hicp_client.text.TextItemAdapterListener;
@@ -24,7 +25,7 @@ public class LabelItem
 
     protected JLabel _component;
 
-    public LabelItem(final Add addCmd) {
+    public LabelItem(final Message addCmd) {
         super(addCmd);
     }
 
@@ -37,11 +38,16 @@ public class LabelItem
         GUI thread.
      */
     protected Item addInvoked(final Add addCmd) {
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiLabelInfo = guiInfo.getGUILabelInfo();
+
         _component = new JLabel();
 
         // Label string.
-        if (null != addCmd.text) {
-            _textItemAdapter.setTextIdInvoked(addCmd.text);
+        if (null != guiLabelInfo.text) {
+            _textItemAdapter.setTextIdInvoked(guiLabelInfo.text);
         }
         return this;
     }
@@ -79,11 +85,16 @@ public class LabelItem
     }
 
     protected Item modifyInvoked(final Modify modifyCmd) {
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiLabelInfo = guiInfo.getGUILabelInfo();
+
         // See what's changed.
 
         // New text item?
-        if (null != modifyCmd.text) {
-            _textItemAdapter.setTextIdInvoked(modifyCmd.text);
+        if (null != guiLabelInfo.text) {
+            _textItemAdapter.setTextIdInvoked(guiLabelInfo.text);
         }
         // Changed parent ID is handled by Controller.
         return this;

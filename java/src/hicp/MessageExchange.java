@@ -6,15 +6,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.nio.channels.ClosedByInterruptException;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import hicp.message.HeaderEnum;
 import hicp.message.Message;
-import hicp.message.command.Command;
-import hicp.message.command.CommandEnum;
 
 /**
     Starts a thread which converts characters from an input stream into
