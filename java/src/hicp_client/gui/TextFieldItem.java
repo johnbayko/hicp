@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
+import hicp.message.Message;
 import hicp.message.TextAttributes;
 import hicp.message.command.Add;
 import hicp.message.command.Modify;
@@ -29,6 +30,7 @@ public class TextFieldItem
     protected final MessageExchange _messageExchange;
 
     protected JTextField _component;
+
     protected String _content = "";
     protected AttributeTrackDocument _document;
     protected TextAttributes _attributes;
@@ -43,11 +45,19 @@ public class TextFieldItem
     }
 
     protected Item addInvoked(final Add addCmd) {
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
+
         _component = new JTextField();
         _document = new AttributeTrackDocument();
         _component.setDocument(_document);
 
-        setContentInvoked(addCmd.content, addCmd.textAttributes);
+        setContentInvoked(
+            guiTextFieldInfo.content,
+            guiTextFieldInfo.attributes
+        );
 
 // Is this needed if there's a focus listener?
         _component.addActionListener(
@@ -178,19 +188,24 @@ public class TextFieldItem
     }
 
     protected Item modifyInvoked(final Modify modifyCmd) {
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
+
         // See what's changed.
-        if (null != modifyCmd.content) {
-            final String modifyContent = modifyCmd.content;
+        if (null != guiTextFieldInfo.content) {
+            final String modifyContent = guiTextFieldInfo.content;
 
             if (!modifyContent.equals(_component.getText())) {
-                setContentInvoked(modifyContent, modifyCmd.textAttributes);
+                setContentInvoked(modifyContent, guiTextFieldInfo.attributes);
             }
         }
-        if (null != modifyCmd.attributes ) {
-            final String modifyAttributes = modifyCmd.attributes;
-
+        if (null != guiTextFieldInfo.attributes ) {
 // handle attributes.
 // To start, just log the string.
+            final String modifyAttributes =
+                guiTextFieldInfo.attributes.toString();
 LOGGER.log(Level.FINE, "modifyAttributes: " + modifyAttributes);  // debug
         }
         if (null != modifyCmd.events) {

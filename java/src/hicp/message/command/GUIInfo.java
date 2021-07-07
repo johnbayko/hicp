@@ -45,17 +45,23 @@ public class GUIInfo {
         new ContainedGUIInfo();
     private ContainedGUIInfo _containedGUIInfo = DEFAULT_CONTAINED_GUI_INFO;
 
-    public static final GUILabelInfo DEFAULT_GUI_LABEL_INFO =
-        new GUILabelInfo();
-    private GUILabelInfo _guiLabelInfo = DEFAULT_GUI_LABEL_INFO;
 
     public static final GUIButtonInfo DEFAULT_GUI_BUTTON_INFO =
         new GUIButtonInfo();
     private GUIButtonInfo _guiButtonInfo = DEFAULT_GUI_BUTTON_INFO;
 
+    public static final GUILabelInfo DEFAULT_GUI_LABEL_INFO =
+        new GUILabelInfo();
+    private GUILabelInfo _guiLabelInfo = DEFAULT_GUI_LABEL_INFO;
+
+    public static final GUITextFieldInfo DEFAULT_GUI_TEXT_FIELD_INFO =
+        new GUITextFieldInfo();
+    private GUITextFieldInfo _guiTextFieldInfo = DEFAULT_GUI_TEXT_FIELD_INFO;
+
     public static final GUIWindowInfo DEFAULT_GUI_WINDOW_INFO =
         new GUIWindowInfo();
     private GUIWindowInfo _guiWindowInfo = DEFAULT_GUI_WINDOW_INFO;
+
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
@@ -78,11 +84,15 @@ public class GUIInfo {
         if (DEFAULT_CONTAINED_GUI_INFO != _containedGUIInfo) {
             _containedGUIInfo.updateHeaderMap(headerMap);
         }
+
+        if (DEFAULT_GUI_BUTTON_INFO != _guiButtonInfo) {
+            _guiButtonInfo.updateHeaderMap(headerMap);
+        }
         if (DEFAULT_GUI_LABEL_INFO != _guiLabelInfo) {
             _guiLabelInfo.updateHeaderMap(headerMap);
         }
-        if (DEFAULT_GUI_BUTTON_INFO != _guiButtonInfo) {
-            _guiButtonInfo.updateHeaderMap(headerMap);
+        if (DEFAULT_GUI_TEXT_FIELD_INFO != _guiTextFieldInfo) {
+            _guiTextFieldInfo.updateHeaderMap(headerMap);
         }
         if (DEFAULT_GUI_WINDOW_INFO != _guiWindowInfo) {
             _guiWindowInfo.updateHeaderMap(headerMap);
@@ -103,6 +113,18 @@ public class GUIInfo {
         return this;
     }
 
+    public GUIButtonInfo getGUIButtonInfo() {
+        if (DEFAULT_GUI_BUTTON_INFO == _guiButtonInfo) {
+            _guiButtonInfo = new GUIButtonInfo(_headerMap);
+        }
+        return _guiButtonInfo;
+    }
+
+    public GUIInfo setGUIButtonInfo(final GUIButtonInfo i) {
+        _guiButtonInfo = i;
+        return this;
+    }
+
     public GUILabelInfo getGUILabelInfo() {
         if (DEFAULT_GUI_LABEL_INFO == _guiLabelInfo) {
             _guiLabelInfo = new GUILabelInfo(_headerMap);
@@ -115,15 +137,15 @@ public class GUIInfo {
         return this;
     }
 
-    public GUIButtonInfo getGUIButtonInfo() {
-        if (DEFAULT_GUI_BUTTON_INFO == _guiButtonInfo) {
-            _guiButtonInfo = new GUIButtonInfo(_headerMap);
+    public GUITextFieldInfo getGUITextFieldInfo() {
+        if (DEFAULT_GUI_TEXT_FIELD_INFO == _guiTextFieldInfo) {
+            _guiTextFieldInfo = new GUITextFieldInfo(_headerMap);
         }
-        return _guiButtonInfo;
+        return _guiTextFieldInfo;
     }
 
-    public GUIInfo setGUIButtonInfo(final GUIButtonInfo i) {
-        _guiButtonInfo = i;
+    public GUIInfo setGUITextFieldInfo(final GUITextFieldInfo i) {
+        _guiTextFieldInfo = i;
         return this;
     }
 

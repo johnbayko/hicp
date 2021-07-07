@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 
 import hicp.HeaderMap;
 import hicp.TextDirection;
-import hicp.message.TextAttributes;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
@@ -17,8 +16,6 @@ public abstract class AddModify
     private static final Logger LOGGER =
         Logger.getLogger( AddModify.class.getName() );
 
-    public final static String ATTRIBUTES = "attributes";
-    public final static String CONTENT = "content";
     public final static String ITEMS = "items";
     public final static String POSITION = "position";
     public final static String SELECTED = "selected";
@@ -32,10 +29,6 @@ public abstract class AddModify
     public final static String DISABLED = "disabled";
     public final static String SERVER = "server";
 
-    public String attributes = null;
-    public TextAttributes textAttributes = null;
-
-    public String content = null;
     public String items = null;
     public String[] selected = null;
     public boolean visible = false;
@@ -59,8 +52,6 @@ public abstract class AddModify
         // TODO make independent from Remove.
         super.addHeaders(headerMap);
 
-        attributes = headerMap.getString(HeaderEnum.ATTRIBUTES);
-        content = headerMap.getString(HeaderEnum.CONTENT);
         items = headerMap.getString(HeaderEnum.ITEMS);
         {
             final String selectedStr = 

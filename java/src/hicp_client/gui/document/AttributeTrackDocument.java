@@ -41,13 +41,6 @@ public class AttributeTrackDocument
         textAttributes = newTextAttributes;
     }
 
-    public void setTextAttributes(
-        final String attributesStr,
-        final String contentStr
-    ) {
-        textAttributes = new TextAttributes(attributesStr, contentStr);
-    }
-
     // Return a copy of internal TextAttributes, because it needs to be mutable
     // and changes that get out of sync with text component would be bad.
     public TextAttributes getTextAttributes() {

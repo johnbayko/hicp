@@ -146,7 +146,7 @@ public class TextAttributes {
 
         public AttributeTypeInfo(
             final String attributeTypeStr,
-            final String contentStr
+            final int contentLength
         )
             throws TextAttributesException
         {
@@ -205,7 +205,7 @@ public class TextAttributes {
                 // hasRanges() is false (none specified, can't tell if binary
                 // or not). Need to encode this based on name at some point.
                 attributeRangeList.add(
-                    new AttributeRange("", contentStr.length())
+                    new AttributeRange("", contentLength)
                 );
             }
         }
@@ -499,7 +499,7 @@ public class TextAttributes {
             font: sans-serif=5, serif-fixed=10, sans-serif=10\r\n
             size: 1=10, 1.1=5, 1=9, 1/2=1\r\n
     */
-    public TextAttributes(final String attributesStr, final String contentStr) {
+    public TextAttributes(final String attributesStr, final int contentLength) {
         if (null == attributesStr) {
             // No attributes.
             return;
@@ -514,7 +514,7 @@ public class TextAttributes {
         for (var attributeTypeStr : attributeTypeStrList) {
             try {
                 final var attributeTypeInfo =
-                    new AttributeTypeInfo(attributeTypeStr, contentStr);
+                    new AttributeTypeInfo(attributeTypeStr, contentLength);
 
                 attributeTypesMap
                     .put(attributeTypeInfo.name, attributeTypeInfo);
