@@ -54,6 +54,10 @@ public class GUIInfo {
         new GUILabelInfo();
     private GUILabelInfo _guiLabelInfo = DEFAULT_GUI_LABEL_INFO;
 
+    public static final GUISelectionInfo DEFAULT_GUI_SELECTION_INFO =
+        new GUISelectionInfo();
+    private GUISelectionInfo _guiSelectionInfo = DEFAULT_GUI_SELECTION_INFO;
+
     public static final GUITextFieldInfo DEFAULT_GUI_TEXT_FIELD_INFO =
         new GUITextFieldInfo();
     private GUITextFieldInfo _guiTextFieldInfo = DEFAULT_GUI_TEXT_FIELD_INFO;
@@ -90,6 +94,9 @@ public class GUIInfo {
         }
         if (DEFAULT_GUI_LABEL_INFO != _guiLabelInfo) {
             _guiLabelInfo.updateHeaderMap(headerMap);
+        }
+        if (DEFAULT_GUI_SELECTION_INFO != _guiSelectionInfo) {
+            _guiSelectionInfo.updateHeaderMap(headerMap);
         }
         if (DEFAULT_GUI_TEXT_FIELD_INFO != _guiTextFieldInfo) {
             _guiTextFieldInfo.updateHeaderMap(headerMap);
@@ -134,6 +141,18 @@ public class GUIInfo {
 
     public GUIInfo setGUILabelInfo(final GUILabelInfo i) {
         _guiLabelInfo = i;
+        return this;
+    }
+
+    public GUISelectionInfo getGUISelectionInfo() {
+        if (DEFAULT_GUI_SELECTION_INFO == _guiSelectionInfo) {
+            _guiSelectionInfo = new GUISelectionInfo(_headerMap);
+        }
+        return _guiSelectionInfo;
+    }
+
+    public GUIInfo setGUISelectionInfo(final GUISelectionInfo i) {
+        _guiSelectionInfo = i;
         return this;
     }
 

@@ -16,6 +16,7 @@ import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.TextAttributes;
 import hicp.message.command.Add;
+import hicp.message.command.GUITextFieldInfo;
 import hicp.message.command.Modify;
 import hicp.message.event.Changed;
 import hicp.message.event.EventEnum;
@@ -79,14 +80,7 @@ public class TextFieldItem
             }
         );
 
-        // Text editing enable/disable.
-        {
-            // Default is enable.
-            final String eventsValue =
-                (null != addCmd.events) ? addCmd.events : Add.ENABLED;
-
-            setEventsInvoked(eventsValue);
-        }
+        setEventsInvoked(guiTextFieldInfo.events);
         return this;
     }
 
@@ -178,8 +172,11 @@ public class TextFieldItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final String eventsValue) {
-        final boolean enabled = eventsValue.equals(Add.ENABLED);
+    protected Item setEventsInvoked(final GUITextFieldInfo.EventsEnum events) {
+        final boolean enabled =
+            (null != events)
+                ? (events == GUITextFieldInfo.EventsEnum.ENABLED)
+                : true; // Default is enabled.
 
         if (_component.isEditable() != enabled) {
             _component.setEditable(enabled);
@@ -208,8 +205,8 @@ public class TextFieldItem
                 guiTextFieldInfo.attributes.toString();
 LOGGER.log(Level.FINE, "modifyAttributes: " + modifyAttributes);  // debug
         }
-        if (null != modifyCmd.events) {
-            setEventsInvoked(modifyCmd.events);
+        if (null != guiTextFieldInfo.events) {
+            setEventsInvoked(guiTextFieldInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

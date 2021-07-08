@@ -7,10 +7,11 @@ import java.util.stream.Collectors;
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 
-public class GUIButtonInfo {
+public class GUISelectionInfo {
     public static enum EventsEnum {
         ENABLED("enabled"),
-        DISABLED("disabled");
+        DISABLED("disabled"),
+        UNSELECT("unselect");
 
         public final String name;
 
@@ -33,27 +34,25 @@ public class GUIButtonInfo {
         }
     }
 
-    public String text = null;
     public EventsEnum events = null;
 
-    public GUIButtonInfo() {
+    public GUISelectionInfo() {
     }
 
-    public GUIButtonInfo(final HeaderMap headerMap) {
-        text = headerMap.getString(HeaderEnum.TEXT);
+    public GUISelectionInfo(final HeaderMap headerMap) {
         events =
             EventsEnum.getEnum(
                 headerMap.getString(HeaderEnum.EVENTS)
             );
     }
 
-    public GUIButtonInfo updateHeaderMap(
+    public GUISelectionInfo updateHeaderMap(
         final HeaderMap headerMap
     ) {
-        headerMap.putString(HeaderEnum.TEXT, text);
         headerMap.putString(HeaderEnum.EVENTS, events.name);
 
         return this;
     }
 }
+
 

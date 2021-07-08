@@ -1,12 +1,42 @@
 package hicp.message.command;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.TextAttributes;
 
 public class GUITextFieldInfo {
+    public static enum EventsEnum {
+         ENABLED("enabled"),
+         DISABLED("disabled");
+
+        public final String name;
+
+        private static final Map<String, EventsEnum> enumMap =
+            Arrays.stream(EventsEnum.values())
+                .collect(
+                    Collectors.toMap(
+                        e -> e.name,
+                        e -> e
+                    )
+                );
+
+
+        EventsEnum(final String forName) {
+            name = forName;
+        }
+
+        public static EventsEnum getEnum(String name) {
+            return enumMap.get(name);
+        }
+    }
+
     public String content = null;
     public TextAttributes attributes = null;
+    public EventsEnum events = null;
 
     public GUITextFieldInfo() {
     }
@@ -20,6 +50,10 @@ public class GUITextFieldInfo {
                 attributes = new TextAttributes(attributesStr, content.length());
             }
         }
+        events =
+            EventsEnum.getEnum(
+                headerMap.getString(HeaderEnum.EVENTS)
+            );
     }
 
     public GUITextFieldInfo updateHeaderMap(
@@ -32,6 +66,7 @@ public class GUITextFieldInfo {
         if (null != attributes) {
             headerMap.putString(HeaderEnum.ATTRIBUTES, attributes.toString());
         }
+        headerMap.putString(HeaderEnum.EVENTS, events.name);
 
         return this;
     }

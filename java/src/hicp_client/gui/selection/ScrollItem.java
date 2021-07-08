@@ -21,6 +21,7 @@ import javax.swing.event.ListSelectionListener;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
+import hicp.message.command.GUISelectionInfo;
 import hicp.message.command.Modify;
 import hicp.message.event.Changed;
 import hicp.message.event.EventEnum;
@@ -74,7 +75,7 @@ public class ScrollItem
                 // SwingUtilities.invokeLater().
                 textItem.addTextListener(new TextListenerInvoker(this));
             }
-            enabled = itemInfo.events != EventsEnum.DISABLED;
+            enabled = (itemInfo.events != GUISelectionInfo.EventsEnum.DISABLED);
         }
 
         public String getText() {
@@ -188,7 +189,7 @@ public class ScrollItem
             final SelectionItemSelection sm =
                 (SelectionItemSelection)list.getSelectionModel();
             setEnabled(
-                (EventsEnum.ENABLED == sm.getEvents())
+                (GUISelectionInfo.EventsEnum.ENABLED == sm.getEvents())
               && value.isEnabled()
             );
             setFont(list.getFont());
@@ -216,17 +217,20 @@ public class ScrollItem
     class SelectionItemSelection
         extends DefaultListSelectionModel
     {
-        private EventsEnum events = EventsEnum.ENABLED;
+        private GUISelectionInfo.EventsEnum events =
+            GUISelectionInfo.EventsEnum.ENABLED;
 
         public SelectionItemSelection(
-            final EventsEnum newEvents,
+            final GUISelectionInfo.EventsEnum newEvents,
             final String[] newSelected
         ) {
             setEvents(newEvents);
             updateSelected(newSelected);
         }
 
-        public SelectionItemSelection setEvents(final EventsEnum newEvents) {
+        public SelectionItemSelection setEvents(
+            final GUISelectionInfo.EventsEnum newEvents
+        ) {
             if (null == newEvents) {
                 return this;
             }
@@ -234,7 +238,7 @@ public class ScrollItem
             return this;
         }
 
-        public EventsEnum getEvents() {
+        public GUISelectionInfo.EventsEnum getEvents() {
             return events;
         }
 
@@ -332,7 +336,7 @@ public class ScrollItem
 
         @Override
         public void setSelectionInterval(int index0, int index1) {
-            if (EventsEnum.ENABLED == events) {
+            if (GUISelectionInfo.EventsEnum.ENABLED == events) {
                 // First call should be super.setSelectionInterval(),
                 // all others should be super.addSelectionInterval().
                 boolean isFirstRange = true;
@@ -349,7 +353,7 @@ public class ScrollItem
         }
         @Override
         public void addSelectionInterval(int index0, int index1) {
-            if (EventsEnum.ENABLED == events) {
+            if (GUISelectionInfo.EventsEnum.ENABLED == events) {
                 for (final SelectionRange r : enabledRanges(index0, index1)) {
                     super.addSelectionInterval(r.index0, r.index1);
                 }
@@ -357,8 +361,8 @@ public class ScrollItem
         }
         @Override
         public void removeSelectionInterval(int index0, int index1) {
-            if ( (EventsEnum.ENABLED == events)
-              || (EventsEnum.UNSELECT == events) )
+            if ( (GUISelectionInfo.EventsEnum.ENABLED == events)
+              || (GUISelectionInfo.EventsEnum.UNSELECT == events) )
             {
                 for (final SelectionRange r : enabledRanges(index0, index1)) {
                     super.removeSelectionInterval(r.index0, r.index1);
@@ -406,9 +410,12 @@ public class ScrollItem
     }
 
     protected Item addInvoked(final Add addCmd) {
-        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
-        final EventsEnum events = EventsEnum.getEnum(addCmd.events);
+        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
 
         final JList<SelectionItem> newList = new JList<>();
 
@@ -418,7 +425,7 @@ public class ScrollItem
         newList.setCellRenderer(new SelectionItemRenderer());
 
         _listSelectionModel =
-            new SelectionItemSelection(events, addCmd.selected);
+            new SelectionItemSelection(guiSelectionInfo.events, addCmd.selected);
         newList.setSelectionModel(_listSelectionModel);
 
         switch (mode) {
@@ -515,9 +522,7 @@ public class ScrollItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final String eventsValue) {
-        final EventsEnum events = EventsEnum.getEnum(eventsValue);
-
+    protected Item setEventsInvoked(final GUISelectionInfo.EventsEnum events) {
         if (events != _listSelectionModel.getEvents()) {
             _listSelectionModel.setEvents(events);
             // Make JList redisplay items as enabled/disabled.
@@ -527,6 +532,11 @@ public class ScrollItem
     }
 
     protected Item modifyInvoked(final Modify modifyCmd) {
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
+
         // See what's changed.
         if (null != modifyCmd.items) {
             _listModel.updateItems(modifyCmd.items);
@@ -534,8 +544,8 @@ public class ScrollItem
         if (null != modifyCmd.selected) {
             _listSelectionModel.updateSelected(modifyCmd.selected);
         }
-        if (null != modifyCmd.events) {
-            setEventsInvoked(modifyCmd.events);
+        if (null != guiSelectionInfo.events) {
+            setEventsInvoked(guiSelectionInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

@@ -5,11 +5,12 @@ import java.text.ParseException;
 //import java.util.logging.Logger;
 
 import hicp.message.Message;
+import hicp.message.command.GUISelectionInfo;
 
 public class ItemInfo {
     public final String id;
     public final String textId;
-    public final EventsEnum events;
+    public final GUISelectionInfo.EventsEnum events;
 
     public ItemInfo(final String itemStr)
         throws ParseException
@@ -63,7 +64,7 @@ public class ItemInfo {
                 "Expected at text ID in type info, found none.", 0
                 );
         }
-        events = EventsEnum.getEnum(eventsStr);  // Handles null.
+        events = GUISelectionInfo.EventsEnum.getEnum(eventsStr);  // Handles null.
     }
 }
 
