@@ -17,15 +17,8 @@ public abstract class AddModify
         Logger.getLogger( AddModify.class.getName() );
 
     public final static String ITEMS = "items";
-    public final static String POSITION = "position";
     public final static String SELECTED = "selected";
-    public final static String SIZE = "size";
     public final static String TEXT_DIRECTION = "text-direction";
-
-    // Values for events header.
-    public final static String ENABLED = "enabled";
-    public final static String DISABLED = "disabled";
-    public final static String SERVER = "server";
 
     public String items = null;
     public String[] selected = null;
