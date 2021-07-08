@@ -21,7 +21,6 @@ public abstract class AddModify
     public final static String SELECTED = "selected";
     public final static String SIZE = "size";
     public final static String TEXT_DIRECTION = "text-direction";
-    public final static String VISIBLE = "visible";
 
     // Values for events header.
     public final static String ENABLED = "enabled";
@@ -30,8 +29,6 @@ public abstract class AddModify
 
     public String items = null;
     public String[] selected = null;
-// next?
-    public boolean visible = false;
 
     public TextDirection firstTextDirection = null;
     public TextDirection secondTextDirection = null;
@@ -88,7 +85,6 @@ public abstract class AddModify
                 }
             }
         }
-        visible = headerMap.getIsMatch(HeaderEnum.VISIBLE, Message.TRUE);
 
         return this;
     }
