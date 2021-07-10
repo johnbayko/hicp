@@ -16,12 +16,7 @@ public abstract class AddModify
     private static final Logger LOGGER =
         Logger.getLogger( AddModify.class.getName() );
 
-    public final static String ITEMS = "items";
-    public final static String SELECTED = "selected";
     public final static String TEXT_DIRECTION = "text-direction";
-
-    public String items = null;
-    public String[] selected = null;
 
     public TextDirection firstTextDirection = null;
     public TextDirection secondTextDirection = null;
@@ -41,22 +36,6 @@ public abstract class AddModify
         // TODO make independent from Remove.
         super.addHeaders(headerMap);
 
-        items = headerMap.getString(HeaderEnum.ITEMS);
-        {
-            final String selectedStr = 
-                headerMap.getString(HeaderEnum.SELECTED);
-            if (null != selectedStr) {
-                // List of integers, but actually strings (can't do math on
-                // them).
-                selected = COMMA_SPLITTER.split(selectedStr);
-
-                // split("") will create a 1 element array of [""], treat that
-                // as null.
-                if ((1 == selected.length) && ("".equals(selected[0]))) {
-                    selected = null;
-                }
-            }
-        }
         {
             final String directionsStr = 
                 headerMap.getString(HeaderEnum.TEXT_DIRECTION);

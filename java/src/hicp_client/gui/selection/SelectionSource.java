@@ -16,21 +16,6 @@ public class SelectionSource {
     private static final Logger LOGGER =
         Logger.getLogger( SelectionSource.class.getName() );
 
-    public static List<ItemInfo> itemList(final String itemsStr) {
-        final String[] itemsList =
-            Message.LINE_SPLITTER.split(itemsStr);
-
-        final List<ItemInfo> itemList = new ArrayList<>(itemsList.length);
-        for (final String itemStr : itemsList) {
-            try {
-                itemList.add(new ItemInfo(itemStr));
-            } catch (ParseException ex) {
-                // Just skip.
-            }
-        }
-        return itemList;
-    }
-
     public static Item newItem(
         final Add addCmd,
         final TextLibrary textLibrary,

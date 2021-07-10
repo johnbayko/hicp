@@ -18,8 +18,9 @@ public class Message {
     // TODO maybe HeaderEnum should go here?
 
     // Useful regexes for parsing header strings.
+    public static final String EOL = "\r\n";
     public static final Pattern LINE_SPLITTER =
-        Pattern.compile("\r\n", Pattern.LITERAL);
+        Pattern.compile(EOL, Pattern.LITERAL);
 
     public static final Pattern COLON_SPLITTER =
         Pattern.compile("\\s*:\\s*");
@@ -130,11 +131,11 @@ public class Message {
         throws IOException
     {
         out.write(name);
-        if (-1 == value.indexOf("\r\n")) {
+        if (-1 == value.indexOf(EOL)) {
             // Value can be sent on a single line.
             out.write(": ");
             out.write(value);
-            out.write("\r\n");
+            out.write(EOL);
         } else {
             // Value has a CR LF, then send in multiple lines.
             out.write(":: boundary=\r\n--\r\n");
@@ -154,7 +155,7 @@ public class Message {
     protected void writeEndOfMessage(Writer out)
         throws IOException
     {
-        out.write("\r\n");
+        out.write(EOL);
         out.flush();
     }
 }

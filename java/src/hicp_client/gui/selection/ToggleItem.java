@@ -3,6 +3,7 @@ package hicp_client.gui.selection;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,6 +16,7 @@ import javax.swing.JRadioButton;
 
 import hicp.MessageExchange;
 import hicp.message.command.Add;
+import hicp.message.command.GUISelectionInfo;
 import hicp.message.command.Modify;
 import hicp_client.gui.Item;
 import hicp_client.text.TextEvent;
@@ -45,7 +47,7 @@ public class ToggleItem
         public final JRadioButton component;
 
         public SelectionItem(
-            final ItemInfo itemInfo,
+            final GUISelectionInfo.Item itemInfo,
             final boolean isSelected
         ) {
             id = itemInfo.id;
@@ -84,6 +86,11 @@ public class ToggleItem
     }
 
     protected Item addInvoked(final Add addCmd) {
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
+
         final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
 
         switch (mode) {
@@ -101,20 +108,17 @@ public class ToggleItem
             c.gridy = 0;
 
             final Set<String> selectionSet =
-                (null != addCmd.selected)
-                    ? Set.of(addCmd.selected)
+                (null != guiSelectionInfo.selected)
+                    ? new HashSet<>(guiSelectionInfo.selected)
                     : new TreeSet<>();  // Nothing selected, empty (unused) set.
             // Note I think TreeSet allocates nothing when empty, so is a
             // better unused set than HashSet.
 
-            final List<ItemInfo> itemList =
-                SelectionSource.itemList(addCmd.items);
-
-            for (final ItemInfo itemInfo : itemList) {
-                final boolean isSelected = selectionSet.contains(itemInfo.id);
+            for (final var item : guiSelectionInfo.items) {
+                final boolean isSelected = selectionSet.contains(item.id);
 
                 final SelectionItem si =
-                    new SelectionItem(itemInfo, isSelected);
+                    new SelectionItem(item, isSelected);
 
                 newPanel.add(si.component, c);
                 c.gridy++;

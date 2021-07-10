@@ -20,6 +20,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import hicp.MessageExchange;
+import hicp.message.Message;
 import hicp.message.command.Add;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.command.Modify;
@@ -61,7 +62,7 @@ public class ScrollItem
         public SelectionItem(
             final SelectionListModel newSelectionListModel,
             final int newIdx,
-            final ItemInfo itemInfo
+            final GUISelectionInfo.Item itemInfo
         ) {
             selectionListModel = newSelectionListModel;
             idx = newIdx;
@@ -106,13 +107,13 @@ public class ScrollItem
 
         // GUI thread (addInvoked()).
         public SelectionListModel(
-            final String itemsStr
+            final List<GUISelectionInfo.Item> items
         ) {
-            updateItems(itemsStr);
+            updateItems(items);
         }
 
         // GUI thread (modifyInvoked()).
-        public void updateItems(final String itemsStr) {
+        public void updateItems(final List<GUISelectionInfo.Item> items) {
             // When items change, selection no longer applies so must be
             // cleared.
             // Might not have been set yet, check for null first.
@@ -120,13 +121,11 @@ public class ScrollItem
                 _listSelectionModel.clearSelection();
             }
 
-            final List<ItemInfo> itemList = SelectionSource.itemList(itemsStr);
-
             final int oldSize = _selectionItemList.size();
-            _selectionItemList = new ArrayList<>(itemList.size());
+            _selectionItemList = new ArrayList<>(items.size());
             _selectionItemMap = new HashMap<>();
 
-            for (final ItemInfo itemInfo : itemList) {
+            for (final var itemInfo : items) {
                 // Index from 0 to size - 1, next index will be size.
                 final int newIdx = _selectionItemList.size();
 
@@ -222,7 +221,7 @@ public class ScrollItem
 
         public SelectionItemSelection(
             final GUISelectionInfo.EventsEnum newEvents,
-            final String[] newSelected
+            final List<String> newSelected
         ) {
             setEvents(newEvents);
             updateSelected(newSelected);
@@ -242,27 +241,31 @@ public class ScrollItem
             return events;
         }
 
-        public SelectionItemSelection updateSelected(final String[] selected) {
+        public SelectionItemSelection updateSelected(
+            final List<String> selected
+        ) {
             if (null == selected) {
                 // Selection not being updated.
                 return this;
             }
             super.clearSelection();
 
-            if (0 == selected.length) {
+            final int selectedLen = selected.size();
+            if (0 == selectedLen) {
                 // Empty selection, nothing to add.
                 return this;
             }
             // selected[0] must exist, no check needed below.
 
             // Find idx for each selected id.
-            final int[] selectedIdxList = new int[selected.length];
+            final int[] selectedIdxList = new int[selectedLen];
             for (int scanIdx = 0;
-                scanIdx < selected.length;
+                scanIdx < selectedLen;
                 scanIdx++)
             {
-                final String selectedId = selected[scanIdx];
-                final SelectionItem si = _listModel.getElementForId(selectedId);
+                final var selection = selected.get(scanIdx);
+                final SelectionItem si = _listModel.getElementForId(selection);
+                // Possible for si to be null here - log that?
 
                 selectedIdxList[scanIdx] = si.idx;
             }
@@ -399,7 +402,7 @@ public class ScrollItem
 
 
     public ScrollItem(
-        Add addCmd,
+        Message addCmd,
         TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
@@ -419,13 +422,15 @@ public class ScrollItem
 
         final JList<SelectionItem> newList = new JList<>();
 
-        _listModel = new SelectionListModel(addCmd.items);
+        _listModel = new SelectionListModel(guiSelectionInfo.items);
         newList.setModel(_listModel);
 
         newList.setCellRenderer(new SelectionItemRenderer());
 
         _listSelectionModel =
-            new SelectionItemSelection(guiSelectionInfo.events, addCmd.selected);
+            new SelectionItemSelection(
+                guiSelectionInfo.events, guiSelectionInfo.selected
+            );
         newList.setSelectionModel(_listSelectionModel);
 
         switch (mode) {
@@ -538,11 +543,11 @@ public class ScrollItem
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
         // See what's changed.
-        if (null != modifyCmd.items) {
-            _listModel.updateItems(modifyCmd.items);
+        if (null != guiSelectionInfo.items) {
+            _listModel.updateItems(guiSelectionInfo.items);
         }
-        if (null != modifyCmd.selected) {
-            _listSelectionModel.updateSelected(modifyCmd.selected);
+        if (null != guiSelectionInfo.selected) {
+            _listSelectionModel.updateSelected(guiSelectionInfo.selected);
         }
         if (null != guiSelectionInfo.events) {
             setEventsInvoked(guiSelectionInfo.events);
