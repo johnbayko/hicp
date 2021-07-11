@@ -15,9 +15,7 @@ import javax.swing.SwingUtilities;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.TextAttributes;
-import hicp.message.command.Add;
 import hicp.message.command.GUITextFieldInfo;
-import hicp.message.command.Modify;
 import hicp.message.event.Changed;
 import hicp.message.event.EventEnum;
 import hicp_client.text.AttributeTrackDocument;
@@ -37,15 +35,14 @@ public class TextFieldItem
     protected TextAttributes _attributes;
 
     public TextFieldItem(
-        Add addCmd,
+        Message m,
         MessageExchange messageExchange
     ) {
-        super(addCmd);
-
+        super(m);
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -184,7 +181,7 @@ public class TextFieldItem
         return this;
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();

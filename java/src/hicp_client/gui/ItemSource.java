@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.MessageExchange;
-import hicp.message.command.Add;
+import hicp.message.Message;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.ItemInfo;
 import hicp.message.command.GUIInfo;
@@ -19,7 +19,7 @@ public class ItemSource {
         Logger.getLogger( ItemSource.class.getName() );
 
     public static Item newItem(
-        final Add addCmd,
+        final Message addCmd,
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {

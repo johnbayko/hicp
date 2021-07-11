@@ -4,12 +4,10 @@ import java.awt.Component;
 import javax.swing.SwingUtilities;
 
 import hicp.message.Message;
-import hicp.message.command.Add;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.ContainedGUIInfo;
 import hicp.message.command.GUIInfo;
 import hicp.message.command.ItemInfo;
-import hicp.message.command.Modify;
 
 public abstract class Item
 {
@@ -26,8 +24,8 @@ public abstract class Item
     /**
         Non-GUI thread.
      */
-    public Item(Message addCmd) {
-        final CommandInfo commandInfo = addCmd.getCommandInfo();
+    public Item(Message m) {
+        final CommandInfo commandInfo = m.getCommandInfo();
         final ItemInfo itemInfo = commandInfo.getItemInfo();
         final GUIInfo guiInfo = itemInfo.getGUIInfo();
         final ContainedGUIInfo containedGUIInfo = guiInfo.getContainedGUIInfo();
@@ -45,7 +43,7 @@ public abstract class Item
         component = null;
     }
 
-    public final Item add(Add addCmd) {
+    public final Item add(Message addCmd) {
         SwingUtilities.invokeLater(
             new RunAdd(addCmd)
         );
@@ -55,9 +53,9 @@ public abstract class Item
     class RunAdd
         implements Runnable
     {
-        protected final Add _addCmd;
+        protected final Message _addCmd;
 
-        public RunAdd(Add addCmd) {
+        public RunAdd(Message addCmd) {
             _addCmd = addCmd;
         }
 
@@ -69,9 +67,9 @@ public abstract class Item
     /**
         GUI thread.
      */
-    protected abstract Item addInvoked(Add addCmd);
+    protected abstract Item addInvoked(Message addCmd);
 
-    public final Item modify(Modify modifyCmd) {
+    public final Item modify(Message modifyCmd) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
         );
@@ -81,9 +79,9 @@ public abstract class Item
     class RunModify
         implements Runnable
     {
-        protected final Modify _modifyCmd;
+        protected final Message _modifyCmd;
 
-        public RunModify(Modify modifyCmd) {
+        public RunModify(Message modifyCmd) {
             _modifyCmd = modifyCmd;
         }
 
@@ -95,7 +93,7 @@ public abstract class Item
     /**
         GUI thread.
      */
-    protected abstract Item modifyInvoked(Modify modifyCmd);
+    protected abstract Item modifyInvoked(Message modifyCmd);
 
     /**
         GUI thread.

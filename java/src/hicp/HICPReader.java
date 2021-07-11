@@ -366,66 +366,7 @@ readLoop:
         if (null == command) {
             return null;
         }
-        switch (command) {
-          // TODO Message clss hierarcy will be unified to just Message with
-          // usage specific info objects, which will make this mess go away.
-          // But it's needed until then.
-          case ADD:
-            {
-                final HICPHeader categoryHeader =
-                    headerMap.getHeader(HeaderEnum.CATEGORY);
-                if (null == categoryHeader) {
-                    // No category.
-                    return null;
-                }
-                final ItemInfo.CategoryEnum category =
-                    ItemInfo.CategoryEnum.getEnum(
-                        categoryHeader.value.getString()
-                    );
-                if (null == category) {
-                    return null;
-                }
-                switch (category) {
-                  case TEXT:
-                    return new Message(command.name, headerMap);
-                  case GUI:
-                    return new Add(command.name).addHeaders(headerMap);
-                  default:
-                    return null;
-                }
-            }
-          case MODIFY:
-            {
-                final HICPHeader categoryHeader =
-                    headerMap.getHeader(HeaderEnum.CATEGORY);
-                if (null == categoryHeader) {
-                    // No category.
-                    return null;
-                }
-                final ItemInfo.CategoryEnum category =
-                    ItemInfo.CategoryEnum.getEnum(
-                        categoryHeader.value.getString()
-                    );
-                if (null == category) {
-                    return null;
-                }
-                switch (category) {
-                  case TEXT:
-                    return new Message(command.name, headerMap);
-                  case GUI:
-                    return new Modify(command.name).addHeaders(headerMap);
-                  default:
-                    return null;
-                }
-            }
-          case AUTHENTICATE:
-          case REMOVE:
-          case DISCONNECT:
-            return new Message(command.name, headerMap);
-          // Is there a warning if an enum switch is missing an item?
-          // If not, add a default here.
-        }
-        return null;
+        return new Message(command.name, headerMap);
     }
 
     public Event newEvent(final HeaderMap headerMap)

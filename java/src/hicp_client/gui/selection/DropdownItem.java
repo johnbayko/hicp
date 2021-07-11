@@ -6,8 +6,7 @@ import java.util.logging.Logger;
 import javax.swing.JLabel;
 
 import hicp.MessageExchange;
-import hicp.message.command.Add;
-import hicp.message.command.Modify;
+import hicp.message.Message;
 import hicp_client.gui.Item;
 import hicp_client.text.TextLibrary;
 
@@ -23,17 +22,17 @@ public class DropdownItem
     protected Component _component;
 
     public DropdownItem(
-        Add addCmd,
+        Message m,
         TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
-        super(addCmd);
+        super(m);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         // Mode is ignored, only single is supported.
         _component = new JLabel("dropdown selection list");  // debug
         return this;
@@ -60,7 +59,7 @@ public class DropdownItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         // See what's changed.
         // Changed parent ID is handled by Controller.
         return this;

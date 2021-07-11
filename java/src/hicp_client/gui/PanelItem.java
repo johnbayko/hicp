@@ -11,8 +11,7 @@ import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
-import hicp.message.command.Add;
-import hicp.message.command.Modify;
+import hicp.message.Message;
 
 public class PanelItem
     extends LayoutItem
@@ -23,14 +22,14 @@ public class PanelItem
     // Should be used only from GUI thread.
     protected JPanel _component;
 
-    public PanelItem(final Add addCmd) {
-        super(addCmd);
+    public PanelItem(final Message m) {
+        super(m);
     }
 
     /**
         GUI thread.
      */
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         _component = new JPanel();
 
         _component.setLayout(new GridBagLayout());
@@ -141,7 +140,7 @@ LOGGER.log(Level.FINE, "PanelItem.dispose() done remove");  // debug
         }
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         super.modifyInvoked(modifyCmd);
         // See what's changed.
 

@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
-import hicp.message.command.Add;
 import hicp.message.command.AuthenticateInfo;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.ContainedGUIInfo;
@@ -204,10 +203,9 @@ public class Controller
                             }
                         }
                         {
-                            final Add addCmd = (Add)m;
                             final Item guiItem =
                                 ItemSource.newItem(
-                                    addCmd, _textLibrary, _messageExchange
+                                    m, _textLibrary, _messageExchange
                                 );
 
                             if (null != guiItem) {
@@ -267,8 +265,6 @@ public class Controller
                     }
                   case GUI:
                     {
-                        final hicp.message.command.Modify modifyCmd =
-                            (hicp.message.command.Modify)m;
                         final String id = itemInfo.id;
                         final Item guiItem;
                         if (null != id) {
@@ -282,7 +278,7 @@ public class Controller
                             // No item to modify.
                             break;
                         }
-                        guiItem.modify(modifyCmd);
+                        guiItem.modify(m);
                     }
                   default:
                     // Unrecognized category.

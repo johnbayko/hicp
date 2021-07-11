@@ -9,8 +9,6 @@ import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
-import hicp.message.command.Add;
-import hicp.message.command.Modify;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
 
@@ -25,8 +23,8 @@ public class LabelItem
 
     protected JLabel _component;
 
-    public LabelItem(final Message addCmd) {
-        super(addCmd);
+    public LabelItem(final Message m) {
+        super(m);
     }
 
     public void setAdapter(TextItemAdapter tia) {
@@ -37,7 +35,7 @@ public class LabelItem
     /**
         GUI thread.
      */
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -84,7 +82,7 @@ public class LabelItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();

@@ -21,8 +21,6 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
-import hicp.message.command.Add;
-import hicp.message.command.Modify;
 import hicp.message.event.Close;
 import hicp.message.event.Event;
 import hicp.message.event.EventEnum;
@@ -45,11 +43,10 @@ public class WindowItem
     protected JPanel _panel;
 
     public WindowItem(
-        final Message addCmd,
+        final Message m,
         final MessageExchange messageExchange
     ) {
-        super(addCmd);
-
+        super(m);
         _messageExchange = messageExchange;
     }
 
@@ -58,7 +55,7 @@ public class WindowItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -272,7 +269,7 @@ public class WindowItem
         }
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();

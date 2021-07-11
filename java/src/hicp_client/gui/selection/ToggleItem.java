@@ -15,9 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import hicp.MessageExchange;
-import hicp.message.command.Add;
+import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
-import hicp.message.command.Modify;
 import hicp_client.gui.Item;
 import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
@@ -75,17 +74,17 @@ public class ToggleItem
     }
 
     public ToggleItem(
-        Add addCmd,
+        Message m,
         TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
-        super(addCmd);
+        super(m);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -153,7 +152,7 @@ public class ToggleItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         // See what's changed.
         // Changed parent ID is handled by Controller.
         return this;

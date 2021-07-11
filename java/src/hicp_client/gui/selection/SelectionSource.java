@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
-import hicp.message.command.Add;
 import hicp_client.gui.Item;
 import hicp_client.text.TextLibrary;
 
@@ -17,29 +16,29 @@ public class SelectionSource {
         Logger.getLogger( SelectionSource.class.getName() );
 
     public static Item newItem(
-        final Add addCmd,
+        final Message m,
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        final var commandInfo = addCmd.getCommandInfo();
+        final var commandInfo = m.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
         switch (guiSelectionInfo.presentation) {
           case SCROLL:
-            return new ScrollItem(addCmd, textLibrary, messageExchange);
+            return new ScrollItem(m, textLibrary, messageExchange);
           case TOGGLE:
             switch (guiSelectionInfo.mode) {
               case SINGLE:
                 // TODO Think these will be the same. If so, remove mode check.
-                return new ToggleItem(addCmd, textLibrary, messageExchange);
+                return new ToggleItem(m, textLibrary, messageExchange);
               case MULTIPLE:
-                return new ToggleItem(addCmd, textLibrary, messageExchange);
+                return new ToggleItem(m, textLibrary, messageExchange);
             }
             break;
           case DROPDOWN:
-            return new DropdownItem(addCmd, textLibrary, messageExchange);
+            return new DropdownItem(m, textLibrary, messageExchange);
         }
         return null;  // Should never get here, but you know...
     }

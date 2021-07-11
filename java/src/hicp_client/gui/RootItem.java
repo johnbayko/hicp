@@ -1,22 +1,9 @@
 package hicp_client.gui;
 
 import java.awt.Component;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
-import hicp.MessageExchange;
 import hicp.TextDirection;
-import hicp.message.command.Add;
-import hicp.message.command.Modify;
-import hicp.message.event.Event;
+import hicp.message.Message;
 
 public class RootItem
     extends ContainerItem
@@ -30,7 +17,7 @@ public class RootItem
         _secondTextDirection = TextDirection.DOWN;
     }
 
-    protected Item addInvoked(final Add addCmd) {
+    protected Item addInvoked(final Message m) {
         return this;
     }
 
@@ -51,7 +38,7 @@ public class RootItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         super.modifyInvoked(modifyCmd);
         return this;
     }

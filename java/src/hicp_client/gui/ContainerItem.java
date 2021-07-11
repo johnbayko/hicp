@@ -17,9 +17,7 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
-//import hicp.message.command.Add;
 import hicp.message.command.LayoutGUIInfo;
-import hicp.message.command.Modify;
 import hicp.message.event.Event;
 
 public abstract class ContainerItem
@@ -37,8 +35,8 @@ public abstract class ContainerItem
     /**
         Non-GUI thread.
      */
-    public ContainerItem(final Message addCmd) {
-        super(addCmd);
+    public ContainerItem(final Message m) {
+        super(m);
     }
 
     public ContainerItem() {
@@ -63,7 +61,7 @@ public abstract class ContainerItem
     /**
         GUI thread.
      */
-    protected Item modifyInvoked(final Modify modifyCmd) {
+    protected Item modifyInvoked(final Message modifyCmd) {
         final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
