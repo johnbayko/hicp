@@ -109,6 +109,55 @@ public class GUISelectionInfo {
         }
     }
 
+    public static enum Mode {
+        SINGLE("single"),
+        MULTIPLE("multiple");
+
+        public final String name;
+
+        private static final Map<String, Mode> enumMap =
+            Arrays.stream(Mode.values())
+                .collect(
+                    Collectors.toMap(
+                        e -> e.name,
+                        e -> e
+                    )
+                );
+
+        Mode(final String newName) {
+            name = newName;
+        }
+
+        public static Mode getEnum(final String name) {
+            return enumMap.getOrDefault(name, MULTIPLE);
+        }
+    }
+
+    public static enum Presentation {
+        SCROLL("scroll"),
+        TOGGLE("toggle"),
+        DROPDOWN("dropdown");
+
+        public final String name;
+
+        private static final Map<String, Presentation> enumMap =
+            Arrays.stream(Presentation.values())
+                .collect(
+                    Collectors.toMap(
+                        e -> e.name,
+                        e -> e
+                    )
+                );
+
+        Presentation(final String newName) {
+            name = newName;
+        }
+
+        public static Presentation getEnum(final String name) {
+            return enumMap.getOrDefault(name, SCROLL);
+        }
+    }
+
     public static List<Item> itemsFromString(final String itemsListStr) {
         if (null == itemsListStr) {
             return null;
@@ -176,9 +225,46 @@ public class GUISelectionInfo {
         return s.toString();
     }
 
+    private GUISelectionInfo setHeightFromString(final String heightStr) {
+        if (null == heightStr) {
+            _hasHeight = false;
+            return this;
+        }
+        try {
+            _height = Integer.parseInt(heightStr);
+            _hasHeight = true;
+        } catch (NumberFormatException ex) {
+            _hasHeight = false;
+        }
+        return this;
+    }
+
+    private GUISelectionInfo setWidthFromString(final String widthStr) {
+        if (null == widthStr) {
+            _hasWidth = false;
+            return this;
+        }
+        try {
+            _width = Integer.parseInt(widthStr);
+            _hasWidth = true;
+        } catch (NumberFormatException ex) {
+            _hasWidth = false;
+        }
+        return this;
+    }
+
     public EventsEnum events = null;
     public List<Item> items = null;
     public List<String> selected = null;
+
+    private boolean _hasHeight = false;
+    private int _height = 0;
+
+    public Mode mode = null;
+    public Presentation presentation = null;
+
+    private boolean _hasWidth = false;
+    private int _width = 0;
 
     public GUISelectionInfo() {
     }
@@ -194,6 +280,16 @@ public class GUISelectionInfo {
         selected = selectedFromString(
                 headerMap.getString(HeaderEnum.SELECTED)
             );
+        setHeightFromString(headerMap.getString(HeaderEnum.HEIGHT));
+        mode =
+            Mode.getEnum(
+                headerMap.getString(HeaderEnum.MODE)
+            );
+        presentation =
+            Presentation.getEnum(
+                headerMap.getString(HeaderEnum.PRESENTATION)
+            );
+        setWidthFromString(headerMap.getString(HeaderEnum.WIDTH));
     }
 
     public GUISelectionInfo updateHeaderMap(
@@ -202,7 +298,39 @@ public class GUISelectionInfo {
         headerMap.putString(HeaderEnum.EVENTS, events.name);
         headerMap.putString(HeaderEnum.ITEMS, itemsToString(items));
         headerMap.putString(HeaderEnum.SELECTED, selectedToString(selected));
+        if (_hasHeight) {
+            headerMap.putString(HeaderEnum.HEIGHT, Integer.toString(_height));
+        }
+        headerMap.putString(HeaderEnum.MODE, mode.name);
+        headerMap.putString(HeaderEnum.PRESENTATION, presentation.name);
+        if (_hasWidth) {
+            headerMap.putString(HeaderEnum.WIDTH, Integer.toString(_width));
+        }
 
+        return this;
+    }
+
+    public boolean hasHeight() {
+        return _hasHeight;
+    }
+    public int getHeight() {
+        return _height;
+    }
+    public GUISelectionInfo setHeight(final int height) {
+        _height = height;
+        _hasHeight = true;
+        return this;
+    }
+
+    public boolean hasWidth() {
+        return _hasWidth;
+    }
+    public int getWidth() {
+        return _width;
+    }
+    public GUISelectionInfo setWidth(final int width) {
+        _width = width;
+        _hasWidth = true;
         return this;
     }
 }

@@ -21,16 +21,16 @@ public class SelectionSource {
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        final PresentationEnum presentation =
-            PresentationEnum.getEnum(addCmd.presentation);
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
-        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
-
-        switch (presentation) {
+        switch (guiSelectionInfo.presentation) {
           case SCROLL:
             return new ScrollItem(addCmd, textLibrary, messageExchange);
           case TOGGLE:
-            switch (mode) {
+            switch (guiSelectionInfo.mode) {
               case SINGLE:
                 // TODO Think these will be the same. If so, remove mode check.
                 return new ToggleItem(addCmd, textLibrary, messageExchange);

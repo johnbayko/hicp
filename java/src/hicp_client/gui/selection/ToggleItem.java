@@ -91,9 +91,7 @@ public class ToggleItem
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
-        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
-
-        switch (mode) {
+        switch (guiSelectionInfo.mode) {
           case SINGLE:
             // Single selection needs a button group and undisplayed "none"
             // button.

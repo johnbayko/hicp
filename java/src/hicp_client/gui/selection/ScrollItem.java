@@ -418,8 +418,6 @@ public class ScrollItem
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
-        final ModeEnum mode = ModeEnum.getEnum(addCmd.mode);
-
         final JList<SelectionItem> newList = new JList<>();
 
         _listModel = new SelectionListModel(guiSelectionInfo.items);
@@ -433,7 +431,7 @@ public class ScrollItem
             );
         newList.setSelectionModel(_listSelectionModel);
 
-        switch (mode) {
+        switch (guiSelectionInfo.mode) {
           case SINGLE:
             newList
                 .setSelectionMode(
@@ -486,19 +484,13 @@ public class ScrollItem
                 }
             );
 
-        if (null != addCmd.height) {
-            try {
-                final int height = Integer.parseInt(addCmd.height);
+        if (guiSelectionInfo.hasHeight()) {
+            final int height = guiSelectionInfo.getHeight();
 
-                final int minHeight = 2;
-                final int useHeight =
-                    (height < minHeight) ? minHeight : height;
+            final int minHeight = 2;
+            final int useHeight = (height < minHeight) ? minHeight : height;
 
-                newList.setVisibleRowCount(useHeight);
-            } catch (NumberFormatException ex) {
-                // No big deal, just skip and use default.
-                // Maybe log?
-            }
+            newList.setVisibleRowCount(useHeight);
         }
 
         _component = new JScrollPane(newList);

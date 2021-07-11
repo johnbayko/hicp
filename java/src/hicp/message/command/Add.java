@@ -12,15 +12,6 @@ public class Add
     private static final Logger LOGGER =
         Logger.getLogger( Add.class.getName() );
 
-    public final static String HEIGHT = "height";
-    public final static String MODE = "mode";
-    public final static String PRESENTATION = "presentation";
-    public final static String WIDTH = "width";
-
-    public String height = null;
-    public String mode = null;
-    public String presentation = null;
-    public String width = null;
     // TODO fill rest of these from modify - make them independent.
 
     public Add(final String name) {
@@ -32,11 +23,6 @@ public class Add
     ) {
         // TODO make independent from Modify.
         super.addHeaders(headerMap);
-
-        height = headerMap.getString(HeaderEnum.HEIGHT);
-        mode = headerMap.getString(HeaderEnum.MODE);
-        presentation = headerMap.getString(HeaderEnum.PRESENTATION);
-        width = headerMap.getString(HeaderEnum.WIDTH);
 
         return this;
     }
