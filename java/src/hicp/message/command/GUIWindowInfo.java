@@ -3,11 +3,17 @@ package hicp.message.command;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 
 public class GUIWindowInfo {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUIWindowInfo.class.getName() );
+//LOGGER.log(Level.FINE, " " + );  // debug
+
     public static enum Visible {
          TRUE("true"),
          FALSE("false");

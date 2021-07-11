@@ -48,7 +48,7 @@ public class GUISelectionInfo {
         {
             // <id>:<type-value list>
             final String[] idInfoSplit =
-                Message.COLON_SPLITTER.split(itemStr);
+                Message.splitWith(Message.COLON_SPLITTER, itemStr);
 
             // Needs at least 2 results.
             if (idInfoSplit.length < 2) {
@@ -59,8 +59,8 @@ public class GUISelectionInfo {
             id = idInfoSplit[Message.ID_IDX];
 
             final String[] infoList =
-                Message.COMMA_SPLITTER.split(
-                    idInfoSplit[Message.INFO_IDX]
+                Message.splitWith(
+                    Message.COMMA_SPLITTER, idInfoSplit[Message.INFO_IDX]
                 );
 
             // Needs at least 1 result.
@@ -72,7 +72,7 @@ public class GUISelectionInfo {
             String eventsStr = null;
             for (final String typeValueStr : infoList) {
                 final String[] typeValueSplit =
-                    Message.KEY_VALUE_SPLITTER.split(typeValueStr);
+                    Message.splitWith(Message.KEY_VALUE_SPLITTER, typeValueStr);
 
                 if (typeValueSplit.length < 2) {
                     // Just skip this one.
@@ -114,11 +114,8 @@ public class GUISelectionInfo {
             return null;
         }
         final String[] itemsArray =
-            Message.LINE_SPLITTER.split(itemsListStr);
-
-        // split("") will create a 1 element array of [""], treat that
-        // as null.
-        if ((1 == itemsArray.length) && ("".equals(itemsArray[0]))) {
+            Message.splitWith(Message.LINE_SPLITTER, itemsListStr);
+        if (0 == itemsArray.length) {
             return null;
         }
 
@@ -153,11 +150,8 @@ public class GUISelectionInfo {
             return null;
         }
         final String[] selectedArray =
-            Message.COMMA_SPLITTER.split(selectedListStr);
-
-        // split("") will create a 1 element array of [""], treat that
-        // as null.
-        if ((1 == selectedArray.length) && ("".equals(selectedArray[0]))) {
+            Message.splitWith(Message.COMMA_SPLITTER, selectedListStr);
+        if (0 == selectedArray.length) {
             return null;
         }
 

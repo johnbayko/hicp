@@ -39,15 +39,15 @@ public class ContainedGUIInfo {
             // split into three - any extra will be separated into third
             // String that's ignored.
             final String[] intStrArray =
-                Message.COMMA_SPLITTER.split(intPairStr, 3);
+                Message.splitWith(Message.COMMA_SPLITTER, intPairStr, 3);
 
             horizontal = parseIfExists(intStrArray, 0);
             vertical = parseIfExists(intStrArray, 1);
         }
 
-        public LayoutPair(final int forHorizontal, final int forVertical) {
-            horizontal = forHorizontal;
-            vertical = forVertical;
+        public LayoutPair(final int newHorizontal, final int newVertical) {
+            horizontal = newHorizontal;
+            vertical = newVertical;
         }
 
         @Override

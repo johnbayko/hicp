@@ -49,13 +49,18 @@ public abstract class LayoutItem
         GUI thread.
      */
     protected Item addInvoked(final Add addCmd) {
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();
+
         // Text direction.
-        if ( (null != addCmd.firstTextDirection)
-          || (null != addCmd.secondTextDirection)
+        if ( (null != layoutGUIInfo.textDirection.first)
+          || (null != layoutGUIInfo.textDirection.second)
         ) {
             setTextDirectionInvoked(
-                addCmd.firstTextDirection,
-                addCmd.secondTextDirection
+                layoutGUIInfo.textDirection.first,
+                layoutGUIInfo.textDirection.second
             );
         } else {
             // Default text direction.

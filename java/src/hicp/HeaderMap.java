@@ -68,13 +68,12 @@ public class HeaderMap {
         Convert comma separated string to Set.
      */
     public static Set<String> makeStringSet(final String s) {
-        // split("") will create a 1 element array of [""], treat that as
-        // empty.
+        // Treat "" as // empty.
         if ((null == s) || "".equals(s)) {
             // Empty set.
             return Set.of();
         }
-        final String[] sSplit = Message.COMMA_SPLITTER.split(s);
+        final String[] sSplit = Message.splitWith(Message.COMMA_SPLITTER, s);
         return Set.of(sSplit);
     }
 }

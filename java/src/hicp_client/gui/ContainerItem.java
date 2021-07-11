@@ -17,7 +17,8 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
-import hicp.message.command.Add;
+//import hicp.message.command.Add;
+import hicp.message.command.LayoutGUIInfo;
 import hicp.message.command.Modify;
 import hicp.message.event.Event;
 
@@ -63,12 +64,17 @@ public abstract class ContainerItem
         GUI thread.
      */
     protected Item modifyInvoked(final Modify modifyCmd) {
-        if ( (null != modifyCmd.firstTextDirection)
-          || (null != modifyCmd.secondTextDirection)
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();
+
+        if ( (null != layoutGUIInfo.textDirection.first)
+          || (null != layoutGUIInfo.textDirection.second)
         ) {
             setTextDirectionInvoked(
-                modifyCmd.firstTextDirection,
-                modifyCmd.secondTextDirection
+                layoutGUIInfo.textDirection.first,
+                layoutGUIInfo.textDirection.second
             );
         }
         return this;

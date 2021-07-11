@@ -16,11 +16,6 @@ public abstract class AddModify
     private static final Logger LOGGER =
         Logger.getLogger( AddModify.class.getName() );
 
-    public final static String TEXT_DIRECTION = "text-direction";
-
-    public TextDirection firstTextDirection = null;
-    public TextDirection secondTextDirection = null;
-
     public AddModify(String name) {
         super(name);
     }
@@ -35,28 +30,6 @@ public abstract class AddModify
     ) {
         // TODO make independent from Remove.
         super.addHeaders(headerMap);
-
-        {
-            final String directionsStr = 
-                headerMap.getString(HeaderEnum.TEXT_DIRECTION);
-            if (null != directionsStr) {
-                // Only two values are needed, but if there are more,
-                // shouldn't be appended to the second value by split(), so
-                // split into three - any extra will be separated into third
-                // String that's ignored.
-                final String[] directions =
-                    COMMA_SPLITTER.split(directionsStr, 3);
-
-                if (0 < directions.length) {
-                    firstTextDirection =
-                        TextDirection.getTextDirection(directions[0]);
-                }
-                if (1 < directions.length) {
-                    secondTextDirection =
-                        TextDirection.getTextDirection(directions[1]);
-                }
-            }
-        }
 
         return this;
     }

@@ -42,11 +42,16 @@ public class TextAttributes {
         {
             // Split by = to convert to value and length,
             final String[] valueLengthSplit =
-                Message.KEY_VALUE_SPLITTER.split(attributeRangeStr);
+                Message.splitWith(
+                    Message.KEY_VALUE_SPLITTER, attributeRangeStr
+                );
 
             final String lengthStr;
 
-            if (1 == valueLengthSplit.length) {
+            if (0 == valueLengthSplit.length) {
+                // Not a valid attribute range
+                throw new NoAttributeRange("No range values");
+            } else if (1 == valueLengthSplit.length) {
                 // Is binary attribute: "3, 2, 4"
                 value = "";
                 lengthStr = attributeRangeStr;
@@ -152,7 +157,7 @@ public class TextAttributes {
         {
             // For each string, split to attribute and indexes by ":"
             final String[] attributeTypeInfoSplit =
-                Message.COLON_SPLITTER.split(attributeTypeStr);
+                Message.splitWith(Message.COLON_SPLITTER, attributeTypeStr);
 
             // Must have at least one ":", non empty attribute. Ignore
             // additional ":" separators.
@@ -180,7 +185,7 @@ public class TextAttributes {
             // Split range list string by "," to get range string list.
             // Empty range list is allowed.
             final String[] rangeStrList =
-                Message.COMMA_SPLITTER.split(rangeStr);
+                Message.splitWith(Message.COMMA_SPLITTER, rangeStr);
 
             for (var valueLengthStr : rangeStrList) {
                 try {
@@ -506,7 +511,7 @@ public class TextAttributes {
         }
         // Split string by line
         final String[] attributeTypeStrList =
-            Message.LINE_SPLITTER.split(attributesStr);
+            Message.splitWith(Message.LINE_SPLITTER, attributesStr);
         if (0 == attributeTypeStrList.length) {
             // No attributes.
             return;

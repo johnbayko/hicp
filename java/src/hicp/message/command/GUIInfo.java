@@ -45,6 +45,10 @@ public class GUIInfo {
         new ContainedGUIInfo();
     private ContainedGUIInfo _containedGUIInfo = DEFAULT_CONTAINED_GUI_INFO;
 
+    public static final LayoutGUIInfo DEFAULT_LAYOUT_GUI_INFO =
+        new LayoutGUIInfo();
+    private LayoutGUIInfo _layoutGUIInfo = DEFAULT_LAYOUT_GUI_INFO;
+
 
     public static final GUIButtonInfo DEFAULT_GUI_BUTTON_INFO =
         new GUIButtonInfo();
@@ -88,6 +92,9 @@ public class GUIInfo {
         if (DEFAULT_CONTAINED_GUI_INFO != _containedGUIInfo) {
             _containedGUIInfo.updateHeaderMap(headerMap);
         }
+        if (DEFAULT_LAYOUT_GUI_INFO != _layoutGUIInfo) {
+            _layoutGUIInfo.updateHeaderMap(headerMap);
+        }
 
         if (DEFAULT_GUI_BUTTON_INFO != _guiButtonInfo) {
             _guiButtonInfo.updateHeaderMap(headerMap);
@@ -119,6 +126,19 @@ public class GUIInfo {
         _containedGUIInfo = i;
         return this;
     }
+
+    public LayoutGUIInfo getLayoutGUIInfo() {
+        if (DEFAULT_LAYOUT_GUI_INFO == _layoutGUIInfo) {
+            _layoutGUIInfo = new LayoutGUIInfo(_headerMap);
+        }
+        return _layoutGUIInfo;
+    }
+
+    public GUIInfo setLayoutGUIInfo(final LayoutGUIInfo i) {
+        _layoutGUIInfo = i;
+        return this;
+    }
+
 
     public GUIButtonInfo getGUIButtonInfo() {
         if (DEFAULT_GUI_BUTTON_INFO == _guiButtonInfo) {

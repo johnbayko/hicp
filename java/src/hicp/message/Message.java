@@ -123,6 +123,39 @@ public class Message {
 
 
     // General header access and string parsing utilities.
+    /*
+        Regex split() will split "" into [""], which is not wanted, so return
+        [] in that case instead.
+     */
+    public static String[] splitWith(
+        final Pattern splitter,
+        final String strToSplit
+    ) {
+        return discardEmpty(splitter.split(strToSplit));
+    }
+
+    /*
+        Regex split() will split "" into [""], which is not wanted, so return
+        [] in that case instead.
+     */
+    public static String[] splitWith(
+        final Pattern splitter,
+        final String strToSplit,
+        final int limit
+    ) {
+        return discardEmpty(splitter.split(strToSplit, limit));
+    }
+
+    /*
+        Discard [""] by returning [] instead.
+     */
+    public static String[] discardEmpty(final String[] splitArray) {
+        // Check for [""].
+        if ((1 == splitArray.length) && "".equals(splitArray[0])) {
+            return new String[0];
+        }
+        return splitArray;
+    }
 
 
     // TODO should be HICPWriter for this.

@@ -1,30 +1,31 @@
 package hicp;
 
-public final class TextDirection {
-    private final String id;
-    public TextDirection(String newID) {
-        id = newID;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public enum TextDirection {
+    LEFT("left"),
+    RIGHT("right"),
+    UP("up"),
+    DOWN("down");
+
+    public final String name;
+
+    private static final Map<String, TextDirection> enumMap =
+        Arrays.stream(TextDirection.values())
+            .collect(
+                Collectors.toMap(
+                    e -> e.name,
+                    e -> e
+                )
+            );
+
+    TextDirection(final String forName) {
+        name = forName;
     }
-    public String toString() {
-        return id;
+
+    public static TextDirection getEnum(String name) {
+        return enumMap.get(name);
     }
-    public static TextDirection getTextDirection(String newID) {
-        if (RIGHT.toString().equalsIgnoreCase(newID)) {
-            return RIGHT;
-        }
-        if (LEFT.toString().equalsIgnoreCase(newID)) {
-            return LEFT;
-        }
-        if (UP.toString().equalsIgnoreCase(newID)) {
-            return UP;
-        }
-        if (DOWN.toString().equalsIgnoreCase(newID)) {
-            return DOWN;
-        }
-        return null;
-    }
-    public static final TextDirection RIGHT = new TextDirection("RIGHT");
-    public static final TextDirection LEFT = new TextDirection("LEFT");
-    public static final TextDirection UP = new TextDirection("UP");
-    public static final TextDirection DOWN = new TextDirection("DOWN");
 }
