@@ -17,12 +17,7 @@ public abstract class Event
 
     private EventEnum _event = null;
 
-    public Event(String name) {
-        super(name);
-    }
-
-    public Event(String name, final EventEnum event) {
-        super(name);
+    public Event(final EventEnum event) {
         _event = event;
     }
 
@@ -56,7 +51,7 @@ public abstract class Event
     public void write(Writer out)
         throws IOException
     {
-        writeHeader(out, HeaderEnum.EVENT.name, getName());
+        writeHeader(out, HeaderEnum.EVENT.name, _event.messageName);
 
         out.flush();
     }

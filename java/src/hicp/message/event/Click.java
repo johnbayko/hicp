@@ -13,8 +13,8 @@ public class Click
     private static final Logger LOGGER =
         Logger.getLogger( Click.class.getName() );
 
-    public Click(String name) {
-        super(name);
+    public Click() {
+        super(EventEnum.CLICK);
     }
 
     public void write(Writer out)

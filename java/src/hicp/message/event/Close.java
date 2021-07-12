@@ -8,8 +8,8 @@ import hicp.HeaderMap;
 public class Close
     extends GUIEvent
 {
-    public Close(String name) {
-        super(name);
+    public Close() {
+        super(EventEnum.CLOSE);
     }
 
     public void write(Writer out)

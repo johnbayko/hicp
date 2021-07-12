@@ -8,31 +8,31 @@ public enum EventEnum
 {
     CONNECT("connect") {
         public Event newEvent(final String newMessageName) {
-            return new Connect(newMessageName);
+            return new Connect();
         }
     },
 
     AUTHENTICATE("authenticate") {
         public Event newEvent(final String newMessageName) {
-            return new Authenticate(newMessageName);
+            return new Authenticate();
         }
     },
 
     CHANGED("changed") {
         public Event newEvent(final String newMessageName) {
-            return new Changed(newMessageName);
+            return new Changed();
         }
     },
 
     CLOSE("close") {
         public Event newEvent(final String newMessageName) {
-            return new Close(newMessageName);
+            return new Close();
         }
     },
 
     CLICK("click") {
         public Event newEvent(final String newMessageName) {
-            return new Click(newMessageName);
+            return new Click();
         }
     };
 

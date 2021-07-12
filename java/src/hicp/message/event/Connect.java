@@ -12,11 +12,7 @@ public class Connect
     public String application = null;
 
     public Connect() {
-        super(EventEnum.CONNECT.messageName, EventEnum.CONNECT);
-    }
-
-    public Connect(String name) {
-        super(name);
+        super(EventEnum.CONNECT);
     }
 
     public void write(Writer out)

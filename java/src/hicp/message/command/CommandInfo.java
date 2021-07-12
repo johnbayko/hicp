@@ -1,13 +1,44 @@
 package hicp.message.command;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class CommandInfo {
-    // TODO Move command enum into here.
+    public static enum Command
+    {
+        AUTHENTICATE("authenticate"),
+        ADD("add"),
+        MODIFY("modify"),
+        REMOVE("remove"),
+        DISCONNECT("disconnect");
 
-    public CommandEnum command;
+        public final String name;
+
+        private static final Map<String, Command> enumMap =
+            Arrays.stream(Command.values())
+                .collect(
+                    Collectors.toMap(
+                        e -> e.name,
+                        e -> e
+                    )
+                );
+
+
+        Command(final String forName) {
+            name = forName;
+        }
+
+        public static Command getEnum(String name) {
+            return enumMap.get(name);
+        }
+    }
+
+    public Command command;
 
     public static final AuthenticateInfo DEFAULT_AUTHENTICATE_INFO =
         new AuthenticateInfo();
@@ -26,7 +57,7 @@ public class CommandInfo {
         _headerMap = headerMap;
 
         command =
-            CommandEnum.getEnum(
+            Command.getEnum(
                 headerMap.getString(HeaderEnum.COMMAND)
             );
     }

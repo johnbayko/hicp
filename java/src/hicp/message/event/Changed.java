@@ -21,8 +21,8 @@ public class Changed
     public TextAttributes attributes = null;
     public String[] selected = {};
 
-    public Changed(String name) {
-        super(name);
+    public Changed() {
+        super(EventEnum.CHANGED);
     }
 
     public void write(Writer out)

@@ -362,11 +362,11 @@ readLoop:
             // No actual command.
             return null;
         }
-        final CommandEnum command = CommandEnum.getEnum(cmdHeader);
+        final var command = CommandInfo.Command.getEnum(cmdHeader);
         if (null == command) {
             return null;
         }
-        return new Message(command.name, headerMap);
+        return new Message(headerMap);
     }
 
     public Event newEvent(final HeaderMap headerMap)
@@ -378,9 +378,11 @@ readLoop:
             return null;
         }
         final EventEnum e = EventEnum.getEnum(h.value.getString());
+        // TODO after Enum refactoring, will look like newCommand(), then get
+        // merged to something like "new Message(...)" for everything.
         switch (e) {
           case AUTHENTICATE:
-            return new hicp.message.event.Authenticate(e.messageName, headerMap);
+            return new hicp.message.event.Authenticate(headerMap);
           // Is there a warning if an enum switch is missing an item?
           // If not, add a default here.
         }

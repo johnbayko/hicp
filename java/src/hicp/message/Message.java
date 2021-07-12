@@ -44,9 +44,6 @@ public class Message {
     protected CommandInfo _commandInfo = DEFAULT_COMMAND_INFO;
     protected EventInfo _eventInfo = DEFAULT_EVENT_INFO;
 
-    // TODO pretty sure this isn't needed - check.
-    protected final String _name;
-
     public static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
     protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
 
@@ -57,17 +54,11 @@ public class Message {
     }
 
 
-    public Message( String name) {
-        _name = name;
+    public Message() {
     }
 
-    public Message( String name, final HeaderMap headerMap) {
-        _name = name;
+    public Message(final HeaderMap headerMap) {
         addHeaders(headerMap);
-    }
-
-    public String getName() {
-        return _name;
     }
 
     /**

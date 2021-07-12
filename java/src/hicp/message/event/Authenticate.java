@@ -14,18 +14,13 @@ public class Authenticate
     public String password = null;
 
     public Authenticate() {
-        super(EventEnum.AUTHENTICATE.messageName, EventEnum.AUTHENTICATE);
-    }
-
-    public Authenticate(String name) {
-        super(name);
+        super(EventEnum.AUTHENTICATE);
     }
 
     public Authenticate(
-        final String name,
         final HeaderMap headerMap
     ) {
-        super(name);
+        super(EventEnum.AUTHENTICATE);
         addHeaders(headerMap);
     }
 

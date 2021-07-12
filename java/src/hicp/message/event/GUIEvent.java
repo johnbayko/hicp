@@ -15,8 +15,8 @@ public abstract class GUIEvent
 
     public String id = null;
 
-    public GUIEvent(String name) {
-        super(name);
+    public GUIEvent(final EventEnum event) {
+        super(event);
     }
 
     public void write(Writer out)
