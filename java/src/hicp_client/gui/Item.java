@@ -4,10 +4,6 @@ import java.awt.Component;
 import javax.swing.SwingUtilities;
 
 import hicp.message.Message;
-import hicp.message.command.CommandInfo;
-import hicp.message.command.ContainedGUIInfo;
-import hicp.message.command.GUIInfo;
-import hicp.message.command.ItemInfo;
 
 public abstract class Item
 {
@@ -25,10 +21,10 @@ public abstract class Item
         Non-GUI thread.
      */
     public Item(Message m) {
-        final CommandInfo commandInfo = m.getCommandInfo();
-        final ItemInfo itemInfo = commandInfo.getItemInfo();
-        final GUIInfo guiInfo = itemInfo.getGUIInfo();
-        final ContainedGUIInfo containedGUIInfo = guiInfo.getContainedGUIInfo();
+        final var commandInfo = m.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var containedGUIInfo = guiInfo.getContainedGUIInfo();
 
         idString = itemInfo.id;
         component = guiInfo.component.name;

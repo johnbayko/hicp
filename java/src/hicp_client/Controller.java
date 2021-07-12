@@ -8,11 +8,7 @@ import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
-import hicp.message.command.AuthenticateInfo;
-import hicp.message.command.CommandInfo;
-import hicp.message.command.ContainedGUIInfo;
 import hicp.message.command.GUIInfo;
-import hicp.message.command.ItemInfo;
 import hicp.message.event.Connect;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
@@ -126,7 +122,7 @@ public class Controller
             // Client is not interested in events.
             return;
         }
-        final CommandInfo commandInfo = m.getCommandInfo();
+        final var commandInfo = m.getCommandInfo();
 
         // Action based on message command.
         if (null == commandInfo.command) {
@@ -135,8 +131,7 @@ public class Controller
         switch (commandInfo.command) {
           case AUTHENTICATE:
             {
-                final AuthenticateInfo authenticateInfo =
-                    commandInfo.getAuthenticateInfo();
+                final var authenticateInfo = commandInfo.getAuthenticateInfo();
 
                 // Empty event to fill and send back.
                 final hicp.message.event.Authenticate authenticateEvent =
@@ -167,7 +162,7 @@ public class Controller
             break;
           case ADD:
             {
-                final ItemInfo itemInfo = commandInfo.getItemInfo();
+                final var itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     LOGGER.log(Level.FINE, "Add without category");
@@ -186,7 +181,7 @@ public class Controller
                     break;
                   case GUI:
                     {
-                        final GUIInfo guiInfo = itemInfo.getGUIInfo();
+                        final var guiInfo = itemInfo.getGUIInfo();
                         // Must have id and component fields.
                         final String id = itemInfo.id;
                         if ((null == id) || (null == guiInfo.component)) {
@@ -220,7 +215,7 @@ public class Controller
                                 } else {
                                     // If this should be added to a parent,
                                     // determine the parent item and add to it.
-                                    final ContainedGUIInfo containedGUIInfo =
+                                    final var containedGUIInfo =
                                         guiInfo.getContainedGUIInfo();
                                     if (null != containedGUIInfo.parent) {
                                         final ContainerItem parentItem =
@@ -246,7 +241,7 @@ public class Controller
             break;
           case MODIFY:
             {
-                final ItemInfo itemInfo = commandInfo.getItemInfo();
+                final var itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Modify without category");
@@ -288,7 +283,7 @@ public class Controller
             break;
           case REMOVE:
             {
-                final ItemInfo itemInfo = commandInfo.getItemInfo();
+                final var itemInfo = commandInfo.getItemInfo();
                 if (null == itemInfo.category) {
                     // No category, ignore incomplete message.
                     log("Remove without category");

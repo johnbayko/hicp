@@ -6,9 +6,6 @@ import java.util.logging.Logger;
 import java.util.Map;
 
 import hicp.message.Message;
-import hicp.message.command.CommandInfo;
-import hicp.message.command.ItemInfo;
-import hicp.message.command.TextInfo;
 
 public class TextLibrary {
     private static final Logger LOGGER =
@@ -57,9 +54,9 @@ public class TextLibrary {
 
     public TextLibrary update(final Message m) {
         // Must have id and text fields.
-        final CommandInfo commandInfo = m.getCommandInfo();
-        final ItemInfo itemInfo = commandInfo.getItemInfo();
-        final TextInfo textInfo = itemInfo.getTextInfo();
+        final var commandInfo = m.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var textInfo = itemInfo.getTextInfo();
 
         final String id = itemInfo.id;
         final String text = textInfo.text;

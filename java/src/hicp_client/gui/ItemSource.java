@@ -5,9 +5,6 @@ import java.util.logging.Logger;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
-import hicp.message.command.CommandInfo;
-import hicp.message.command.ItemInfo;
-import hicp.message.command.GUIInfo;
 import hicp_client.gui.*;
 import hicp_client.gui.selection.SelectionSource;
 import hicp_client.text.TextItemAdapter;
@@ -23,9 +20,9 @@ public class ItemSource {
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        final CommandInfo commandInfo = addCmd.getCommandInfo();
-        final ItemInfo itemInfo = commandInfo.getItemInfo();
-        final GUIInfo guiInfo = itemInfo.getGUIInfo();
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
 
         // Make sure it's a real integer - not used.
         try {

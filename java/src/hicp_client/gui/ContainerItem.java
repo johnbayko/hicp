@@ -1,24 +1,13 @@
 package hicp_client.gui;
 
-import java.awt.Component;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
-import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
-import hicp.message.command.LayoutGUIInfo;
-import hicp.message.event.Event;
 
 public abstract class ContainerItem
     extends Item
