@@ -23,7 +23,6 @@ import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.Changed;
-import hicp.message.event.EventEnum;
 import hicp_client.gui.Item;
 import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
@@ -471,8 +470,7 @@ public class ScrollItem
                             selected[idx] = si.id;
                         }
 
-                        final Changed changedEvent =
-                            (Changed)EventEnum.CHANGED.newEvent();
+                        final Changed changedEvent = new Changed();
 
                         changedEvent.id = idString;
                         changedEvent.selected = selected;

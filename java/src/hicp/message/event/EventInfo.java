@@ -20,7 +20,7 @@ public class EventInfo {
         final HeaderMap headerMap
     ) {
         if (null != event) {
-            headerMap.putString(HeaderEnum.EVENT, event.messageName);
+            headerMap.putString(HeaderEnum.EVENT, event.name);
         }
         return this;
     }

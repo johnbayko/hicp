@@ -39,7 +39,7 @@ public abstract class Event
         final HeaderMap headerMap = super.getHeaders();
 
         if (null != _event) {
-            headerMap.putString(HeaderEnum.EVENT, _event.messageName);
+            headerMap.putString(HeaderEnum.EVENT, _event.name);
         }
         return headerMap;
     }
@@ -51,7 +51,7 @@ public abstract class Event
     public void write(Writer out)
         throws IOException
     {
-        writeHeader(out, HeaderEnum.EVENT.name, _event.messageName);
+        writeHeader(out, HeaderEnum.EVENT.name, _event.name);
 
         out.flush();
     }
