@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.command.CommandInfo;
+import hicp.message.event.EventEnum;
 import hicp.message.event.EventInfo;
 
 public class Message {
@@ -55,6 +56,24 @@ public class Message {
 
 
     public Message() {
+    }
+
+    public Message(final CommandInfo.Command command) {
+        _commandInfo = new CommandInfo(command);
+
+        // To make isCommand() work.
+        _headerMap =
+            new HeaderMap()
+            .putString(HeaderEnum.COMMAND, command.name);
+    }
+
+    public Message(final EventEnum event) {
+        _eventInfo = new EventInfo(event);
+
+        // To make isEvent() work.
+        _headerMap =
+            new HeaderMap()
+            .putString(HeaderEnum.EVENT, event.name);
     }
 
     public Message(final HeaderMap headerMap) {

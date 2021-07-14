@@ -9,6 +9,10 @@ public class EventInfo {
     public EventInfo() {
     } 
 
+    public EventInfo(final EventEnum newEvent) {
+        event = newEvent;
+    }
+
     public EventInfo(final HeaderMap headerMap) {
         event =
             EventEnum.getEnum(

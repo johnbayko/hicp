@@ -53,6 +53,10 @@ public class CommandInfo {
     public CommandInfo() {
     }
 
+    public CommandInfo(final Command newCommand) {
+        command = newCommand;
+    }
+
     public CommandInfo(final HeaderMap headerMap) {
         _headerMap = headerMap;
 

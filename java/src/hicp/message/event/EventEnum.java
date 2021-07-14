@@ -9,8 +9,8 @@ public enum EventEnum
     AUTHENTICATE("authenticate"),
     CHANGED("changed"),
     CLOSE("close"),
-    CLICK("click");
-    CONNECT("connect"),
+    CLICK("click"),
+    CONNECT("connect");
 
     public final String name;
 
