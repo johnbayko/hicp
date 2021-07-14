@@ -21,8 +21,7 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
-import hicp.message.event.Close;
-import hicp.message.event.Event;
+import hicp.message.event.EventInfo;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
 
@@ -102,11 +101,13 @@ public class WindowItem
             new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
                     // Send a close event with this object's ID.
-                    final Close closeEvent = new Close();
+                    final var event = new Message(EventInfo.Event.CLOSE);
+                    final var eventInfo = event.getEventInfo();
+                    final var itemInfo = eventInfo.getItemInfo();
 
-                    closeEvent.id = idString;
+                    itemInfo.id = idString;
 
-                    _messageExchange.send(closeEvent);
+                    _messageExchange.send(event);
                 }
             }
         );

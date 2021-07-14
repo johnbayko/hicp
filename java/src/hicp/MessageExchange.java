@@ -3,10 +3,7 @@ package hicp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +22,6 @@ public class MessageExchange
 
     protected HICPReader _in;
     protected HICPWriter _out;
-    protected Writer _outWriter;  // TODO being replaced by HICPWriter above.
     protected Controller _controller;
 
     /*
@@ -44,7 +40,6 @@ public class MessageExchange
     {
         _in = new HICPReader(in);
         _out = new HICPWriter(out);
-        _outWriter = new OutputStreamWriter(out, "UTF8");
         _controller = controller;
 
         // Start this up as a thread to read messages.
@@ -66,12 +61,6 @@ public class MessageExchange
         _controller.closed();
     }
 
-    // TODO remove this when all messages are switched over.
-    final static Set<Class<? extends hicp.message.Message>> useHICPWriter =
-        Set.of(
-            hicp.message.event.Authenticate.class,
-            hicp.message.event.Connect.class
-        );
     /*
         Typically called from GUI event thread.
      */
@@ -80,11 +69,7 @@ public class MessageExchange
             return this;
         }
         try {
-            if ( useHICPWriter.contains(m.getClass()) ) {
-                _out.writeMessage(m);
-            } else {
-                m.write(_outWriter);
-            }
+            _out.writeMessage(m);
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, ex.toString());
         }
@@ -100,7 +85,6 @@ public class MessageExchange
     public MessageExchange dispose() {
         _in = null;
         _out = null;
-        _outWriter = null;
 
         // Interrupt this thread so that the read loop stops.
         this.interrupt();

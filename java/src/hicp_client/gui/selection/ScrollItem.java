@@ -1,7 +1,6 @@
 package hicp_client.gui.selection;
 
 import java.awt.Component;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,7 +21,7 @@ import javax.swing.event.ListSelectionListener;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
-import hicp.message.event.Changed;
+import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
 import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
@@ -457,23 +456,26 @@ public class ScrollItem
                             source.getSelectedIndices();
 
                         // Convert indexes to IDs.
-                        final String[] selected =
-                            new String[selectedIndices.length];
+                        final List<String> selected = new LinkedList<>();
 
                         for (int idx = 0;
                             idx < selectedIndices.length;
                             idx++
                         ) {
                             final int selectedIdx = selectedIndices[idx];
-                            SelectionItem si =
+                            final SelectionItem si =
                                 _listModel.getElementAt(selectedIdx);
-                            selected[idx] = si.id;
+                            selected.add(si.id);
                         }
 
-                        final Changed changedEvent = new Changed();
+                        final var changedEvent =
+                            new Message(EventInfo.Event.CHANGED);
+                        final var eventInfo = changedEvent.getEventInfo();
+                        final var itemInfo = eventInfo.getItemInfo();
+                        final var selectionInfo = itemInfo.getSelectionInfo();
 
-                        changedEvent.id = idString;
-                        changedEvent.selected = selected;
+                        itemInfo.id = idString;
+                        selectionInfo.selected = selected;
 
                         _messageExchange.send(changedEvent);
                     }

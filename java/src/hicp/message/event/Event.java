@@ -47,13 +47,5 @@ public abstract class Event
     public EventInfo.Event getEvent() {
         return _event;
     }
-
-    public void write(Writer out)
-        throws IOException
-    {
-        writeHeader(out, HeaderEnum.EVENT.name, _event.name);
-
-        out.flush();
-    }
 }
 

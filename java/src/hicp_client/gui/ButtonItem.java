@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUIButtonInfo;
-import hicp.message.event.Click;
+import hicp.message.event.EventInfo;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
 
@@ -53,11 +53,13 @@ public class ButtonItem
             new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     // Send a click event with this object's ID.
-                    final Click clickEvent = new Click();
+                    final var event = new Message(EventInfo.Event.CLICK);
+                    final var eventInfo = event.getEventInfo();
+                    final var itemInfo = eventInfo.getItemInfo();
 
-                    clickEvent.id = idString;
+                    itemInfo.id = idString;
 
-                    _messageExchange.send(clickEvent);
+                    _messageExchange.send(event);
                 }
             }
         );

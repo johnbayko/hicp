@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
-import hicp.message.command.*;
-import hicp.message.event.*;
 
 public class HICPReader
 {
@@ -354,58 +352,11 @@ readLoop:
         }
     }
 
-    public Message newCommand(final HeaderMap headerMap)
-        throws IOException
-    {
-        final String cmdHeader = headerMap.getString(HeaderEnum.COMMAND);
-        if (null == cmdHeader) {
-            // No actual command.
-            return null;
-        }
-        final var command = CommandInfo.Command.getEnum(cmdHeader);
-        if (null == command) {
-            return null;
-        }
-        return new Message(headerMap);
-    }
-
-    public Event newEvent(final HeaderMap headerMap)
-        throws IOException
-    {
-        final HICPHeader h = headerMap.getHeader(HeaderEnum.EVENT);
-        if (null == h) {
-            // No actual event.
-            return null;
-        }
-        final var e = EventInfo.Event.getEnum(h.value.getString());
-        // TODO after Enum refactoring, will look like newCommand(), then get
-        // merged to something like "new Message(...)" for everything.
-        switch (e) {
-          case AUTHENTICATE:
-            return new hicp.message.event.Authenticate(headerMap);
-          // Is there a warning if an enum switch is missing an item?
-          // If not, add a default here.
-        }
-        return null;
-    }
-
     public Message readMessage()
         throws IOException
      {
         final HeaderMap headerMap = readHeaderMap();
-        {
-            final Message command = newCommand(headerMap);
-            if (null != command) {
-                return command;
-            }
-        }
-        {
-            final Event event = newEvent(headerMap);
-            if (null != event) {
-                return event;
-            }
-        }
-        return null;
+        return new Message(headerMap);
      }
 }
 

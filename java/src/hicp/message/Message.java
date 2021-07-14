@@ -14,6 +14,7 @@ import hicp.message.event.EventInfo;
 public class Message {
     private static final Logger LOGGER =
         Logger.getLogger( Message.class.getName() );
+//LOGGER.log(Level.FINE, " " + );  // debug
 
     // TODO maybe HeaderEnum should go here?
 
@@ -47,13 +48,8 @@ public class Message {
     public static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
     protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
 
-    public void write(Writer out)
-        throws IOException
-    {
-        // No fields to write.
-    }
 
-
+    // Only used by Event constructor, remove when that goes away.
     public Message() {
     }
 
@@ -95,7 +91,15 @@ public class Message {
         Create a map of headers containing the values of this message.
      */
     public HeaderMap getHeaders() {
-        return new HeaderMap();
+        final HeaderMap headerMap = new HeaderMap();
+
+        if (DEFAULT_COMMAND_INFO != _commandInfo) {
+            _commandInfo.updateHeaderMap(headerMap);
+        }
+        if (DEFAULT_EVENT_INFO != _eventInfo) {
+            _eventInfo.updateHeaderMap(headerMap);
+        }
+        return headerMap;
     }
 
     public boolean isCommand() {
@@ -164,40 +168,5 @@ public class Message {
             return new String[0];
         }
         return splitArray;
-    }
-
-
-    // TODO should be HICPWriter for this.
-    // Implement a getHeaders() method to pass to writer.
-    protected void writeHeader(Writer out, String name, String value)
-        throws IOException
-    {
-        out.write(name);
-        if (-1 == value.indexOf(EOL)) {
-            // Value can be sent on a single line.
-            out.write(": ");
-            out.write(value);
-            out.write(EOL);
-        } else {
-            // Value has a CR LF, then send in multiple lines.
-            out.write(":: boundary=\r\n--\r\n");
-
-            // Escape boundary ("\r\n--"), and single ESC.
-            final String esc_value =
-                value.replace("\033", "\033\033");
-                value.replace("\r\n--", "\033\r\n--");
-            out.write(esc_value);
-
-            // Write out terminator sequence and extra "\r\n" as block
-            // terminator.
-            out.write("\r\n--\r\n");
-        }
-    }
-
-    protected void writeEndOfMessage(Writer out)
-        throws IOException
-    {
-        out.write(EOL);
-        out.flush();
     }
 }

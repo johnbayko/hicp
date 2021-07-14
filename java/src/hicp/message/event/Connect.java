@@ -15,19 +15,6 @@ public class Connect
         super(EventInfo.Event.CONNECT);
     }
 
-    public void write(Writer out)
-        throws IOException
-    {
-        // Write common header.
-        super.write(out);
-
-        if (null != application) {
-            writeHeader(out, HeaderEnum.APPLICATION.name, application);
-        }
-
-        writeEndOfMessage(out);
-    }
-
     public Connect addHeaders(
         final HeaderMap headerMap
     ) {

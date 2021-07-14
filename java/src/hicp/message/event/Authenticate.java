@@ -24,27 +24,6 @@ public class Authenticate
         addHeaders(headerMap);
     }
 
-    public void write(Writer out)
-        throws IOException
-    {
-        // Write common header.
-        super.write(out);
-
-        if (null != user) {
-            writeHeader(out, HeaderEnum.USER.name, user);
-        }
-
-        if (null != method) {
-            writeHeader(out, HeaderEnum.METHOD.name, method);
-        }
-
-        if (null != password) {
-            writeHeader(out, HeaderEnum.PASSWORD.name, password);
-        }
-
-        writeEndOfMessage(out);
-    }
-
     public Authenticate addHeaders(
         final HeaderMap headerMap
     ) {

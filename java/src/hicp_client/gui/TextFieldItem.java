@@ -16,7 +16,7 @@ import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.TextAttributes;
 import hicp.message.command.GUITextFieldInfo;
-import hicp.message.event.Changed;
+import hicp.message.event.EventInfo;
 import hicp_client.text.AttributeTrackDocument;
 
 public class TextFieldItem
@@ -100,14 +100,17 @@ public class TextFieldItem
             // Content has changed.
             // Send a changed event with this object's ID
             // and the new content.
-            final Changed changedEvent = new Changed();
-            
-            changedEvent.id = idString;
+            final var changedEvent = new Message(EventInfo.Event.CHANGED);
+            final var eventInfo = changedEvent.getEventInfo();
+            final var itemInfo = eventInfo.getItemInfo();
+            final var textFieldInfo = itemInfo.getTextFieldInfo();
+
+            itemInfo.id = idString;
             if (hasContentChanged) {
-                changedEvent.content = content;
+                textFieldInfo.content = content;
             }
             if (hasAttributesChanged) {
-                changedEvent.attributes = attributes;
+                textFieldInfo.attributes = attributes;
             }
             _messageExchange.send(changedEvent);
 
