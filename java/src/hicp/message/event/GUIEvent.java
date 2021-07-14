@@ -15,7 +15,7 @@ public abstract class GUIEvent
 
     public String id = null;
 
-    public GUIEvent(final EventEnum event) {
+    public GUIEvent(final EventInfo.Event event) {
         super(event);
     }
 

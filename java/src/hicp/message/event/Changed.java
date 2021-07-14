@@ -22,7 +22,7 @@ public class Changed
     public String[] selected = {};
 
     public Changed() {
-        super(EventEnum.CHANGED);
+        super(EventInfo.Event.CHANGED);
     }
 
     public void write(Writer out)

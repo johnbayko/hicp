@@ -377,7 +377,7 @@ readLoop:
             // No actual event.
             return null;
         }
-        final EventEnum e = EventEnum.getEnum(h.value.getString());
+        final var e = EventInfo.Event.getEnum(h.value.getString());
         // TODO after Enum refactoring, will look like newCommand(), then get
         // merged to something like "new Message(...)" for everything.
         switch (e) {

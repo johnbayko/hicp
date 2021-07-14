@@ -14,7 +14,7 @@ public class Click
         Logger.getLogger( Click.class.getName() );
 
     public Click() {
-        super(EventEnum.CLICK);
+        super(EventInfo.Event.CLICK);
     }
 
     public void write(Writer out)

@@ -12,7 +12,7 @@ public class Connect
     public String application = null;
 
     public Connect() {
-        super(EventEnum.CONNECT);
+        super(EventInfo.Event.CONNECT);
     }
 
     public void write(Writer out)

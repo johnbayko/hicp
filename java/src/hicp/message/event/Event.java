@@ -15,9 +15,9 @@ public abstract class Event
     private static final Logger LOGGER =
         Logger.getLogger( Event.class.getName() );
 
-    private EventEnum _event = null;
+    private EventInfo.Event _event = null;
 
-    public Event(final EventEnum event) {
+    public Event(final EventInfo.Event event) {
         _event = event;
     }
 
@@ -28,7 +28,7 @@ public abstract class Event
 
         // getEnum() handles null, may return null.
         _event =
-            EventEnum.getEnum(
+            EventInfo.Event.getEnum(
                 headerMap.getString(HeaderEnum.EVENT)
             );
 
@@ -44,7 +44,7 @@ public abstract class Event
         return headerMap;
     }
 
-    public EventEnum getEvent() {
+    public EventInfo.Event getEvent() {
         return _event;
     }
 

@@ -9,7 +9,7 @@ public class Close
     extends GUIEvent
 {
     public Close() {
-        super(EventEnum.CLOSE);
+        super(EventInfo.Event.CLOSE);
     }
 
     public void write(Writer out)
