@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUIInfo;
-import hicp.message.event.Connect;
+//import hicp.message.event.Connect;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
@@ -57,15 +57,18 @@ public class Controller
         }
         // Send connect message.
         {
-            final Connect connectEvent = new Connect();
+            // New event to fill and send back.
+            final var event = new Message(EventInfo.Event.CONNECT);
+            final var eventInfo = event.getEventInfo();
+            final var connectInfo = eventInfo.getConnectInfo();
             {
                 final String application = _session.params.application;
                 if ( (null != application) && (0 != application.length()) )
                 {
-                    connectEvent.application = application;
+                    connectInfo.application = application;
                 }
             }
-            _messageExchange.send(connectEvent);
+            _messageExchange.send(event);
         }
         setConnected(true);
 

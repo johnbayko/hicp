@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
-import hicp.message.Message;
 
 public class AuthenticateInfo {
     private static final Logger LOGGER =
@@ -35,4 +34,3 @@ public class AuthenticateInfo {
         return this;
     }
 }
-

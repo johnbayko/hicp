@@ -51,7 +51,11 @@ public class EventInfo {
 
     public static final AuthenticateInfo DEFAULT_AUTHENTICATE_INFO =
         new AuthenticateInfo();
-    private AuthenticateInfo _authenticaterInfo = DEFAULT_AUTHENTICATE_INFO;
+    private AuthenticateInfo _authenticateInfo = DEFAULT_AUTHENTICATE_INFO;
+
+    public static final ConnectInfo DEFAULT_CONNECT_INFO =
+        new ConnectInfo();
+    private ConnectInfo _connectInfo = DEFAULT_CONNECT_INFO;
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
@@ -80,8 +84,11 @@ public class EventInfo {
         if (DEFAULT_ITEM_INFO != _itemInfo) {
             _itemInfo.updateHeaderMap(headerMap);
         }
-        if (DEFAULT_AUTHENTICATE_INFO != _authenticaterInfo) {
-            _authenticaterInfo.updateHeaderMap(headerMap);
+        if (DEFAULT_AUTHENTICATE_INFO != _authenticateInfo) {
+            _authenticateInfo.updateHeaderMap(headerMap);
+        }
+        if (DEFAULT_CONNECT_INFO != _connectInfo) {
+            _connectInfo.updateHeaderMap(headerMap);
         }
         return this;
     }
@@ -99,14 +106,26 @@ public class EventInfo {
     }
 
     public AuthenticateInfo getAuthenticateInfo() {
-        if (DEFAULT_AUTHENTICATE_INFO == _authenticaterInfo) {
-            _authenticaterInfo = new AuthenticateInfo(_headerMap);
+        if (DEFAULT_AUTHENTICATE_INFO == _authenticateInfo) {
+            _authenticateInfo = new AuthenticateInfo(_headerMap);
         }
-        return _authenticaterInfo;
+        return _authenticateInfo;
     }
 
     public EventInfo setAuthenticateInfo(final AuthenticateInfo i) {
-        _authenticaterInfo = i;
+        _authenticateInfo = i;
+        return this;
+    }
+
+    public ConnectInfo getConnectInfo() {
+        if (DEFAULT_CONNECT_INFO == _connectInfo) {
+            _connectInfo = new ConnectInfo(_headerMap);
+        }
+        return _connectInfo;
+    }
+
+    public EventInfo setConnectInfo(final ConnectInfo i) {
+        _connectInfo = i;
         return this;
     }
 }
