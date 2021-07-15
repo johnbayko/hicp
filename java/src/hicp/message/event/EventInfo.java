@@ -45,8 +45,13 @@ public class EventInfo {
 
     public Event event;
 
-    public static final ItemInfo DEFAULT_ITEM_INFO = new ItemInfo();
+    public static final ItemInfo DEFAULT_ITEM_INFO =
+        new ItemInfo();
     private ItemInfo _itemInfo = DEFAULT_ITEM_INFO;
+
+    public static final AuthenticateInfo DEFAULT_AUTHENTICATE_INFO =
+        new AuthenticateInfo();
+    private AuthenticateInfo _authenticaterInfo = DEFAULT_AUTHENTICATE_INFO;
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
@@ -75,6 +80,9 @@ public class EventInfo {
         if (DEFAULT_ITEM_INFO != _itemInfo) {
             _itemInfo.updateHeaderMap(headerMap);
         }
+        if (DEFAULT_AUTHENTICATE_INFO != _authenticaterInfo) {
+            _authenticaterInfo.updateHeaderMap(headerMap);
+        }
         return this;
     }
 
@@ -89,5 +97,16 @@ public class EventInfo {
         _itemInfo = i;
         return this;
     }
-}
 
+    public AuthenticateInfo getAuthenticateInfo() {
+        if (DEFAULT_AUTHENTICATE_INFO == _authenticaterInfo) {
+            _authenticaterInfo = new AuthenticateInfo(_headerMap);
+        }
+        return _authenticaterInfo;
+    }
+
+    public EventInfo setAuthenticateInfo(final AuthenticateInfo i) {
+        _authenticaterInfo = i;
+        return this;
+    }
+}

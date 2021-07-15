@@ -10,6 +10,7 @@ import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUIInfo;
 import hicp.message.event.Connect;
+import hicp.message.event.EventInfo;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
 import hicp_client.gui.ItemSource;
@@ -131,15 +132,16 @@ public class Controller
         switch (commandInfo.command) {
           case AUTHENTICATE:
             {
-                final var authenticateInfo = commandInfo.getAuthenticateInfo();
+                final var acInfo = commandInfo.getAuthenticateInfo();
 
-                // Empty event to fill and send back.
-                final hicp.message.event.Authenticate authenticateEvent =
-                    new hicp.message.event.Authenticate();
+                // New event to fill and send back.
+                final var event = new Message(EventInfo.Event.AUTHENTICATE);
+                final var eventInfo = event.getEventInfo();
+                final var authenticateInfo = eventInfo.getAuthenticateInfo();
                 {
                     final String username = _session.params.username;
                     if ((null != username) && (0 != username.length())) {
-                        authenticateEvent.user = username;
+                        authenticateInfo.user = username;
                     }
                 }
                 {
@@ -150,14 +152,14 @@ public class Controller
                         // side supports this authentication method.
                         final String method = "plain";
 
-                        if (authenticateInfo.hasMethod(method)) {
+                        if (acInfo.hasMethod(method)) {
                             // Method is supported.
-                            authenticateEvent.password = password;
-                            authenticateEvent.method = method;
+                            authenticateInfo.password = password;
+                            authenticateInfo.method = method;
                         }
                     } // if (password...)
                 }
-                _messageExchange.send(authenticateEvent);
+                _messageExchange.send(event);
             }
             break;
           case ADD:
@@ -332,8 +334,8 @@ public class Controller
             break;
           case DISCONNECT:
             {
-                if (_messageExchange.getLastMessage()
-                    instanceof hicp.message.event.Authenticate
+                if (EventInfo.Event.AUTHENTICATE
+                    == _messageExchange.getLastMessage().getEventInfo().event
                 ) {
                     // User authentication failure.
                     log("User authentication failure.");
