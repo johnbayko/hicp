@@ -1644,3 +1644,6 @@ selected: <integer> "," <integer>
     command. An event is sent each time one or more items are selected or
     unselected. Any item not in the list is unselected.
 
+    If selection mode is "single" and multiple elements are in the list, the
+    one witht he lowest ID is taken as the selected item.
+

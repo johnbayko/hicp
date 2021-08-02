@@ -11,34 +11,6 @@ import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class LayoutGUIInfo {
-/*
-    public static enum Direction {
-        LEFT("left"),
-        RIGHT("right"),
-        UP("up"),
-        DOWN("down");
-
-        public final String name;
-
-        private static final Map<String, Direction> enumMap =
-            Arrays.stream(Direction.values())
-                .collect(
-                    Collectors.toMap(
-                        e -> e.name,
-                        e -> e
-                    )
-                );
-
-        Direction(final String forName) {
-            name = forName;
-        }
-
-        public static Direction getEnum(String name) {
-            return enumMap.get(name);
-        }
-    }
-*/
-
     public static class DirectionPair {
         public final TextDirection first;
         public final TextDirection second;
@@ -87,14 +59,18 @@ public class LayoutGUIInfo {
     }
 
     // Null safe DirectionPair factory method.
-    private static DirectionPair newDirectionPair(final String directionPairStr) {
+    private static DirectionPair newDirectionPair(
+        final String directionPairStr
+    ) {
         if (null == directionPairStr) {
             return DEFAULT_TEXT_DIRECTION;
         }
         return new DirectionPair(directionPairStr);
     }
 
-    public static final DirectionPair DEFAULT_TEXT_DIRECTION = new DirectionPair();
+    public static final DirectionPair DEFAULT_TEXT_DIRECTION =
+        new DirectionPair();
+
     public DirectionPair textDirection = DEFAULT_TEXT_DIRECTION;
 
 
