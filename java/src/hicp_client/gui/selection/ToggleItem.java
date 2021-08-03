@@ -37,12 +37,12 @@ public class ToggleItem
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
-    protected Component _component;
+    protected JPanel _component;
 
     protected ButtonGroup _buttonGroup = null;
     protected JRadioButton _noneButton = null;
 
-    protected List<SelectionItem> _selectionItemList = new LinkedList<>();
+    protected List<SelectionItem> _selectionItemList = null;
 
     class SelectionItem
         implements TextListener
@@ -123,6 +123,41 @@ public class ToggleItem
         _messageExchange = messageExchange;
     }
 
+    // GUI thread (addInvoked(), modifyInvoked()).
+    public ToggleItem updateItems(
+        final GUISelectionInfo guiSelectionInfo
+    ) {
+        _selectionItemList = new LinkedList<>();
+
+        final GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+
+        // For single selection there should only be one selection, but
+        // in case multiple are sent in error, this will use the last
+        // one as the selection.
+        final Set<String> selectionSet =
+            (null != guiSelectionInfo.selected)
+                ? new HashSet<>(guiSelectionInfo.selected)
+                : Set.of();  // Nothing selected, empty (unused) set.
+
+        for (final var item : guiSelectionInfo.items) {
+            final boolean isSelected = selectionSet.contains(item.id);
+
+            final SelectionItem si =
+                new SelectionItem(item, isSelected);
+
+            _selectionItemList.add(si);
+
+            _component.add(si.component, c);
+            c.gridy++;
+        }
+        _component.revalidate();  // debug
+        _component.repaint();  // debug
+
+        return this;
+    }
+
     protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
@@ -138,35 +173,13 @@ public class ToggleItem
             _noneButton.setSelected(true);  // By default, only one selected.
             _buttonGroup.add(_noneButton);
 
-            final JPanel newPanel = new JPanel(new GridBagLayout());
-            final GridBagConstraints c = new GridBagConstraints();
-            c.gridx = 0;
-            c.gridy = 0;
+            _component = new JPanel(new GridBagLayout());
 
-            // For single selection there should only be one selection, but in
-            // case multiple are sent in error, this will use the last one as
-            // the selection.
-            final Set<String> selectionSet =
-                (null != guiSelectionInfo.selected)
-                    ? new HashSet<>(guiSelectionInfo.selected)
-                    : Set.of();  // Nothing selected, empty (unused) set.
-
-            for (final var item : guiSelectionInfo.items) {
-                final boolean isSelected = selectionSet.contains(item.id);
-
-                final SelectionItem si =
-                    new SelectionItem(item, isSelected);
-
-                _selectionItemList.add(si);
-
-                newPanel.add(si.component, c);
-                c.gridy++;
-            }
-
-            _component = newPanel;
+            updateItems(guiSelectionInfo);
             break;
           case MULTIPLE:
-            _component = new JLabel("checkbox selection list");  // debug
+            _component = new JPanel(new GridBagLayout());
+            _component.add(new JLabel("checkbox selection list"));  // debug
             break;
         }
 
@@ -196,6 +209,26 @@ public class ToggleItem
 
     protected Item modifyInvoked(final Message modifyCmd) {
         // See what's changed.
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
+
+        // See what's changed.
+        if (null != guiSelectionInfo.items) {
+            // Remove all old items in _selectionItemList, add these new items.
+            // Any selection is implicitly cleared (is there an event?
+            // probably, check that).
+            for (final SelectionItem si : _selectionItemList) {
+                _component.remove(si.component);
+            }
+            updateItems(guiSelectionInfo);
+        } //else if (null != guiSelectionInfo.selected) {
+//            _listSelectionModel.updateSelected(guiSelectionInfo.selected);
+//        }
+//        if (null != guiSelectionInfo.events) {
+//            setEventsInvoked(guiSelectionInfo.events);
+//        }
         // Changed parent ID is handled by Controller.
         return this;
     }

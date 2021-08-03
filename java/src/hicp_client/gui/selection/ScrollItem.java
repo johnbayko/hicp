@@ -108,7 +108,7 @@ public class ScrollItem
             updateItems(items);
         }
 
-        // GUI thread (modifyInvoked()).
+        // GUI thread (addInvoked(), modifyInvoked()).
         public void updateItems(final List<GUISelectionInfo.Item> items) {
             // When items change, selection no longer applies so must be
             // cleared.
