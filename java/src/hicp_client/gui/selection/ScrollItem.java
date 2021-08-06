@@ -34,6 +34,7 @@ public class ScrollItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
+//LOGGER.log(Level.FINE, "");  // debug
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -212,6 +213,8 @@ public class ScrollItem
     class SelectionItemSelection
         extends DefaultListSelectionModel
     {
+        private boolean _shouldSendChangedEvent = true;
+
         private GUISelectionInfo.EventsEnum events =
             GUISelectionInfo.EventsEnum.ENABLED;
 
@@ -244,7 +247,8 @@ public class ScrollItem
                 // Selection not being updated.
                 return this;
             }
-            super.clearSelection();
+            _shouldSendChangedEvent = false;
+            clearSelection();
 
             final int selectedLen = selected.size();
             if (0 == selectedLen) {
@@ -290,6 +294,7 @@ public class ScrollItem
 
             addSelectionInterval(startIdx, endIdx);
 
+            _shouldSendChangedEvent = true;
             return this;
         }
 
@@ -390,9 +395,13 @@ public class ScrollItem
 //        public void setLeadSelectionIndex(int leadIndex) {
 //            super.setLeadSelectionIndex(leadIndex);
 //        }
+//        @Override
+//        public void clearSelection() {
+//            super.clearSelection();
+//        }
 
-        public void clearSelection() {
-            super.clearSelection();
+        public boolean shouldSendChangedEvent() {
+            return _shouldSendChangedEvent;
         }
     }
 
@@ -452,6 +461,14 @@ public class ScrollItem
                             return;
                         }
                         final JList source = (JList)e.getSource();
+
+                        // Is this updated internally? Then don't send an event.
+                        final SelectionItemSelection sm =
+                            (SelectionItemSelection)source.getSelectionModel();
+                        if (!sm.shouldSendChangedEvent()) {
+                            return;
+                        }
+
                         final int[] selectedIndices =
                             source.getSelectedIndices();
 

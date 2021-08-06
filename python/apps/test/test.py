@@ -121,7 +121,7 @@ class SelectionRandomHandler:
                     selectable_list.append(item_id)
 
         if len(selectable_list) == 0:
-            # Nothin available, nothing to select.
+            # Nothing available, nothing to select.
             return
 
         # Select one.
@@ -131,6 +131,21 @@ class SelectionRandomHandler:
         selected_list.append(rand_item_id)
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
+
+        # Won't get an event back, so pretend we did.
+
+        # Pretend to receive a changed event.
+        event = Message()
+        event.set_type(Message.EVENT, Message.CHANGED)
+
+        # It's from self.__selection.
+        event.add_header(Message.ID, str(self.__selection.component_id))
+
+        # Event selection string looks like "1, 2, 4".
+        selected_str = ", ".join([str(i) for i in selected_list])
+        event.add_header(Message.SELECTED, selected_str) 
+
+        hicp.fake_event(event)
 
 
 class AbleButtonHandler:

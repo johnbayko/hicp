@@ -126,52 +126,59 @@ class ReadThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        while True:
+        is_disconnect = False
+
+        while not is_disconnect:
             message = Message(in_stream=self.in_stream)
 
             if message.get_type() != Message.EVENT:
                 # Ignore all non-event messages
                 continue
 
-            event = Event(message)
+            is_disconnect = self.got_event_msg(message)
 
-            if event.event_type.from_component:
-                # Find the component ID.
-                component_id = event.message.get_header(Message.ID)
-                if component_id is None:
-                    # Message missing something, can't use this event.
-                    continue
+    def got_event_msg(self, message):
+        event = Event(message)
 
-                try:
-                    event.component = self.component_list[component_id]
-                except KeyError:
-                    # Component not found, so can't do anything with event.
-                    # May have sent remove message, but didn't work for some
-                    # reason and other side thinks it's still there, but may be
-                    # some other reason, so don't try to "fix" it.
-                    self.logger.debug("Event for unknown component id " + component_id)
-                    continue
+        if event.event_type.from_component:
+            # Find the component ID.
+            component_id = event.message.get_header(Message.ID)
+            if component_id is None:
+                # Message missing something, can't use this event.
+                return False
 
-                event.set_handler(event.component.get_handler(event))
+            try:
+                event.component = self.component_list[component_id]
+            except KeyError:
+                # Component not found, so can't do anything with event.
+                # May have sent remove message, but didn't work for some
+                # reason and other side thinks it's still there, but may be
+                # some other reason, so don't try to "fix" it.
+                self.logger.debug("Event for unknown component id " + component_id)
+                return False
 
-            else:
-                if EventType.DISCONNECT == event.event_type:
-                    handler = self.disconnect_handler
-                    try:
-                        if handler is not None and handler.process is not None:
-                            event.set_handler(handler)
+            event.set_handler(event.component.get_handler(event))
 
-                    except AttributeError:
-                        # No process handler method, so don't use.
-                        self.logger.debug("disconnect event handler has no process method")
-                        pass
-
-            self.event_thread.add(event)
-
+        else:
             if EventType.DISCONNECT == event.event_type:
-                # Pass through to time thread so it knows to stop.
-                self.time_thread.add(event)
-                break
+                handler = self.disconnect_handler
+                try:
+                    if handler is not None and handler.process is not None:
+                        event.set_handler(handler)
+
+                except AttributeError:
+                    # No process handler method, so don't use.
+                    self.logger.debug("disconnect event handler has no process method")
+                    pass
+
+        self.event_thread.add(event)
+
+        if EventType.DISCONNECT == event.event_type:
+            # Pass through to time thread so it knows to stop.
+            self.time_thread.add(event)
+            return True
+
+        return False
 
     def set_disconnect_handler(self, handler):
         self.disconnect_handler = handler
@@ -1168,6 +1175,14 @@ class HICP:
         del self.__component_list[str(component.component_id)]
 
         self.logger.debug("Removed component from component list.") # debug
+
+    def fake_event(self, event_msg, component_id=None):
+        # If no component_id, assume event already has that set.
+        if component_id is not None:
+            event_msg.add_header(Message.ID, component_id)
+
+        # Insert the event message into the queue.
+        self.__read_thread.got_event_msg(event_msg)
 
     def text_direction(self, first_direction, second_direction):
         message = Message()

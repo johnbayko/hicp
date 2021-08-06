@@ -158,6 +158,22 @@ public class ToggleItem
         return this;
     }
 
+    public ToggleItem updateSelected(
+        final List<String> selected
+    ) {
+        final Set<String> selectionSet =
+            (null != selected)
+                ? new HashSet<>(selected)
+                : Set.of();  // Nothing selected, empty (unused) set.
+
+        for (final SelectionItem si : _selectionItemList) {
+            final boolean isSelected = selectionSet.contains(si.id);
+
+            si.component.setSelected(isSelected);
+        }
+        return this;
+    }
+
     protected Item addInvoked(final Message addCmd) {
         final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
@@ -223,9 +239,11 @@ public class ToggleItem
                 _component.remove(si.component);
             }
             updateItems(guiSelectionInfo);
-        } //else if (null != guiSelectionInfo.selected) {
-//            _listSelectionModel.updateSelected(guiSelectionInfo.selected);
-//        }
+        // Update items sets selected status, don't do that again,
+        // so "else if" here.
+        } else if (null != guiSelectionInfo.selected) {
+            updateSelected(guiSelectionInfo.selected);
+        }
 //        if (null != guiSelectionInfo.events) {
 //            setEventsInvoked(guiSelectionInfo.events);
 //        }
