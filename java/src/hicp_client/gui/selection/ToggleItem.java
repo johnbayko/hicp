@@ -33,6 +33,7 @@ public class ToggleItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
+//LOGGER.log(Level.FINE, "");  // debug
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -44,6 +45,9 @@ public class ToggleItem
 
     protected List<SelectionItem> _selectionItemList = null;
 
+    protected GUISelectionInfo.EventsEnum selectionEvents =
+        GUISelectionInfo.EventsEnum.ENABLED;
+
     class SelectionItem
         implements TextListener
     {
@@ -51,20 +55,26 @@ public class ToggleItem
 
         public final JRadioButton component;
 
+        private final GUISelectionInfo.EventsEnum events;
+
         public SelectionItem(
             final GUISelectionInfo.Item itemInfo,
             final boolean isSelected
         ) {
             id = itemInfo.id;
+            events =
+                (null != itemInfo.events)
+                    ? itemInfo.events
+                    : GUISelectionInfo.EventsEnum.ENABLED;
 
-            final JRadioButton newComponent = new JRadioButton();
-            _buttonGroup.add(newComponent);
+            component = new JRadioButton();
+            _buttonGroup.add(component);
 
             // This will be added to _selectionItemList after construction but
             // before being added to the container component, so the listener
             // will never be triggered until after then, meaning it's okay for
             // the listener to look for this item in that list.
-            newComponent.addActionListener(
+            component.addActionListener(
                 new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Create and send a selection changed event.
@@ -85,20 +95,25 @@ public class ToggleItem
                         selectionInfo.selected = selected;
 
                         _messageExchange.send(changedEvent);
+
+                        // Update component enabled status because deselecting
+                        // might change it.
+                        component.setEnabled(isEnabled());
                     }
                 }
             );
-
-            final TextItem textItem = _textLibrary.get(itemInfo.textId);
-            newComponent.setText(textItem.getText());
-            newComponent.setSelected(isSelected);
-            textItem.addTextListener(new TextListenerInvoker(this));
-
-            // TODO enabled
-
-
-
-            component = newComponent;
+            {
+                final TextItem textItem = _textLibrary.get(itemInfo.textId);
+                component.setText(textItem.getText());
+                textItem.addTextListener(new TextListenerInvoker(this));
+            }
+            {
+                final boolean checkIsEnabled = isEnabled();
+                component.setEnabled(checkIsEnabled);
+                if (checkIsEnabled && isSelected) {
+                    component.setSelected(true);
+                }
+            }
         }
 
         // GUI thread.
@@ -109,6 +124,39 @@ public class ToggleItem
 
         public boolean isSelected() {
             return component.isSelected();
+        }
+
+        public SelectionItem updateEnabled() {
+            final boolean checkIsEnabled = isEnabled();
+
+            if (!checkIsEnabled && isSelected()) {
+                // TODO: As far as I can tell, this is being called as it
+                // should, but component is not being selected.
+                component.setSelected(false);
+            }
+            component.setEnabled(checkIsEnabled);
+
+            return this;
+        }
+
+        public boolean isEnabled() {
+            // Most restrictive.
+            switch (selectionEvents) {
+              case ENABLED:
+                return (GUISelectionInfo.EventsEnum.ENABLED == events);
+              case DISABLED:
+                return false;
+              case UNSELECT:
+                if (GUISelectionInfo.EventsEnum.ENABLED == events)  {
+                    // Enabled if selected, disabled if unselected.
+                    return isSelected();
+                } else {
+                    // Disabled.
+                    return false;
+                }
+            }
+            // Shouldn't get here, return default.
+            return true;
         }
     }
 
@@ -144,8 +192,7 @@ public class ToggleItem
         for (final var item : guiSelectionInfo.items) {
             final boolean isSelected = selectionSet.contains(item.id);
 
-            final SelectionItem si =
-                new SelectionItem(item, isSelected);
+            final SelectionItem si = new SelectionItem(item, isSelected);
 
             _selectionItemList.add(si);
 
@@ -158,6 +205,7 @@ public class ToggleItem
         return this;
     }
 
+    // GUI thread (modifyInvoked()).
     public ToggleItem updateSelected(
         final List<String> selected
     ) {
@@ -170,6 +218,16 @@ public class ToggleItem
             final boolean isSelected = selectionSet.contains(si.id);
 
             si.component.setSelected(isSelected);
+        }
+        return this;
+    }
+
+    // GUI thread (modifyInvoked()).
+    protected Item updateEvents(final GUISelectionInfo.EventsEnum events) {
+        selectionEvents = events;
+
+        for (final SelectionItem si : _selectionItemList) {
+            si.updateEnabled();
         }
         return this;
     }
@@ -244,9 +302,9 @@ public class ToggleItem
         } else if (null != guiSelectionInfo.selected) {
             updateSelected(guiSelectionInfo.selected);
         }
-//        if (null != guiSelectionInfo.events) {
-//            setEventsInvoked(guiSelectionInfo.events);
-//        }
+        if (null != guiSelectionInfo.events) {
+            updateEvents(guiSelectionInfo.events);
+        }
         // Changed parent ID is handled by Controller.
         return this;
     }

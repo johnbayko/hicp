@@ -162,6 +162,7 @@ class AbleButtonHandler:
         selection_events = Message.ENABLED  # debug
         if Message.ENABLED == self.__events:
             self.__events = Message.DISABLED
+#            selection_events = Message.DISABLED  # debug
             selection_events = Message.UNSELECT  # debug
             new_text_id = self.__enabled_text_id
         else:

@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUIInfo;
-//import hicp.message.event.Connect;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
@@ -263,6 +262,7 @@ public class Controller
                         }
                         _textLibrary.update(m);
                     }
+                    break;
                   case GUI:
                     {
                         final String id = itemInfo.id;
@@ -280,6 +280,7 @@ public class Controller
                         }
                         guiItem.modify(m);
                     }
+                    break;
                   default:
                     // Unrecognized category.
                     log("Add to unrecognized category: " + itemInfo.category.name);

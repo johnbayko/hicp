@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import hicp.HeaderMap;
@@ -39,6 +41,11 @@ public class GUISelectionInfo {
     }
 
     public static class Item {
+        private static final Logger LOGGER =
+            Logger.getLogger( Item.class.getName() );
+//LOGGER.log(Level.FINE, "");  // debug
+//LOGGER.log(Level.FINE, " " + );  // debug
+
         public final String id;
         public final String textId;
         public final EventsEnum events;
