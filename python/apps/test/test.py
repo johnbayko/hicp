@@ -311,7 +311,7 @@ class TestApp(App):
         # Add selection list to selection_panel
         selection = Selection()
         item_list = {}
-        for item_id in range(1, 5):
+        for item_id in range(1, 12):
             item_text_id = hicp.add_text_get_id('Number ' + str(item_id))
             item = SelectionItem(item_id, item_text_id)
             item_list[item_id] = item
@@ -321,6 +321,7 @@ class TestApp(App):
 #        selection.set_presentation(Selection.DROPDOWN)  # debug
         selection.set_selection_mode(Selection.SINGLE)  # debug
 #        selection.set_selection_mode(Selection.MULTIPLE)  # debug
+#        selection.set_width(3)  # debug
 #        selection.set_height(5)  # debug
         selection_panel.add(selection, 0, 1)
 

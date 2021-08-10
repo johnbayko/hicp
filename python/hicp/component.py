@@ -766,6 +766,7 @@ class Selection(ContainedComponent):
         self.__mode = None
         self.__presentation = None
         self.__height = None
+        self.__width = None
 
     def set_items(self, item_list):
         self.__item_list = item_list.copy()
@@ -876,6 +877,9 @@ class Selection(ContainedComponent):
     def set_height(self, height):
         self.__height = str(height)
 
+    def set_width(self, width):
+        self.__width = str(width)
+
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
         # "items" from item list
@@ -889,6 +893,8 @@ class Selection(ContainedComponent):
             message.add_header(Message.SELECTED, self.__selected)
         if self.__height is not None:
             message.add_header(Message.HEIGHT, self.__height)
+        if self.__width is not None:
+            message.add_header(Message.WIDTH, self.__width)
 
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:

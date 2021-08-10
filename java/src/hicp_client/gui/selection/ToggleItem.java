@@ -34,6 +34,7 @@ public class ToggleItem
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
 //LOGGER.log(Level.FINE, "");  // debug
+//LOGGER.log(Level.FINE, " " + );  // debug
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -127,15 +128,7 @@ public class ToggleItem
         }
 
         public SelectionItem updateEnabled() {
-            final boolean checkIsEnabled = isEnabled();
-
-            if (!checkIsEnabled && isSelected()) {
-                // TODO: As far as I can tell, this is being called as it
-                // should, but component is not being selected.
-                component.setSelected(false);
-            }
-            component.setEnabled(checkIsEnabled);
-
+            component.setEnabled(isEnabled());
             return this;
         }
 
@@ -189,6 +182,24 @@ public class ToggleItem
                 ? new HashSet<>(guiSelectionInfo.selected)
                 : Set.of();  // Nothing selected, empty (unused) set.
 
+        // If width or height are specified, give priority to width.
+        // E.g for 9 items, if height=4 and width=2, make 2 columns (5 and 4).
+        // If height = 4 and no width, make 3 columns (4, 4, and 1).
+        final int yLimit;
+        if (guiSelectionInfo.hasWidth()) {
+            // Calculate limit from width and num items.
+            final int numItems = guiSelectionInfo.items.size();
+            final int width = guiSelectionInfo.getWidth();
+
+            yLimit = (numItems + (width - 1)) / width;
+        } else if (guiSelectionInfo.hasHeight()) {
+            // Use height as the limit.
+            yLimit = guiSelectionInfo.getHeight();
+        } else {
+            // No limit.
+            yLimit = guiSelectionInfo.items.size();
+        }
+
         for (final var item : guiSelectionInfo.items) {
             final boolean isSelected = selectionSet.contains(item.id);
 
@@ -198,6 +209,10 @@ public class ToggleItem
 
             _component.add(si.component, c);
             c.gridy++;
+            if (yLimit <= c.gridy) {
+                c.gridy = 0;
+                c.gridx++;
+            }
         }
         _component.revalidate();  // debug
         _component.repaint();  // debug

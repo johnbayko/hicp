@@ -1054,6 +1054,7 @@ events: [ "enabled" | "disabled" ]
 
     "disabled":
       The user agent will not allow the user to select or unselect an item.
+      Selected items should remain selected.
 
     "unselect":
       The user agent will only allow the user to unselect an item, and will

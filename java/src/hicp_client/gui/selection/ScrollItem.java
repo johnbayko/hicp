@@ -232,7 +232,6 @@ public class ScrollItem
             if (null == newEvents) {
                 return this;
             }
-            // TODO Clear selection for disable?
             events = newEvents;
             return this;
         }
