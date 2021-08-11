@@ -765,7 +765,7 @@ presentation: <string>
       switches, or radio buttons (normally vertically, not scrollable).
 
     "dropdown":
-      For single selection lists only (selection mode of "multiple" is
+      For single selection lists only (selection mode is
       ignored), a dropdown tool presents the available
       items for the user to select, with only the selected item visible when
       not being changed. This is the default for single selection.
@@ -1646,5 +1646,5 @@ selected: <integer> "," <integer>
     unselected. Any item not in the list is unselected.
 
     If selection mode is "single" and multiple elements are in the list, the
-    one witht he lowest ID is taken as the selected item.
+    one with the lowest ID is taken as the selected item.
 

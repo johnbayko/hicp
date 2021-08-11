@@ -44,7 +44,7 @@ public class SelectionInfo {
         String sep= "";
         for (final var selectedStr : selected) {
             s.append(sep).append(selectedStr);
-            sep = Message.EOL;
+            sep = ", ";
         }
         return s.toString();
     }

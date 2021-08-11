@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JToggleButton;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
@@ -46,7 +46,16 @@ public class ToggleItem
 
     protected List<SelectionItem> _selectionItemList = null;
 
-    protected GUISelectionInfo.EventsEnum selectionEvents =
+    private boolean _hasHeight = false;
+    private int _height = 0;
+
+    private boolean _hasWidth = false;
+    private int _width = 0;
+
+    protected GUISelectionInfo.Mode _mode =
+        GUISelectionInfo.Mode.MULTIPLE;
+
+    protected GUISelectionInfo.EventsEnum _selectionEvents =
         GUISelectionInfo.EventsEnum.ENABLED;
 
     class SelectionItem
@@ -54,7 +63,7 @@ public class ToggleItem
     {
         public final String id;
 
-        public final JRadioButton component;
+        public final JToggleButton component;
 
         private final GUISelectionInfo.EventsEnum events;
 
@@ -68,8 +77,21 @@ public class ToggleItem
                     ? itemInfo.events
                     : GUISelectionInfo.EventsEnum.ENABLED;
 
-            component = new JRadioButton();
-            _buttonGroup.add(component);
+            // Component type based on selection mode.
+            switch (_mode) {
+              case SINGLE:
+                component = new JRadioButton();
+                _buttonGroup.add(component);
+                break;
+              case MULTIPLE:
+                component = new JCheckBox();
+                break;
+              default:
+                // Should not happen because there are no other values.
+                // Will throw exception later.
+                component = null;
+                break;
+            }
 
             // This will be added to _selectionItemList after construction but
             // before being added to the container component, so the listener
@@ -134,7 +156,7 @@ public class ToggleItem
 
         public boolean isEnabled() {
             // Most restrictive.
-            switch (selectionEvents) {
+            switch (_selectionEvents) {
               case ENABLED:
                 return (GUISelectionInfo.EventsEnum.ENABLED == events);
               case DISABLED:
@@ -168,6 +190,31 @@ public class ToggleItem
     public ToggleItem updateItems(
         final GUISelectionInfo guiSelectionInfo
     ) {
+        // If any items exist and are selected, they will be deselected, so
+        // send empty selection event in that case.
+        if (null != _selectionItemList) {
+            boolean foundSelected = false;
+            for (final var si : _selectionItemList) {
+                if (si.isSelected()) {
+                    foundSelected = true;
+                    break;
+                }
+            }
+            if (foundSelected) {
+                // Create and send a selection changed event.
+                final var changedEvent = new Message(EventInfo.Event.CHANGED);
+                final var eventInfo = changedEvent.getEventInfo();
+                final var itemInfo = eventInfo.getItemInfo();
+                final var selectionInfo = itemInfo.getSelectionInfo();
+
+                itemInfo.id = idString;
+
+                // Empty selection list - won't send anything if it's null.
+                selectionInfo.selected = new LinkedList<>();
+
+                _messageExchange.send(changedEvent);
+            }
+        }
         _selectionItemList = new LinkedList<>();
 
         final GridBagConstraints c = new GridBagConstraints();
@@ -186,15 +233,14 @@ public class ToggleItem
         // E.g for 9 items, if height=4 and width=2, make 2 columns (5 and 4).
         // If height = 4 and no width, make 3 columns (4, 4, and 1).
         final int yLimit;
-        if (guiSelectionInfo.hasWidth()) {
+        if (_hasWidth) {
             // Calculate limit from width and num items.
             final int numItems = guiSelectionInfo.items.size();
-            final int width = guiSelectionInfo.getWidth();
 
-            yLimit = (numItems + (width - 1)) / width;
-        } else if (guiSelectionInfo.hasHeight()) {
+            yLimit = (numItems + (_width - 1)) / _width;
+        } else if (_hasHeight) {
             // Use height as the limit.
-            yLimit = guiSelectionInfo.getHeight();
+            yLimit = _height;
         } else {
             // No limit.
             yLimit = guiSelectionInfo.items.size();
@@ -206,8 +252,8 @@ public class ToggleItem
             final SelectionItem si = new SelectionItem(item, isSelected);
 
             _selectionItemList.add(si);
-
             _component.add(si.component, c);
+
             c.gridy++;
             if (yLimit <= c.gridy) {
                 c.gridy = 0;
@@ -237,9 +283,9 @@ public class ToggleItem
         return this;
     }
 
-    // GUI thread (modifyInvoked()).
+    // GUI thread (addInvoked(), modifyInvoked()).
     protected Item updateEvents(final GUISelectionInfo.EventsEnum events) {
-        selectionEvents = events;
+        _selectionEvents = events;
 
         for (final SelectionItem si : _selectionItemList) {
             si.updateEnabled();
@@ -264,14 +310,27 @@ public class ToggleItem
 
             _component = new JPanel(new GridBagLayout());
 
-            updateItems(guiSelectionInfo);
             break;
           case MULTIPLE:
             _component = new JPanel(new GridBagLayout());
-            _component.add(new JLabel("checkbox selection list"));  // debug
             break;
         }
 
+        // These are only set when adding, not when modifying, so save them for
+        // any future modify command.
+        _hasHeight = guiSelectionInfo.hasHeight();
+        _height = guiSelectionInfo.getHeight();
+        _hasWidth = guiSelectionInfo.hasWidth();
+        _width = guiSelectionInfo.getWidth();
+
+        updateItems(guiSelectionInfo);
+
+        if (null != guiSelectionInfo.events) {
+            updateEvents(guiSelectionInfo.events);
+        }
+        if (null != guiSelectionInfo.mode) {
+            _mode = guiSelectionInfo.mode;
+        }
         return this;
     }
 
