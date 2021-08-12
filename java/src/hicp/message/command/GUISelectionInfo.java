@@ -267,11 +267,11 @@ public class GUISelectionInfo {
     private boolean _hasHeight = false;
     private int _height = 0;
 
-    public Mode mode = null;
-    public Presentation presentation = null;
-
     private boolean _hasWidth = false;
     private int _width = 0;
+
+    public Mode mode = null;
+    public Presentation presentation = null;
 
     public GUISelectionInfo() {
     }
