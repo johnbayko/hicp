@@ -8,6 +8,8 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
@@ -26,10 +28,42 @@ public class DropdownItem
 
     private DropdownModel _dropdownModel = null;
 
-    protected JComboBox<String> _component;
+    protected JComboBox<ItemText> _component;
+
+    // TODO move to ItemTex if duplicate.
+    static class SelectionItemRenderer
+        extends JLabel
+        implements ListCellRenderer<ItemText>
+    {
+        public Component getListCellRendererComponent(
+            JList<? extends ItemText> list,
+            ItemText value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus
+        ) {
+            setText(value.getText());
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+//            final SelectionItemSelection sm =
+//                (SelectionItemSelection)list.getSelectionModel();
+//            setEnabled(
+//                (GUISelectionInfo.EventsEnum.ENABLED == sm.getEvents())
+//              && value.isEnabled()
+//            );
+            setFont(list.getFont());
+            setOpaque(true);
+            return this;
+        }
+    }
 
     class DropdownModel
-        extends DefaultComboBoxModel<String>
+        extends DefaultComboBoxModel<ItemText>
     {
         // GUI thread (addInvoked()).
         public DropdownModel(
@@ -40,8 +74,14 @@ public class DropdownItem
 
         // GUI thread (addInvoked(), modifyInvoked()).
         public void updateItems(final List<GUISelectionInfo.Item> items) {
+            int idx = 0;
+
             for (final var itemInfo : items) {
-                addElement("id: " + itemInfo.id);
+                final ItemText itemText =
+                    new ItemText(null, _textLibrary, idx, itemInfo);
+
+                addElement(itemText);
+                idx++;
             }
         }
     }
@@ -68,6 +108,8 @@ public class DropdownItem
 
         _dropdownModel = new DropdownModel(guiSelectionInfo.items);
         _component.setModel(_dropdownModel);
+
+        _component.setRenderer(new SelectionItemRenderer());
 
         return this;
     }

@@ -23,11 +23,7 @@ import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
-import hicp_client.text.TextEvent;
-import hicp_client.text.TextItem;
 import hicp_client.text.TextLibrary;
-import hicp_client.text.TextListener;
-import hicp_client.text.TextListenerInvoker;
 
 public class ScrollItem
     extends Item
@@ -44,63 +40,15 @@ public class ScrollItem
 
     protected Component _component;
 
-    class SelectionItem
-        implements TextListener
-    {
-        // Model and index in model are needed for fireContentsChanged().
-        public final int idx;
-        public final String id;
-
-        private String text = "";
-
-        private final SelectionListModel selectionListModel;
-        private final boolean enabled;
-
-        public SelectionItem(
-            final SelectionListModel newSelectionListModel,
-            final int newIdx,
-            final GUISelectionInfo.Item itemInfo
-        ) {
-            selectionListModel = newSelectionListModel;
-            idx = newIdx;
-
-            id = itemInfo.id;
-            {
-                final TextItem textItem = _textLibrary.get(itemInfo.textId);
-                text = textItem.getText();
-
-                // Adds this as a listener to the text item, but through
-                // SwingUtilities.invokeLater().
-                textItem.addTextListener(new TextListenerInvoker(this));
-            }
-            enabled = (itemInfo.events != GUISelectionInfo.EventsEnum.DISABLED);
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        // GUI thread.
-        public void textChanged(TextEvent e) {
-            TextItem ti = (TextItem)e.getSource();
-            text = ti.getText();
-
-            selectionListModel.itemChangedInvoked(this);
-        }
-    }
-
     class SelectionListModel
-        extends AbstractListModel<SelectionItem>
+        extends AbstractListModel<ItemText>
+        implements ItemText.ChangeListener
     {
         // Empty list by default.
-        private List<SelectionItem> _selectionItemList = new ArrayList<>();
+        private List<ItemText> _selectionItemList = new ArrayList<>();
 
         // Also need to map by item ID.
-        private Map<String, SelectionItem> _selectionItemMap = new HashMap<>();
+        private Map<String, ItemText> _selectionItemMap = new HashMap<>();
 
         // GUI thread (addInvoked()).
         public SelectionListModel(
@@ -126,11 +74,11 @@ public class ScrollItem
                 // Index from 0 to size - 1, next index will be size.
                 final int newIdx = _selectionItemList.size();
 
-                final SelectionItem si =
-                    new SelectionItem(this, newIdx, itemInfo);
+                final ItemText itemText =
+                    new ItemText(this, _textLibrary, newIdx, itemInfo);
 
-                _selectionItemList.add(si);
-                _selectionItemMap.put(si.id, si);
+                _selectionItemList.add(itemText);
+                _selectionItemMap.put(itemText.id, itemText);
             }
             final int newSize = _selectionItemList.size();
             final int size = Math.max(oldSize, newSize);
@@ -138,7 +86,7 @@ public class ScrollItem
             fireContentsChanged(this, 0, size-1);
         }
 
-        public SelectionItem getElementAt(final int index) {
+        public ItemText getElementAt(final int index) {
             return _selectionItemList.get(index);
         }
 
@@ -146,13 +94,13 @@ public class ScrollItem
             return _selectionItemList.size();
         }
 
-        public SelectionItem getElementForId(final String itemId) {
+        public ItemText getElementForId(final String itemId) {
             return _selectionItemMap.get(itemId);
         }
 
         // GUI thread.
         // Inform JList that this item changed.
-        public void itemChangedInvoked(final SelectionItem si) {
+        public void itemChangedInvoked(final ItemText si) {
             final int idx = si.idx;
 
             fireContentsChanged(this, idx, idx);
@@ -165,11 +113,11 @@ public class ScrollItem
 
     static class SelectionItemRenderer
         extends JLabel
-        implements ListCellRenderer<SelectionItem>
+        implements ListCellRenderer<ItemText>
     {
         public Component getListCellRendererComponent(
-            JList<? extends SelectionItem> list,
-            SelectionItem value,
+            JList<? extends ItemText> list,
+            ItemText value,
             int index,
             boolean isSelected,
             boolean cellHasFocus
@@ -264,7 +212,7 @@ public class ScrollItem
                 scanIdx++)
             {
                 final var selection = selected.get(scanIdx);
-                final SelectionItem si = _listModel.getElementForId(selection);
+                final ItemText si = _listModel.getElementForId(selection);
                 // Possible for si to be null here - log that?
 
                 selectedIdxList[scanIdx] = si.idx;
@@ -316,7 +264,7 @@ public class ScrollItem
             for (int scanIdx = index0; scanIdx != stopIdx;scanIdx += step) {
                 // Find range start or end - that is, current and previous item
                 // enabled value changes.
-                final SelectionItem si = _listModel.getElementAt(scanIdx);
+                final ItemText si = _listModel.getElementAt(scanIdx);
                 final boolean isEnabled = si.isEnabled();
 
                 if (prevIsEnabled && !isEnabled) {
@@ -423,7 +371,7 @@ public class ScrollItem
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
-        final JList<SelectionItem> newList = new JList<>();
+        final JList<ItemText> newList = new JList<>();
 
         _listModel = new SelectionListModel(guiSelectionInfo.items);
         newList.setModel(_listModel);
@@ -480,7 +428,7 @@ public class ScrollItem
                             idx++
                         ) {
                             final int selectedIdx = selectedIndices[idx];
-                            final SelectionItem si =
+                            final ItemText si =
                                 _listModel.getElementAt(selectedIdx);
                             selected.add(si.id);
                         }
