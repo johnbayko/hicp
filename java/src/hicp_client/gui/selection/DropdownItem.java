@@ -1,6 +1,8 @@
 package hicp_client.gui.selection;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,6 +16,7 @@ import javax.swing.ListCellRenderer;
 import hicp.MessageExchange;
 import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
+import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
 import hicp_client.text.TextLibrary;
 
@@ -30,7 +33,7 @@ public class DropdownItem
 
     protected JComboBox<ItemText> _component;
 
-    // TODO move to ItemTex if duplicate.
+    // TODO move to ItemText if duplicate.
     static class SelectionItemRenderer
         extends JLabel
         implements ListCellRenderer<ItemText>
@@ -110,6 +113,34 @@ public class DropdownItem
         _component.setModel(_dropdownModel);
 
         _component.setRenderer(new SelectionItemRenderer());
+
+        _component
+            .addActionListener(
+                new ActionListener() {
+                    public void actionPerformed(final ActionEvent e) {
+                        final JComboBox<ItemText> component =
+                            (JComboBox<ItemText>)e.getSource();
+
+                        final ItemText i =
+                            (ItemText)component.getSelectedItem();
+
+                        final List<String> selected = List.of(i.id);
+
+                        final var changedEvent =
+                            new Message(EventInfo.Event.CHANGED);
+                        final var eventInfo = changedEvent.getEventInfo();
+                        final var itemInfo = eventInfo.getItemInfo();
+                        final var selectionInfo = itemInfo.getSelectionInfo();
+
+                        itemInfo.id = idString;
+                        selectionInfo.selected = selected;
+
+                        _messageExchange.send(changedEvent);
+                    }
+                }
+            );
+
+        // TODO Update selection, or send changed event for default selection.
 
         return this;
     }

@@ -402,7 +402,7 @@ public class ScrollItem
         newList
             .addListSelectionListener(
                 new ListSelectionListener() {
-                    public void valueChanged(ListSelectionEvent e) {
+                    public void valueChanged(final ListSelectionEvent e) {
                         if (e.getValueIsAdjusting()) {
                             // Wait until last event to make new event
                             // message

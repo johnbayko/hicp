@@ -1111,10 +1111,17 @@ selected: [<integer> [ "," <integer> ]*]
   "selection"
     A list of items IDs from the "items" header, or empty to select no items.
     Any item not in the list is unselected. Any ID not in the "items" header
-    list must be ignored. If multiple items are in the list but the mode is
+    list must be ignored.
+
+    If multiple items are in the list but the mode is
     single selection, the client can decide how to deal with it in a way that
     makes sense (e.g. first, last, highest, lowest, etc., but probably not
     changing the mode to "multiple").
+
+    If there is no selection but the presentation is "dropdown" (which normally
+    does not allow no selection), it's up to the user agent to decide how to
+    handle it (e.g. select 0 by default), and to communicate this to the
+    server with a "changed" message.
 
 width: <string>
   If specified, this is used by these components:
