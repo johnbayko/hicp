@@ -147,23 +147,20 @@ public class DropdownItem
                         final ItemText i =
                             (ItemText)component.getSelectedItem();
 
-                        final List<String> selected = List.of(i.id);
-
-                        final var changedEvent =
-                            new Message(EventInfo.Event.CHANGED);
-                        final var eventInfo = changedEvent.getEventInfo();
-                        final var itemInfo = eventInfo.getItemInfo();
-                        final var selectionInfo = itemInfo.getSelectionInfo();
-
-                        itemInfo.id = idString;
-                        selectionInfo.selected = selected;
-
-                        _messageExchange.send(changedEvent);
+                        sendChangedEvent(i.id);
                     }
                 }
             );
 
-        // TODO Update selection, or send changed event for default selection.
+        // Update selection, or send changed event for default selection.
+        if (null != guiSelectionInfo.selected) {
+            updateSelectedInvoked(guiSelectionInfo.selected);
+        } else {
+            // Nothing specified, inform app what the default selection is.
+            final ItemText i = (ItemText)_component.getSelectedItem();
+
+            sendChangedEvent(i.id);
+        }
 
         return this;
     }
@@ -188,6 +185,21 @@ public class DropdownItem
         _component.setSelectedIndex(si.idx);
 
         _shouldSendChangedEvent = true;
+        return this;
+    }
+
+    protected Item sendChangedEvent(final String id) {
+        final List<String> selected = List.of(id);
+
+        final var changedEvent = new Message(EventInfo.Event.CHANGED);
+        final var eventInfo = changedEvent.getEventInfo();
+        final var itemInfo = eventInfo.getItemInfo();
+        final var selectionInfo = itemInfo.getSelectionInfo();
+
+        itemInfo.id = idString;
+        selectionInfo.selected = selected;
+
+        _messageExchange.send(changedEvent);
         return this;
     }
 
