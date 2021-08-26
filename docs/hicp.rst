@@ -1114,8 +1114,8 @@ selected: [<integer> [ "," <integer> ]*]
     list must be ignored.
 
     If multiple items are in the list but the mode is
-    single selection, the client can decide how to deal with it in a way that
-    makes sense (e.g. first, last, highest, lowest, etc., but probably not
+    single selection, the user agent can decide how to deal with it in a way
+    that makes sense (e.g. first, last, highest, lowest, etc., but probably not
     changing the mode to "multiple").
 
     If there is no selection but the presentation is "dropdown" (which normally

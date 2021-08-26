@@ -817,6 +817,9 @@ class Selection(ContainedComponent):
         self.__mode = mode
         self.set_changed_header(Message.MODE, self.__mode)
 
+    def get_selection_mode(self):
+        return self.__mode
+
     def set_presentation(self, presentation):
         self.__presentation = presentation
         self.set_changed_header(Message.PRESENTATION, self.__presentation)

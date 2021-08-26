@@ -127,8 +127,12 @@ class SelectionRandomHandler:
         # Select one.
         rand_item_id = random.choice(selectable_list)
 
-        # Add to current selection
-        selected_list.append(rand_item_id)
+        if Selection.MULTIPLE == self.__selection.get_selection_mode():
+            # Add to current selection
+            selected_list.append(rand_item_id)
+        else:
+            # Send new selection
+            selected_list = [rand_item_id]
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
 

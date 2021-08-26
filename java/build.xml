@@ -36,7 +36,7 @@
   <target name="compile" depends="init" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
     <javac deprecation="on" srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" includeAntRuntime="false">
-        <!--compilerarg value="-Xlint:unchecked"/-->
+        <compilerarg value="-Xlint:unchecked"/>
     </javac>
   </target>
 

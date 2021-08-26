@@ -3,7 +3,9 @@ package hicp_client.gui.selection;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
@@ -25,11 +27,13 @@ public class DropdownItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
+// LOGGER.log(Level.FINE, "");  // debug
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
     private DropdownModel _dropdownModel = null;
+    private boolean _shouldSendChangedEvent = true;
 
     protected JComboBox<ItemText> _component;
 
@@ -68,6 +72,9 @@ public class DropdownItem
     class DropdownModel
         extends DefaultComboBoxModel<ItemText>
     {
+        // Also need to map by item ID.
+        private Map<String, ItemText> _selectionItemMap = new HashMap<>();
+
         // GUI thread (addInvoked()).
         public DropdownModel(
             final List<GUISelectionInfo.Item> items
@@ -77,6 +84,9 @@ public class DropdownItem
 
         // GUI thread (addInvoked(), modifyInvoked()).
         public void updateItems(final List<GUISelectionInfo.Item> items) {
+            removeAllElements();
+            _selectionItemMap = new HashMap<>();
+
             int idx = 0;
 
             for (final var itemInfo : items) {
@@ -84,8 +94,14 @@ public class DropdownItem
                     new ItemText(null, _textLibrary, idx, itemInfo);
 
                 addElement(itemText);
+                _selectionItemMap.put(itemText.id, itemText);
+
                 idx++;
             }
+        }
+
+        public ItemText getElementForId(final String itemId) {
+            return _selectionItemMap.get(itemId);
         }
     }
 
@@ -118,6 +134,13 @@ public class DropdownItem
             .addActionListener(
                 new ActionListener() {
                     public void actionPerformed(final ActionEvent e) {
+                        if (!_shouldSendChangedEvent) {
+                            // Being adjusted for some other reason.
+                            return;
+                        }
+
+                        // There is no way around this, so suppress the warning.
+                        @SuppressWarnings("unchecked")
                         final JComboBox<ItemText> component =
                             (JComboBox<ItemText>)e.getSource();
 
@@ -145,6 +168,29 @@ public class DropdownItem
         return this;
     }
 
+    // GUI Thread (addInvoked(), modifyInvoked())
+    protected Item updateSelectedInvoked(
+        final List<String> selected
+    ) {
+        if ((null == selected) || (0 == selected.size())) {
+            // Selection not being updated.
+            return this;
+        }
+        // If there are multiple selections, only one will be chosen, so send
+        // an event indicating this change. If only one selection is sent, no
+        // event is needed.
+        _shouldSendChangedEvent = (1 < selected.size());
+
+        // Only select the first.
+        final String selectedId = selected.get(0);
+        final ItemText si = _dropdownModel.getElementForId(selectedId);
+        
+        _component.setSelectedIndex(si.idx);
+
+        _shouldSendChangedEvent = true;
+        return this;
+    }
+
     protected Component getComponent() {
         return _component;
     }
@@ -167,7 +213,21 @@ public class DropdownItem
     }
 
     protected Item modifyInvoked(final Message modifyCmd) {
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
+
         // See what's changed.
+//        if (null != guiSelectionInfo.items) {
+//            _dropdownModel.updateItems(guiSelectionInfo.items);
+//        }
+        if (null != guiSelectionInfo.selected) {
+            updateSelectedInvoked(guiSelectionInfo.selected);
+        }
+//        if (null != guiSelectionInfo.events) {
+//            setEventsInvoked(guiSelectionInfo.events);
+//        }
         // Changed parent ID is handled by Controller.
         return this;
     }
