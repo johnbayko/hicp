@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -27,7 +28,8 @@ public class DropdownItem
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
-// LOGGER.log(Level.FINE, "");  // debug
+//LOGGER.log(Level.FINE, "");  // debug
+//LOGGER.log(Level.FINE, " " + );  // debug
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -88,7 +90,6 @@ public class DropdownItem
             _selectionItemMap = new HashMap<>();
 
             int idx = 0;
-
             for (final var itemInfo : items) {
                 final ItemText itemText =
                     new ItemText(null, _textLibrary, idx, itemInfo);
@@ -147,7 +148,7 @@ public class DropdownItem
                         final ItemText i =
                             (ItemText)component.getSelectedItem();
 
-                        sendChangedEvent(i.id);
+                        sendChangedEvent(i);
                     }
                 }
             );
@@ -159,7 +160,7 @@ public class DropdownItem
             // Nothing specified, inform app what the default selection is.
             final ItemText i = (ItemText)_component.getSelectedItem();
 
-            sendChangedEvent(i.id);
+            sendChangedEvent(i);
         }
 
         return this;
@@ -181,15 +182,21 @@ public class DropdownItem
         // Only select the first.
         final String selectedId = selected.get(0);
         final ItemText si = _dropdownModel.getElementForId(selectedId);
-        
+        if (null == si) {
+            // App thinks there's an element that's not there, skip.
+            return this;
+        }
         _component.setSelectedIndex(si.idx);
 
         _shouldSendChangedEvent = true;
         return this;
     }
 
-    protected Item sendChangedEvent(final String id) {
-        final List<String> selected = List.of(id);
+    protected Item sendChangedEvent(final ItemText item) {
+        final List<String> selected =
+            (null != item)
+                ? List.of(item.id)
+                : List.of();
 
         final var changedEvent = new Message(EventInfo.Event.CHANGED);
         final var eventInfo = changedEvent.getEventInfo();
@@ -231,9 +238,9 @@ public class DropdownItem
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
 
         // See what's changed.
-//        if (null != guiSelectionInfo.items) {
-//            _dropdownModel.updateItems(guiSelectionInfo.items);
-//        }
+        if (null != guiSelectionInfo.items) {
+            _dropdownModel.updateItems(guiSelectionInfo.items);
+        }
         if (null != guiSelectionInfo.selected) {
             updateSelectedInvoked(guiSelectionInfo.selected);
         }
