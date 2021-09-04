@@ -781,7 +781,7 @@ class Selection(ContainedComponent):
             try:
                 del self.__item_list[item_key]
             except KeyError:
-                # Not there, don't want it there, it's what we want.
+                # Not there, don't want it there, situation is what we want.
                 pass
         self.items_changed()
 

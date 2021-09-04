@@ -34,13 +34,13 @@ public class DropdownItem
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
 
-    private DropdownModel _dropdownModel = null;
-    private boolean _shouldSendChangedEvent = true;
+    protected DropdownModel _dropdownModel = null;
+    protected boolean _shouldSendChangedEvent = true;
 
     protected JComboBox<ItemText> _component;
 
     // TODO move to ItemText if duplicate.
-    static class SelectionItemRenderer
+    class SelectionItemRenderer
         extends JLabel
         implements ListCellRenderer<ItemText>
     {
@@ -59,12 +59,7 @@ public class DropdownItem
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
             }
-//            final SelectionItemSelection sm =
-//                (SelectionItemSelection)list.getSelectionModel();
-//            setEnabled(
-//                (GUISelectionInfo.EventsEnum.ENABLED == sm.getEvents())
-//              && value.isEnabled()
-//            );
+//            setEnabled(value.isEnabled());
             setFont(list.getFont());
             setOpaque(true);
             return this;
@@ -231,6 +226,16 @@ public class DropdownItem
         _component = null;
     }
 
+    protected Item setEventsInvoked(final GUISelectionInfo.EventsEnum events) {
+        final boolean isEnabled =
+            (GUISelectionInfo.EventsEnum.ENABLED == events);
+        if (isEnabled != _component.isEnabled()) {
+            // Changed, update.
+            _component.setEnabled(isEnabled);
+        }
+        return this;
+    }
+
     protected Item modifyInvoked(final Message modifyCmd) {
         final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
@@ -244,9 +249,9 @@ public class DropdownItem
         if (null != guiSelectionInfo.selected) {
             updateSelectedInvoked(guiSelectionInfo.selected);
         }
-//        if (null != guiSelectionInfo.events) {
-//            setEventsInvoked(guiSelectionInfo.events);
-//        }
+        if (null != guiSelectionInfo.events) {
+            setEventsInvoked(guiSelectionInfo.events);
+        }
         // Changed parent ID is handled by Controller.
         return this;
     }
