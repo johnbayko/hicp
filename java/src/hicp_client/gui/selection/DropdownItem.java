@@ -51,6 +51,10 @@ public class DropdownItem
             boolean isSelected,
             boolean cellHasFocus
         ) {
+            if (null == value) {
+                setText("");
+                return this;
+            }
             setText(value.getText());
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
@@ -59,7 +63,7 @@ public class DropdownItem
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
             }
-//            setEnabled(value.isEnabled());
+            setEnabled(value.isEnabled());
             setFont(list.getFont());
             setOpaque(true);
             return this;
@@ -98,6 +102,14 @@ public class DropdownItem
 
         public ItemText getElementForId(final String itemId) {
             return _selectionItemMap.get(itemId);
+        }
+
+        @Override
+        public void setSelectedItem(Object anItem) {
+            final var itemText = (ItemText)anItem;
+            if (itemText.isEnabled()) {
+                super.setSelectedItem(anItem);
+            }
         }
     }
 

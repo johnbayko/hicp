@@ -295,9 +295,11 @@ public class ScrollItem
 
                 for (final SelectionRange r : enabledRanges(index0, index1)) {
                     if (isFirstRange) {
+                        // Set.
                         super.setSelectionInterval(r.index0, r.index1);
                         isFirstRange = false;
                     } else {
+                        // Add.
                         super.addSelectionInterval(r.index0, r.index1);
                     }
                 }
