@@ -170,6 +170,15 @@ public class DropdownItem
             sendChangedEvent(i);
         }
 
+        if (guiSelectionInfo.hasHeight()) {
+            final int height = guiSelectionInfo.getHeight();
+
+            final int minHeight = 2;
+            final int useHeight = (height < minHeight) ? minHeight : height;
+
+            _component.setMaximumRowCount(useHeight);
+        }
+
         return this;
     }
 
