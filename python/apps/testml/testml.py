@@ -28,7 +28,6 @@ class ButtonLangHandler:
         self.__subgroup = subgroup
 
     def update(self, hicp, event_message, component):
-        self.logger.debug("ButtonLangHandler In update handler")
         self.__hicp.set_text_group(self.__group, self.__subgroup)
         self.__clock_handler.text_group_changed()
 
@@ -496,6 +495,31 @@ class TestAppML(App):
         )
         modifier_panel.add(button_fr_ca, 0, 2)
 
+        select_lang = Selection()
+        select_lang.set_presentation(Selection.DROPDOWN)
+        select_lang.set_selection_mode(Selection.SINGLE)
+        lang_list = {}
+        lang_text_id = hicp.add_groups_text_get_id( [
+                ( "English", self.LANG_EN),
+                ( "English", self.LANG_FR, self.LANG__CA)
+            ] )
+        lang_item = SelectionItem(1, lang_text_id)
+        lang_list[1] = lang_item
+        lang_text_id = hicp.add_groups_text_get_id( [
+                ( "English (UK)", self.LANG_EN),
+                ( "English (UK)", self.LANG_FR, self.LANG__CA)
+            ] )
+        lang_item = SelectionItem(2, lang_text_id)
+        lang_list[2] = lang_item
+        lang_text_id = hicp.add_groups_text_get_id( [
+                ( "Français", self.LANG_EN),
+                ( "Français", self.LANG_FR, self.LANG__CA)
+            ] )
+        lang_item = SelectionItem(3, lang_text_id)
+        lang_list[3] = lang_item
+        select_lang.add_items(lang_list)
+        modifier_panel.add(select_lang, 0, 3)
+
         # Button to emable/disable component panel stuff.
         able_button = Button()
         able_button.set_text_id(self.DISABLE_ID)
@@ -505,7 +529,7 @@ class TestAppML(App):
                 button, text_field, selection, self.ENABLE_ID, self.DISABLE_ID
             )
         )
-        modifier_panel.add(able_button, 0, 3)
+        modifier_panel.add(able_button, 0, 4)
 
         window.add(modifier_panel, 0, 1)
 

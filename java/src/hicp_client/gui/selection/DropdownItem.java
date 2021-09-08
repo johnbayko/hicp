@@ -88,6 +88,10 @@ public class DropdownItem
             removeAllElements();
             _selectionItemMap = new HashMap<>();
 
+            if (null == items) {
+                // No items to add.
+                return;
+            }
             int idx = 0;
             for (final var itemInfo : items) {
                 final ItemText itemText =
