@@ -6,6 +6,16 @@ from datetime import datetime
 from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField, Selection, SelectionItem
 from hicp import App, AppInfo
 
+class Lang:
+    # Using http://www.lingoes.net/en/translator/langcode.htm
+    EN = "en"
+    FR = "fr"
+
+    CA = "ca"
+    GB = "gb"
+    US = "us"
+
+
 class ButtonHandlerML:
     def __init__(self, label, next_group_text, hicp):
         self.logger = newLogger(type(self).__name__)
@@ -19,17 +29,41 @@ class ButtonHandlerML:
         self.__label.update()
 
 
-class ButtonLangHandler:
-    def __init__(self, hicp, clock_handler, group, subgroup=None):
-        self.logger = newLogger(type(self).__name__)
-        self.__hicp = hicp
-        self.__clock_handler = clock_handler
-        self.__group = group
-        self.__subgroup = subgroup
+class LangSelectionHandler:
+    ENGLISH = 1
+    ENGLISH_GB = 2
+    FRENCH_CA = 3
 
-    def update(self, hicp, event_message, component):
-        self.__hicp.set_text_group(self.__group, self.__subgroup)
-        self.__clock_handler.text_group_changed()
+    DEFAULT = ENGLISH
+
+    def __init__(self, clock_handler):
+        self.__clock_handler = clock_handler
+
+        self.__group_info = {
+            self.ENGLISH : (Lang.EN, None),
+            self.ENGLISH_GB : (Lang.EN, Lang.GB),
+            self.FRENCH_CA : (Lang.FR, Lang.FR),
+        }
+        self.__prev_selection_id = None
+
+    def update(self, hicp, event, selection):
+        selection_list = selection.copy_selected_list()
+        try:
+            # Take first selection.
+            selection_id = selection_list[0]
+            if selection_id != self.__prev_selection_id:
+                try:
+                    (group, subgroup) = self.__group_info[selection_id]
+
+                    hicp.set_text_group(group, subgroup)
+                    self.__clock_handler.text_group_changed()
+
+                    self.__prev_selection_id = selection_id
+                except KeyError:
+                    return
+        except KeyError:
+            # No selection
+            return
 
 
 class TextFieldHandlerML:
@@ -63,8 +97,8 @@ class SelectionAddHandler:
 
     def update(self, hicp, event, button):
         item_text_id = hicp.add_groups_text_get_id( [
-                ("Number " + str(self.__next_id), TestAppML.LANG_EN),
-                ("Numero " + str(self.__next_id), TestAppML.LANG_FR, TestAppML.LANG__CA)
+                ("Number " + str(self.__next_id), Lang.EN),
+                ("Numero " + str(self.__next_id), Lang.FR, Lang.CA)
             ])
         new_item_list = {
             self.__next_id : SelectionItem(self.__next_id, item_text_id)
@@ -223,13 +257,6 @@ class ClockHandler(TimeHandler):
 
 # Test multilingual features.
 class TestAppML(App):
-    # Using http://www.lingoes.net/en/translator/langcode.htm
-    LANG_EN = "en"
-    LANG_FR = "fr"
-    LANG__CA = "ca"
-    LANG__GB = "gb"
-    LANG__US = "us"
-
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
 
@@ -243,33 +270,33 @@ class TestAppML(App):
         display_name = [
             (
                 "Test ML",
-                cls.LANG_EN
+                Lang.EN
             ),
             (
                 "Test ML",
-                cls.LANG_EN,
-                cls.LANG__GB
+                Lang.EN,
+                Lang.GB
             ),
             (
                 "Test ML",
-                cls.LANG_FR,
-                cls.LANG__CA
+                Lang.FR,
+                Lang.CA
             ),
         ]
         desc = [
             (
                 "Test some components with multiple languages.",
-                cls.LANG_EN
+                Lang.EN
             ),
             (
                 "Test some components with multiple languages.",
-                cls.LANG_EN,
-                cls.LANG__GB
+                Lang.EN,
+                Lang.GB
             ),
             (
                 "Testez quelques pièces avec multiple langues.",
-                cls.LANG_FR,
-                cls.LANG__CA
+                Lang.FR,
+                Lang.CA
             ),
         ]
         return AppInfo(app_name, display_name, desc)
@@ -277,37 +304,37 @@ class TestAppML(App):
     def connected(self, hicp):
         self.__logger.debug("TestAppML connected")
         hicp.text_direction(hicp.RIGHT, hicp.DOWN) # debug
-        hicp.set_text_group(self.LANG_EN)
+        hicp.set_text_group(Lang.EN)
 
         time_format_id = hicp.add_groups_text_get_id( [
-                ("%m/%d/%Y %I:%M:%S %p", self.LANG_EN),
-                ("%d/%m/%Y %I:%M:%S %p", self.LANG_EN, self.LANG__GB),
-                ("%d/%m/%Y %H:%M:%S", self.LANG_FR, self.LANG__CA)
+                ("%m/%d/%Y %I:%M:%S %p", Lang.EN),
+                ("%d/%m/%Y %I:%M:%S %p", Lang.EN, Lang.GB),
+                ("%d/%m/%Y %H:%M:%S", Lang.FR, Lang.CA)
             ] )
         clock_handler = ClockHandler(hicp, time_format_id)
 
         self.ENABLE_ID = hicp.add_groups_text_get_id( [
-                ("Enable", self.LANG_EN),
-                ("Activer", self.LANG_FR, self.LANG__CA)
+                ("Enable", Lang.EN),
+                ("Activer", Lang.FR, Lang.CA)
             ])
         self.DISABLE_ID = hicp.add_groups_text_get_id( [
-                ("Disable", self.LANG_EN),
-                ("Désactiver", self.LANG_FR, self.LANG__CA)
+                ("Disable", Lang.EN),
+                ("Désactiver", Lang.FR, Lang.CA)
             ])
 
         window = self.new_app_window()
         window.set_groups_text( [
-                ("Window", self.LANG_EN),
-                ("Fenȇtre", self.LANG_FR, self.LANG__CA)
+                ("Window", Lang.EN),
+                ("Fenȇtre", Lang.FR, Lang.CA)
             ], hicp)
         hicp.add(window)
         self.__logger.debug("TestAppML done add window")
 
         amazing_label = Label()
         amazing_label.set_groups_text( [
-                ( "Amazing!", self.LANG_EN),
-                ( "Brilliant!", self.LANG_EN, self.LANG__GB),
-                ( "Sensationnel!", self.LANG_FR, self.LANG__CA)
+                ( "Amazing!", Lang.EN),
+                ( "Brilliant!", Lang.EN, Lang.GB),
+                ( "Sensationnel!", Lang.FR, Lang.CA)
             ], hicp)
         window.add(amazing_label, 0, 0)
 
@@ -316,25 +343,25 @@ class TestAppML(App):
 
         status_label = Label()
         status_label.set_groups_text( [
-                ( "Please click the button.", self.LANG_EN),
-                ( "Veuillez cliquer sur le bouton.", self.LANG_FR, self.LANG__CA)
+                ( "Please click the button.", Lang.EN),
+                ( "Veuillez cliquer sur le bouton.", Lang.FR, Lang.CA)
             ], hicp)
         status_label.set_size(1, 1)  # debug
         component_panel.add(status_label, 1, 0)
 
         button = Button()
         button.set_groups_text( [
-                ( "Button", self.LANG_EN),
-                ( "Bouton", self.LANG_FR, self.LANG__CA)
+                ( "Button", Lang.EN),
+                ( "Bouton", Lang.FR, Lang.CA)
             ], hicp)
         button.set_size(1, 1)  # debug
         button.set_handler(
             EventType.CLICK,
             ButtonHandlerML(status_label, [
                 ( "Thank you. Don't click the button again.",
-                    self.LANG_EN),
+                    Lang.EN),
                 ( "Merci. Ne cliquez plus sur le bouton.",
-                    self.LANG_FR, self.LANG__CA)
+                    Lang.FR, Lang.CA)
             ], hicp)
         )
         component_panel.add(button, 0, 0)
@@ -350,8 +377,8 @@ class TestAppML(App):
         text_field.set_handler(
             EventType.CHANGED,
             TextFieldHandlerML(status_label, [
-                ( "Text has been changed.", self.LANG_EN),
-                ( "Le texte a été modifié.", self.LANG_FR, self.LANG__CA)
+                ( "Text has been changed.", Lang.EN),
+                ( "Le texte a été modifié.", Lang.FR, Lang.CA)
             ], hicp)
         )
         component_panel.add(text_field, 0, 1)
@@ -362,8 +389,8 @@ class TestAppML(App):
 
         selection_label = Label()
         selection_label.set_groups_text( [
-                ( "Selection", self.LANG_EN),
-                ( "Sélection", self.LANG_FR, self.LANG__CA)
+                ( "Selection", Lang.EN),
+                ( "Sélection", Lang.FR, Lang.CA)
             ], hicp)
         selection_panel.add(selection_label, 0, 0)
 
@@ -372,8 +399,8 @@ class TestAppML(App):
         item_list = {}
         for item_id in range(1, 5):
             item_text_id = hicp.add_groups_text_get_id( [
-                    ("Number " + str(item_id), self.LANG_EN),
-                    ("Numero " + str(item_id), self.LANG_FR, self.LANG__CA)
+                    ("Number " + str(item_id), Lang.EN),
+                    ("Numero " + str(item_id), Lang.FR, Lang.CA)
                 ])
             item = SelectionItem(item_id, item_text_id)
             item_list[item_id] = item
@@ -389,8 +416,8 @@ class TestAppML(App):
         # Add button
         selection_add_button = Button()
         selection_add_button.set_groups_text( [
-                ( "Add new", self.LANG_EN),
-                ( "Ajouter nouveau", self.LANG_FR, self.LANG__CA)
+                ( "Add new", Lang.EN),
+                ( "Ajouter nouveau", Lang.FR, Lang.CA)
             ], hicp)
         selection_add_button.set_handler(
             EventType.CLICK,
@@ -401,8 +428,8 @@ class TestAppML(App):
         # Remove button
         selection_remove_button = Button()
         selection_remove_button.set_groups_text( [
-                ( "Remove selected", self.LANG_EN),
-                ( "Supprimer choix", self.LANG_FR, self.LANG__CA)
+                ( "Remove selected", Lang.EN),
+                ( "Supprimer choix", Lang.FR, Lang.CA)
             ], hicp)
         selection_remove_button.set_handler(
             EventType.CLICK,
@@ -413,8 +440,8 @@ class TestAppML(App):
         # Disable button
         selection_disable_button = Button()
         selection_disable_button.set_groups_text( [
-                ( "Disable selected", self.LANG_EN),
-                ( "Désactiver choix", self.LANG_FR, self.LANG__CA)
+                ( "Disable selected", Lang.EN),
+                ( "Désactiver choix", Lang.FR, Lang.CA)
             ], hicp)
         selection_disable_button.set_handler(
             EventType.CLICK,
@@ -425,8 +452,8 @@ class TestAppML(App):
         # Enable button
         selection_enable_button = Button()
         selection_enable_button.set_groups_text( [
-                ( "Enable all", self.LANG_EN),
-                ( "Activer tout", self.LANG_FR, self.LANG__CA)
+                ( "Enable all", Lang.EN),
+                ( "Activer tout", Lang.FR, Lang.CA)
             ], hicp)
         selection_enable_button.set_handler(
             EventType.CLICK,
@@ -437,8 +464,8 @@ class TestAppML(App):
         # Select random
         selection_random_button = Button()
         selection_random_button.set_groups_text( [
-                ( "Select random", self.LANG_EN),
-                ( "Choisir au hazard", self.LANG_FR, self.LANG__CA)
+                ( "Select random", Lang.EN),
+                ( "Choisir au hazard", Lang.FR, Lang.CA)
             ], hicp)
         selection_random_button.set_handler(
             EventType.CLICK,
@@ -462,63 +489,34 @@ class TestAppML(App):
         # Modifiers get another panel
         modifier_panel = Panel()
 
-        button_en = Button()
-        button_en.set_groups_text( [
-                ( "English", self.LANG_EN),
-                ( "English", self.LANG_FR, self.LANG__CA)
-            ], hicp)
-        button_en.set_handler(
-            EventType.CLICK,
-            ButtonLangHandler(hicp, clock_handler, self.LANG_EN)
-        )
-        modifier_panel.add(button_en, 0, 0)
-
-        button_en_gb = Button()
-        button_en_gb.set_groups_text( [
-                ( "English (UK)", self.LANG_EN),
-                ( "English (UK)", self.LANG_FR, self.LANG__CA)
-            ], hicp)
-        button_en_gb.set_handler(
-            EventType.CLICK,
-            ButtonLangHandler(hicp, clock_handler, self.LANG_EN, self.LANG__GB)
-        )
-        modifier_panel.add(button_en_gb, 0, 1)
-
-        button_fr_ca = Button()
-        button_fr_ca.set_groups_text( [
-                ( "Français", self.LANG_EN),
-                ( "Français", self.LANG_FR, self.LANG__CA)
-            ], hicp)
-        button_fr_ca.set_handler(
-            EventType.CLICK,
-            ButtonLangHandler(hicp, clock_handler, self.LANG_FR, self.LANG__CA)
-        )
-        modifier_panel.add(button_fr_ca, 0, 2)
-
         select_lang = Selection()
         select_lang.set_presentation(Selection.DROPDOWN)
         select_lang.set_selection_mode(Selection.SINGLE)
         lang_list = {}
         lang_text_id = hicp.add_groups_text_get_id( [
-                ( "English", self.LANG_EN),
-                ( "English", self.LANG_FR, self.LANG__CA)
+                ( "English", Lang.EN),
+                ( "English", Lang.FR, Lang.CA)
             ] )
-        lang_item = SelectionItem(1, lang_text_id)
-        lang_list[1] = lang_item
+        lang_item = SelectionItem(LangSelectionHandler.ENGLISH, lang_text_id)
+        lang_list[LangSelectionHandler.ENGLISH] = lang_item
         lang_text_id = hicp.add_groups_text_get_id( [
-                ( "English (UK)", self.LANG_EN),
-                ( "English (UK)", self.LANG_FR, self.LANG__CA)
+                ( "English (UK)", Lang.EN),
+                ( "English (UK)", Lang.FR, Lang.CA)
             ] )
-        lang_item = SelectionItem(2, lang_text_id)
-        lang_list[2] = lang_item
+        lang_item = SelectionItem(LangSelectionHandler.ENGLISH_GB, lang_text_id)
+        lang_list[LangSelectionHandler.ENGLISH_GB] = lang_item
         lang_text_id = hicp.add_groups_text_get_id( [
-                ( "Français", self.LANG_EN),
-                ( "Français", self.LANG_FR, self.LANG__CA)
+                ( "Français", Lang.EN),
+                ( "Français", Lang.FR, Lang.CA)
             ] )
-        lang_item = SelectionItem(3, lang_text_id)
-        lang_list[3] = lang_item
+        lang_item = SelectionItem(LangSelectionHandler.FRENCH_CA, lang_text_id)
+        lang_list[LangSelectionHandler.FRENCH_CA] = lang_item
         select_lang.add_items(lang_list)
-        modifier_panel.add(select_lang, 0, 3)
+        select_lang.set_handler(
+            EventType.CHANGED,
+            LangSelectionHandler(clock_handler)
+        )
+        modifier_panel.add(select_lang, 0, 0)
 
         # Button to emable/disable component panel stuff.
         able_button = Button()
@@ -529,14 +527,14 @@ class TestAppML(App):
                 button, text_field, selection, self.ENABLE_ID, self.DISABLE_ID
             )
         )
-        modifier_panel.add(able_button, 0, 4)
+        modifier_panel.add(able_button, 0, 1)
 
         window.add(modifier_panel, 0, 1)
 
         path_label = Label()
         path_label.set_groups_text( [
-                ( "Current Path", self.LANG_EN),
-                ( "Path actuel", self.LANG_FR, self.LANG__CA)
+                ( "Current Path", Lang.EN),
+                ( "Path actuel", Lang.FR, Lang.CA)
             ], hicp)
         window.add(path_label, 0, 2)
 
@@ -547,8 +545,8 @@ class TestAppML(App):
 
         clock_label = Label()
         clock_label.set_groups_text( [
-                ( "Current Time", self.LANG_EN),
-                ( "Heure actuel", self.LANG_FR, self.LANG__CA)
+                ( "Current Time", Lang.EN),
+                ( "Heure actuel", Lang.FR, Lang.CA)
             ], hicp)
         window.add(clock_label, 0, 3)
 
