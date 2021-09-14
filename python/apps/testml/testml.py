@@ -498,19 +498,19 @@ class TestAppML(App):
                 ( "English", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.ENGLISH, lang_text_id)
-        lang_list[LangSelectionHandler.ENGLISH] = lang_item
+        lang_list[lang_item.item_id] = lang_item
         lang_text_id = hicp.add_groups_text_get_id( [
                 ( "English (UK)", Lang.EN),
                 ( "English (UK)", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.ENGLISH_GB, lang_text_id)
-        lang_list[LangSelectionHandler.ENGLISH_GB] = lang_item
+        lang_list[lang_item.item_id] = lang_item
         lang_text_id = hicp.add_groups_text_get_id( [
                 ( "Français", Lang.EN),
                 ( "Français", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.FRENCH_CA, lang_text_id)
-        lang_list[LangSelectionHandler.FRENCH_CA] = lang_item
+        lang_list[lang_item.item_id] = lang_item
         select_lang.add_items(lang_list)
         select_lang.set_handler(
             EventType.CHANGED,
