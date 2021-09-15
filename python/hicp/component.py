@@ -734,10 +734,18 @@ class TextField(ContainedComponent):
 
 
 class SelectionItem():
-    def __init__(self, item_id, text_id, events=None):
+    """
+    A selection item, to specify HICP values for:
+        - id: Integer which identifies item and indicates display order.
+        - text id: ID of the text to display.
+        - events: What events this item generates.
+    and an optional object (item) associated with this selection item.
+    """
+    def __init__(self, item_id, text_id, events=None, item=None):
         self.item_id = item_id
         self.text_id = text_id
         self.events = events
+        self.item = item
 
 class Selection(ContainedComponent):
     MODE = Message.MODE
@@ -757,7 +765,7 @@ class Selection(ContainedComponent):
         ContainedComponent.__init__(self)
         self.component = Component.SELECTION
 
-        self.__item_list = {} # Key is int
+        self.__item_list = {} # Key is int, value is SelectionItem
         self.__items = None
 
         self.__selected_list = [] # ID is int
@@ -769,14 +777,17 @@ class Selection(ContainedComponent):
         self.__width = None
 
     def set_items(self, item_list):
+        """item_list is a dict of int id and SelectionItem."""
         self.__item_list = item_list.copy()
         self.items_changed()
 
     def add_items(self, item_list):
+        """item_list is a dict of int id and SelectionItem."""
         self.__item_list.update(item_list)
         self.items_changed()
 
     def del_items(self, item_list):
+        """item_list is a list of int ids."""
         for item_key in item_list:
             try:
                 del self.__item_list[item_key]
@@ -786,9 +797,11 @@ class Selection(ContainedComponent):
         self.items_changed()
 
     def get_item(self, item_id):
+        """Returns SelectionItem."""
         return self.__item_list[item_id]
 
     def copy_items(self):
+        """Returns dict of int id and SelectionItem."""
         return self.__item_list.copy()
 
     def items_changed(self):
@@ -875,7 +888,21 @@ class Selection(ContainedComponent):
         self.set_changed_header(Message.SELECTED, self.__selected)
 
     def copy_selected_list(self):
+        """Returns a copy of the selected list."""
         return self.__selected_list.copy()
+
+    def get_selected_item_list(self):
+        """Returns a list (not a map, can't be passed to set_items()) of
+        SelectionItem."""
+        item_list = []
+        for item_id in self.__selected_list:
+            try:
+                item = self.__item_list[item_id]
+                item_list.append(item)
+            except IndexError:
+                # Selection out of sync with item list, skip this selection
+                pass
+        return item_list
 
     def set_height(self, height):
         self.__height = str(height)
