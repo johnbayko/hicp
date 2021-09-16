@@ -123,8 +123,10 @@ class Message:
                     # End of message or EOF.
                     if 0 >= line_cnt:
                         # Message not even started, nothing to read.
-                        # TODO: Not being handled correctly, return a disconnect event instead.
+                        # Probably disconnected.
                         self.disconnected = True
+                        self.set_type(self.EVENT, self.DISCONNECT)
+                        return
                     break
 
                 line_cnt = line_cnt + 1
@@ -266,7 +268,7 @@ class Message:
                     pass
         except ConnectionResetError:
             # Connection closed, interpret as diconnect event.
-            self.logger.debug("ConnectionResetError")  # debug
+            self.disconnected = True
             self.set_type(self.EVENT, self.DISCONNECT)
 
     # Read until CR LF is found.

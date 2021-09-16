@@ -89,14 +89,12 @@ class HICPd(threading.Thread):
                     raise cae
 
             # start actual reception app.
-            print('start()')  # debug
             f = cs.makefile(mode='rw', encoding='utf-8', newline='\n')
 
             # Make an authenticator.
             authenticator = Authenticator(os.path.join(sys.path[0], "users"))
 
             # Make an HICP object.
-            print("about to make HICP")
             hicp = HICP(
                 in_stream=f,
                 out_stream=f,

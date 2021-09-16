@@ -1146,7 +1146,6 @@ class HICP:
         component.changed_header_list.clear()
 
     def remove(self, component):
-        self.logger.debug("Remove component.") # debug
         if component.added_to_hicp is None:
             # Not added yet, so can't remove.
             self.logger.debug("Can't remove component, has not been added.") # debug
@@ -1164,17 +1163,12 @@ class HICP:
         message.add_header(Message.ID, str(component.component_id))
 
         self.__write_thread.write(message)
-        self.logger.debug("sent Remove component message.") # debug
 
         # If there were changed headers, they don't matter now.
         component.changed_header_list.clear()
 
-        self.logger.debug("Cleared header list.") # debug
-
         # Remove from component list.
         del self.__component_list[str(component.component_id)]
-
-        self.logger.debug("Removed component from component list.") # debug
 
     def fake_event(self, event_msg, component_id=None):
         # If no component_id, assume event already has that set.

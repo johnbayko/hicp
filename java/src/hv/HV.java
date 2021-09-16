@@ -53,11 +53,9 @@ public class HV {
                 _socket = null;
 
                 _hicp = null;
-                LOGGER.log(Level.FINE, "HICP closed");  // debug
 
                 _hicp_ParamsFrame.setConnectEnabled(true);
                 _hicp_ParamsFrame.setDisconnectEnabled(false);
-                LOGGER.log(Level.FINE, "HICP Disconnected");  // debug
             }
 
             /**
@@ -129,7 +127,7 @@ public class HV {
                     );
 
                 // Make HICP
-                _hicp = new Controller(hicpSession, _hicpMonitor/*, LOGGER*/);
+                _hicp = new Controller(hicpSession, _hicpMonitor);
                 _hicp.connect();
             } catch (UnknownHostException ex) {
                 _hicp = null;

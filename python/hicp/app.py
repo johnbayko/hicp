@@ -62,7 +62,6 @@ class App:
 
     def connected(self):
         # By default, do nothing.
-        print('default connected() method, disconnecting')  # debug
         hicp.disconnect()
 
     def new_app_window(self):
