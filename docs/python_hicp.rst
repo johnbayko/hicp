@@ -5,7 +5,8 @@ Python HICP interface library
 Introduction
 ============
 
-This allows HICP messages to be sent and received in Python to produce an
+This library
+allows HICP messages to be sent and received in Python to produce an
 interactive app on a client (user agent), either locally on the same sytem, or
 over a network..
 
@@ -70,6 +71,9 @@ that is done, if the connection event include an app name, that app is selected
 from ``app_list``. If there is no app specified, or the name can't be found in
 app_list, then ``default_spp`` is used as the app name. If that can't be found
 in the list, the first app in the list is selected.
+
+Knowledge of this class is not needed for just creating an app. This would be
+used by the server which manages the stream creation and applet loading.
 
 ``in_stream`` is a file object which implements ``read()``, ``out_stream`` is a
 file object that implements ``write()``. Typically using sockets, a file object
@@ -149,6 +153,31 @@ layout goes right to left or left to right.  Defined values are:
 - hicp.UP
 - hicp.DOWN
 
+HICP set_text_group()
+---------------------
+
+::
+
+  hicp.set_text_group("es")
+
+  hicp.set_text_group("es", "mx")
+
+This applies only when using HICP to manage language groups, so will affect
+HICP ``add_text_get_id()``, ``add_groups_text_get_id()``, or component
+``set_text()`` or ``set_groups_text()`` described below. This selects the
+specified group and subgroup, then updates the user agent text library to the
+new text strings. This has the effect of updating all text displayed to the
+user.
+
+HICP get_text_group()
+---------------------
+
+::
+
+  (group, subgroup) = hicp.get_text_group
+
+Returns the current text group and subgroup, or ``None`` when not set.
+
 HICP add_text() and add_all_text()
 ----------------------------------
 
@@ -158,62 +187,96 @@ HICP add_text() and add_all_text()
 
   hicp.add_all_text({ 1: "Name:", 2: "Position:" })
 
-There are two ways of setting text in a component that supports it. The first
-way is to add the text and an ID number, then set the component text using
-``set_text_id()``. The other method handles assigning text IDs automatically,
-and is described below. That's an easier way and should be used unless there's
-a need to do it this way. It's important not to mix the two methods unless you
-really know what you're doing.
+There are two ways of setting text in a component that supports it:
 
-``add_text()`` Adds a text string with a sp[ecific ID number to the user agent
-text library, to be used by a component to be added later.
+- Add the text with an ID number, then set the component text using
+  ``set_text_id()``.
+- Let HICP handle assigning text IDs automatically, described in the components
+  section below.
+
+The second is easier and should for simple cases.  It's important not to mix
+the two methods unless you really know what you're doing.
+
+``add_text()`` Adds a text string with a sp[ecific ID number for the current
+group and subgroup, and to the user agent text library. The ID can be used by a
+component added later.
 
 ``add_all_text()`` specifies multiple IDs and values to add to the user agent
-text library. Text can be added in multiple parts, previously added text is not
-removed.
+text library.
 
-When using text ID numbers, HICP does not keep track of text group, so they
-should not be mixed. To use the text group, the text and group information is
-added directly to each component (described below).
+Text is added to the current group and subgroup, text for other groups being
+used will be empty. If the groups or subgroup are changed, the text will not
+change since it's the only option.
 
 You might want to use these if you need to replace text from some external
-source (either a group of text IDs, or all text). Otherwise it's probably
-easier to specify the text directly using component ``set_text()`` or
-``set_groups_text()``. The downside to that is that it will accept typos
-without question, but using text IDs will ensure the same spelling is always
-used everywhere the text is specified.
+source (either a group of text IDs, or all text), or to manage large numbers of
+ted groups. For small number of groups, or when groups aren't needed, it's
+probably easier to specify the text directly using hicp ``add_text_get_id()``
+or ``add_grups_text_get_id()``, or component ``set_text()`` or
+``set_groups_text()``. The downside to that is that setting text directly will
+accept typos without question, but using text IDs will ensure the same spelling
+is always used everywhere the text ID is specified.
 
 See the "Components supporting text" section for more on using text IDs and
 text groups.
 
-HICP add_groups_text_get_id()
------------------------------
+HICP add_text_get_id() and add_groups_text_get_id()
+---------------------------------------------------
 
 ::
+
+  NAME_ID = hicp.add_text_get_id("Name")
+
+  NAME_ID = hicp.add_text_get_id("Name", "en", "us")
 
   NAME_ID = hicp.add_groups_text_get_id([("Name", "en"), ("Nom", "fr")])
 
-"groups" is plural in this name. It stores the given texts for all text groups,
-and returns the ID to refer to all of them. That ID can then be used with a
-components ``set_text_id()`` method.  When the HICP text group is changed, the
-user agent is updated with the correct texts for the new group.
+``add_text_get_id()`` adds a text string (to the specified group and subgroup,
+to the current text group and subgroup if not specified), but returns an ID for
+it, rather than requiring an ID to be specified. This is useful for dynamically
+generated strings. The ID can be used with a components ``set_text_id()``
+method.
 
-The ID is set based on the text for the current group. If the same text appears
-in another call to this method, the other strings in the new call will replace
-the previously added strings.
+``add_groups_text_get_id()`` ("groups" is plural in this name) stores the given
+texts for the specified text groups, and returns an ID to refer to all of them.
+When the HICP text group is changed, the user agent is updated with the correct
+texts for the new group.
 
-HICP set_text_group()
----------------------
+The ID returned by ``add_groups_text_get_id()`` is determined by matching the
+text for the current group, and allocating a new one if no match is found. If
+the same text for the current group is specified in another call to this
+method, it will match that ID, and the strings for other groups in the new call
+will replace the previously added strings. For example ``("Back", "Dos")``
+(compared to "Front") will replace ``("Back", "Arrière")`` (direction), which
+would not be what you want.
+
+HICP get_text()
+---------------
 
 ::
 
-  hicp.set_text_group("es")
+  s = hicp.get_text(NAME_ID)
 
-This applies only to the second way of setting component text (component
-``set_text()`` or ``set_groups_text()`` described below), this selects the
-specified group, then updates the user agent text library to the new text
-strings. This has the effect of updating all text displayed to the user.  It's
-important not to mix the two methods unless you really know what you're doing.
+Returns the text string for the given ID, for the current text group and
+subgroup.
+
+HICP sort()
+-----------
+
+::
+
+  unsorted_ingredients = []
+
+  for ingredient in recipe:
+    name_id = hicp.add_text_get_id(ingredient.name)
+    unsorted_ingredients.append((name_id, ingredient))
+
+  sorted_ingredients = hicp.sort(unsorted_ingredients)
+
+``sort()`` takes a list of tuples of the form ``(text_id, object)`` and sorts
+them based on the text strings for the current text group and subgroup. For
+example "en" would sort based on "egg", "flour", "milk", while "fr" would sort
+based on "farine", "lait", "oeuf".
 
 HICP add()
 ----------
@@ -238,6 +301,19 @@ HICP remove()
 
 Remove a component that was added using ``add()``.
 
+HICP get_all_app_info()
+-----------------------
+
+::
+
+  all_apps = hicp.get_all_app_info()
+
+  name = all_apps['cals'].display_name.get_text()
+  description = all_apps['cals'].description.get_text()
+
+Returns a dictionary of AppInfo objects, indexed by the AppInfo.app_name value.
+AppInfo objects are explained in the App section below.
+
 HICP switch_app()
 -----------------
 
@@ -248,6 +324,38 @@ HICP switch_app()
 Stops the current app, and starts a new one with the given name. If the name is
 not an actual app, this is treated as a disconnect request.
 
+HICP add_timer_handler()
+------------------------
+
+::
+
+  class NewTimeHandler(TimeHandler):
+    def __init__(self, clock_text):
+        ...initialization...
+        self.time_info = TimeHandlerInfo(1, is_repeating=True)
+
+    def get_info(self):
+        return self.time_info
+
+    def feedback(self, hicp, event_message, component):
+        ...optional event feedback...
+
+    def process(self, event_message, component):
+        ...optional long term processing...
+
+    def update(self, hicp, event_message, component):
+        ...optional update results
+
+  hicp.add_time_handler(NewTimeHandler())
+
+Adds a handler to be called after a specific number of seconds has passed,
+optionally repeating.  A time event is not associated with a component, but
+operates in the same way, as explained in the component section below.
+
+Unlike other handlers, a time handler must extend the ``TimeHandler`` class,
+and override the ``get_info()`` method to return a ``TimeHandlerInfo`` object.
+That object specifies the number of seconds the timer is for, and an optional
+flag indicating whether the event should repeat (``False`` by default).
 
 HICP disconect()
 ----------------
@@ -259,6 +367,47 @@ HICP disconect()
 Sends a disconnect command to the user agent. Does not preemptively close the
 connection, this allows the user agent time to do any cleanup it wants to, then
 send a disconnect event when it's ready.
+
+HICP set_disconnect_handler()
+-----------------------------
+
+::
+
+  class DisconnectHandler:
+    def process(self, event_message, component):
+        ...optional long term processing...
+
+  hicp.set_disconnect_handler(DisconnectHandler())
+
+Sets a handler to be called when a disconnect event is received. A disonnect
+event is not associated with a component, but operates in the same way, as
+explained in the component section below.
+
+One significant difference is that a connection to the user agent can't be
+assumed to be valid, so normally only the ``process()`` stage would be useful
+to implement.
+
+HICP fake_event()
+-----------------
+
+::
+
+  button = Button()
+  ...configure and add button...
+
+  event = Message()
+  event.set_type(Message.EVENT, Message.CLICKED)
+  event.add_header(Message.ID, str(button.component_id))
+
+  hicp.fake_event(event)
+
+Adds an event message to the processing queue to appear as if it was received
+from the user agent.
+
+One use for this would be if a selection was changed by the app, the user agent
+would not send a change event because it assumes the app is aware of the
+change it made. It can simplify things if the change is inserted as an event to
+be processed the normal way, rather than adding extra code to handle it.
 
 Apps
 ====
