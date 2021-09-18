@@ -70,6 +70,7 @@ class App:
         app_window.set_handler(EventType.CLOSE, AppWindowCloser())
         return app_window
 
+# For internal use.
 class AppSpec:
     def __init__(self, app_cls, app_path):
         # If app instance needs to ba cached, can be done here.

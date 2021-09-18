@@ -756,13 +756,14 @@ presentation: <string>
       All items are displayed in a list in which they can be selected or
       unselected by clicking on them. The items can be scrolled if there are
       too many for the list height ("height" header). This is the default for
-      multiple selection. This is the default for multiple selection.
+      multiple selection.
 
     "toggle":
       Items are displayed as individual items on a panel which the user agent
       determins based on the GUI style and other attributes, such as single /
       multi selection or scroll height settings, That could be check boxes,
-      switches, or radio buttons (normally vertically, not scrollable).
+      switches, or radio buttons (normally arranged vertically, not
+      scrollable).
 
     "dropdown":
       For single selection lists only (selection mode is

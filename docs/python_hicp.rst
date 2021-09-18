@@ -324,39 +324,6 @@ HICP switch_app()
 Stops the current app, and starts a new one with the given name. If the name is
 not an actual app, this is treated as a disconnect request.
 
-HICP add_timer_handler()
-------------------------
-
-::
-
-  class NewTimeHandler(TimeHandler):
-    def __init__(self, clock_text):
-        ...initialization...
-        self.time_info = TimeHandlerInfo(1, is_repeating=True)
-
-    def get_info(self):
-        return self.time_info
-
-    def feedback(self, hicp, event_message, component):
-        ...optional event feedback...
-
-    def process(self, event_message, component):
-        ...optional long term processing...
-
-    def update(self, hicp, event_message, component):
-        ...optional update results
-
-  hicp.add_time_handler(NewTimeHandler())
-
-Adds a handler to be called after a specific number of seconds has passed,
-optionally repeating.  A time event is not associated with a component, but
-operates in the same way, as explained in the component section below.
-
-Unlike other handlers, a time handler must extend the ``TimeHandler`` class,
-and override the ``get_info()`` method to return a ``TimeHandlerInfo`` object.
-That object specifies the number of seconds the timer is for, and an optional
-flag indicating whether the event should repeat (``False`` by default).
-
 HICP disconect()
 ----------------
 
@@ -368,29 +335,12 @@ Sends a disconnect command to the user agent. Does not preemptively close the
 connection, this allows the user agent time to do any cleanup it wants to, then
 send a disconnect event when it's ready.
 
-HICP set_disconnect_handler()
------------------------------
-
-::
-
-  class DisconnectHandler:
-    def process(self, event_message, component):
-        ...optional long term processing...
-
-  hicp.set_disconnect_handler(DisconnectHandler())
-
-Sets a handler to be called when a disconnect event is received. A disonnect
-event is not associated with a component, but operates in the same way, as
-explained in the component section below.
-
-One significant difference is that a connection to the user agent can't be
-assumed to be valid, so normally only the ``process()`` stage would be useful
-to implement.
-
 HICP fake_event()
 -----------------
 
 ::
+
+  from hicp import Button, Message
 
   button = Button()
   ...configure and add button...
@@ -407,7 +357,92 @@ from the user agent.
 One use for this would be if a selection was changed by the app, the user agent
 would not send a change event because it assumes the app is aware of the
 change it made. It can simplify things if the change is inserted as an event to
-be processed the normal way, rather than adding extra code to handle it.
+be processed the normal way, rather than factoring the code out into a new
+method (managing the relevant state as well) to handle it.
+
+TextSelector
+------------
+
+::
+
+  from hicp import TextSelector
+
+  ts = TextSelector( [
+    ('Beep'),  # Default, assume robot.
+    ('Hello', 'en'),
+      ('Bonjour', 'fr'),
+      ('Bonjour-Hi', 'fr', 'ca'),  # Regional variation.
+    ] )
+
+A ``TextGroup`` object holds a set of texts with the same meaning, for different
+groups and subgroups. It's created with a list of tuples, each field containing:
+
+- The text for the given group and subgroup.
+
+- The group code, if specified.
+
+- The subgroup code, if specified.
+
+The group and subgroup are used by the ``get_text()`` method.
+
+An ``AppInfo`` object will return these for the user visible app name and
+description, to allow the correct one to be presented for the current group and
+subgroup.
+
+TextSelector add_text()
+-----------------------
+
+::
+
+  from hicp import TextSelector
+
+  ts = TextSelector( [
+      ('Hello', 'en'),
+      ('Bonjour', 'fr'),
+    ] )
+  ts.add_text('Bonjour-Hi', 'fr', 'ca') # Regional variation
+
+Add or replace a text for the given optional group and subgroup, to the given
+text selection object. Group and subgroup arguments are optional.
+
+TextSelector add_all_text()
+---------------------------
+
+::
+
+  from hicp import TextSelector
+
+  ts = TextSelector( [('Beep')] )
+  ...
+  ts.add_all_text( [
+      ('Hello', 'en'),
+      ('Bonjour', 'fr'),
+      ('Bonjour-Hi', 'fr', 'ca'),
+    ] )
+
+Add or replace all text from the given list of tuples. The list is the same
+format as for the constructor.
+
+TextSelector get_text()
+-----------------------
+
+::
+
+  greeting = ts.get_text()
+
+  greeting = ts.get_text('en')
+
+  greeting = ts.get_text('en', 'ca')
+
+Get the text stored in this ``TextSelector`` for the given group and subgroup.
+The selector will try to find the best match, from most specific to least. For
+example, if there is no variation for group 'en' and subgroup 'ca', then group
+'en' with no subgroup is used. If there is no text for that group without a
+subgroup, an arbitrary subgroup will be selected.
+
+Similarly if a specified group has no text, the default text will be used, and
+if there is no default text, an arbitrary group, or group with subgroup, will
+be selected.
 
 Apps
 ====
@@ -434,14 +469,15 @@ methods it specifies. Those are:
     The app name.
 
   ``display_name``
-    A TextSelector with the name to display to users, if needed.
+    A ``TextSelector`` with the name to display to users, if needed.
 
   ``description``
-    A TextSelector with the description of the app.
+    A ``TextSelector`` with the description of the app.
 
   ``display_name`` and ``description`` are ``TextSelector`` objects to allow
-  strings identified by group and subgroup (usually language codes). The
-  parameters can be a string, a tuple (text, group, subgroup), a list of
+  strings identified by group and subgroup. The
+  parameters for these
+  can be a string, a tuple (text, group, subgroup), a list of
   tuples, or an actual ``TextSelector`` object.
 
   If not overridden, this will use the result of ``get_app_name()`` for both
@@ -454,7 +490,7 @@ methods it specifies. Those are:
   have event handlers to respond to use events, or the app won't do anything
   except display whatever is added here.
 
-  Normally one handler (e.g. a "Quit" button, ot the window close handler) will
+  Normally one handler (e.g. a "Quit" button, or the window close handler) will
   call ``hicp.disconnect()`` to exit the app.
 
   If not overridden, this just calls ``hicp.disconnects()``.
@@ -560,6 +596,41 @@ there is never any guarantee that the event will be received, so any important
 data should be saved immediately rather than waiting for the disconnect
 handler.
 
+Timeout handling
+----------------
+
+::
+
+  from hicp import TimeHandler
+
+  class EverySecond(TimeHandler):
+    def __init__(self, clock_text):
+        ...initialization...
+        self.time_info = TimeHandlerInfo(1, is_repeating=True)
+
+    def get_info(self):
+        return self.time_info
+
+    def feedback(self, hicp, event_message):
+        ...optional event feedback...
+
+    def process(self, event_message):
+        ...optional long term processing...
+
+    def update(self, hicp, event_message):
+        ...optional update results
+
+  hicp.add_time_handler(EverySecond())
+
+Adds a handler to be called after a specific number of seconds has passed,
+optionally repeating.  A time event is not associated with a component, but
+operates in the same way.
+
+Unlike other handlers, a time handler must extend the ``TimeHandler`` class,
+and override the ``get_info()`` method to return a ``TimeHandlerInfo`` object.
+That object specifies the number of seconds the timer is for, and an optional
+flag indicating whether the event should repeat (``False`` by default).
+
 Components
 ==========
 
@@ -590,7 +661,7 @@ First way of setting text:
 This sets the component displayed text to the text in the user agent text
 library indicated by the ID number, which can be a static number added
 previously using HICP ``add_text()`` or ``add_all_text()``, or a dynamically
-assigned number from ``add_groups_text_get_id()``.
+assigned number from ``add_text_get_id()`` or  ``add_groups_text_get_id()``.
 
 A static ID doesn't support text groups, so shouldn't be mixed with
 ``set_text()`` or ``set_groups_text()``, but an assigned ID will work.
@@ -936,6 +1007,323 @@ A handler can be added to a ``TextField`` for these events:
 
   The text field is updated with the changed contents and attributes before the
   handler functions are called, so ``get_content()`` etc. behaves as expected.
+
+Selection
+=========
+
+::
+
+    from hicp import Selection, SelectionItem
+
+    a = Able()
+    b = Baker()
+    c = Charlie()
+
+    s = Selection()
+    s.add_items( {
+        1: SelectionItem(1, hicp.add_text-get_id(a.name)),
+        2: SelectionItem(2, hicp.add_text-get_id(b.name)),
+        3: SelectionItem(3,
+          hicp.add_text-get_id(c.name),
+          events=Selection.DISABLED),
+      } )
+    s.set_presentation(Selection.SCROLL)
+    s.set_selection_mode(Selection.MULTIPLE)
+    w.add(s, 1, 2)
+
+A selection displays several items that the user can select or deselect,
+presented in different ways.
+
+The items are displayed as strings, using the specified text ID, with the
+specified item ID. Item IDs are arbitrary, and must be unique to the selection
+component they are added to (another component can use the same ID for its
+items). An item can be disabled by setting its ``events`` field, which won't
+allow the user to select or deselect them, while the others are unaffected.
+
+A selection component can present the selection items in several ways described
+in the ``set_presentation()`` section, and can allow single or multiple
+selecitons as described in the ``set_mode()`` section. Some presentation aspects
+can be specified as well as some selection behaviour.
+
+Selection set_items()
+---------------------
+
+::
+
+  from hicp import Selection, SelectionItem
+
+  contact_items = {}
+  contact_id = 0
+  for contact in contacts:
+    name = contact.name
+    name_id = hicp.add_text_get_id(name)
+
+    if contact.category == 'work':
+      events = Selection.ENABLE
+    else:
+      events = Selection.DISABLE
+
+    contact_items[contact_id] = \
+      Selectionitem(contact_id, name_id, events=events, congtact)
+
+  s.set_items(contact_items)
+
+Replaces all current items with those from the specified dictionary of
+``SelectionItem`` objects indexed by the selection id. No previous items
+remain. A ``Selectionitem`` just has the fields passed in as the parameters:
+
+item_id
+    An arbitrary integer identifying the selection item.
+
+text_id
+    The text ID of the string to display for the item
+
+events
+    Specity if the item can be selected or unselected to generate changed
+    events. Can be:
+
+    - Selection.ENABLED
+    - Selection.DISABLED
+
+item
+    An arbitrary object associated with this item, so it can be matched without
+    needing to look up an object using the item ID.
+
+The dictionary is copied so can be modified afterwards, but the
+``SelectionItems`` are not, so shouldn't be modified accidentally.
+
+Selection add_items()
+---------------------
+
+::
+
+  from hicp import Selection, SelectionItem
+
+  s = Selection()
+
+  contact_id = 0
+  for contact in contacts:
+    name = contact.name
+    name_id = hicp.add_text_get_id(name)
+    if contact.category == 'work':
+      events = Selection.ENABLE
+    else:
+      events = Selection.DISABLE
+
+    s.add_items( {
+        contact_id:
+          Selectionitem(contact_id, name_id, events=events, congtact)
+      } )
+
+Adds items from the specified dictionary of ``SelectionItem`` objects indexed
+by the selection id. Existing items with the same item ID are replaced, but any
+others will remain.
+
+The dictionary is copied so can be modified afterwards, but the
+``SelectionItems`` are not, so shouldn't be modified accidentally.
+
+Selection del_items()
+---------------------
+
+::
+
+  s.del_items([1, 3, 4])
+
+Deletes all items with the item IDs in the specified list.
+
+Selection get_item()
+--------------------
+
+::
+
+  si = s.get_item(3)
+
+Returns the ``SelectionItem`` for the given item ID. She returned item is the
+original, not a copy, so shouldn't be modified accidentally.
+
+Selection copy_items()
+----------------------
+
+::
+
+  items = s.copy_items()
+
+Returns a copy of the current ``SelectionItems``, in a dictionary with the same
+format as passed to ``add_items()``. A copy is passed so the returned
+dictionary can be modified, but the ``SelectonItems`` are the original and
+shouldn't be changed accidentally.
+
+Selection set_selection_mode()
+------------------------------
+
+::
+
+  s.set_selection_mode(Selection.SINGLE)
+
+Sets whether multiple items can be selected at once. Mode can be:
+
+``Selection.SINGLE``
+    Only a single item can be selected at a time, although no selection is also
+    valid, depending on the presentation.
+
+``Selection.MULTIPLE``
+    Any number can be selected, including none. This is the default.
+
+Selection set_presentation()
+----------------------------
+
+::
+
+  s.set_presentation(Selection.SCROLL)
+
+Sets how the items will be presented to the user for selection.
+
+``Selection.SCROLL``
+    All items are displayed in a list in which they can be selected or
+    unselected by clicking on them. The items can be scrolled if there are
+    too many for the list height. This is the default for
+    multiple selection.
+
+``Selection.TOGGLE``
+    Items are displayed as individual items on a panel which the user agent
+    determins based on the GUI style and other attributes, such as single /
+    multi selection or scroll height settings, That could be check boxes,
+    switches, or radio buttons (normally arranged vertically, not
+    scrollable).
+
+``Selection.DROPDOWN``
+    For single selection lists only (selection mode is ignored), a dropdown
+    tool presents the available items for the user to select, with only the
+    selected item visible when not being changed. This is the default for
+    single selection.
+
+Selection set_selected_list()
+-----------------------------
+
+::
+
+  s.set_selected_list([1, 3])
+
+Sets the items that are selected, based on the item IDs specified in the
+parameter.
+
+Selection del_selected_list()
+-----------------------------
+
+::
+
+  s.del_selected_list([1, 3])
+
+Removed items from those that are selected, based on the item IDs specified in
+the parameter.
+
+Selection set_selected_string()
+------------------------------
+
+::
+
+  s.set_selected_string("1, 3")
+
+Same as ``set_selected_list()``, but the items are specified as a string of
+integers separated by commas.  If the string is not valid, the selection will
+be cleared (no items selected).
+
+Selection copy_selected_list()
+------------------------------
+
+::
+
+  selected = s.copy_selected_list()
+
+Returns a copy of the list of selected item IDs.
+
+Selection get_selected_itsm_list()
+----------------------------------
+
+::
+
+  selected = s.get_selected_item_list()
+
+Returns a list of the ``SelectionItem`` objects that are selected. The list can
+be modified, but the ``SelectionItems`` are the originals, so should not be
+modified accidentally.
+
+Selection set_height()
+----------------------
+
+::
+
+  s.set_height(10)
+
+The interpretation depends on the presentation.
+
+For ``Selection.SCROLL``, indcates the desired number of items visible in the
+selection area, with the rest available by scrolling.
+
+For ``Selection.TOGGLE``, indicates the desired numnber of itemd arranged
+vertically before starting a new column of items.
+
+The actual result depends on the user agent implementation. It may be ignored
+for other presentations.
+
+Selection set_width()
+---------------------
+
+::
+
+  s.set_width(2)
+
+The interpretation depends on the presentation.
+
+For ``Selection.TOGGLE``, indicates the desired numnber of columns displayed.
+
+The actual result depends on the user agent implementation. It may be ignored
+for other presentations.
+
+Selection set_handler()
+-----------------------
+
+::
+
+  from hicp import EventType, Selection, TextField
+
+  class SelectionHandler:
+    def __init__(address_field):
+      self.__address_field = address_field
+
+    def feedback(self, hicp, event_message, selection):
+        ...optional event feedback...
+
+    def process(self, event_message, selection):
+        ...optional long term processing...
+
+    def update(self, hicp, event_message, selection):
+      items = selection.get_selected_item_list()
+
+      if 0 < len(items):
+        # Should only be one.
+        contact_item = items[0]
+        contact = contact_item.item
+        address = contact.address
+      else:
+        address = ''
+
+      self.__address_field.set_content(address)
+      self.__address_field.update()
+
+  address_field = TextField()
+  ...set up and add address field...
+
+  s = Selection()
+  ...
+  s.set_handler(EventType.CHANGED, SelectionHandler())
+
+A handler can be added to a ``Selection`` for these events:
+
+``EventType.CHANGED``
+  When one or more items have been selected or deselected, a changed event is
+  sent which contains the current selection. The selection component is updated
+  from the event and can be used to get the current selection information.
 
 hicpd
 =====

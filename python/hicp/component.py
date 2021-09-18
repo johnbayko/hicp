@@ -777,6 +777,8 @@ class Selection(ContainedComponent):
         self.__width = None
 
     def set_items(self, item_list):
+        # TODO item id is part of SelectionItem, so take a list as a parameter,
+        # and construct the dict from that.
         """item_list is a dict of int id and SelectionItem."""
         self.__item_list = item_list.copy()
         self.items_changed()
