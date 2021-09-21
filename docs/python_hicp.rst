@@ -1052,7 +1052,7 @@ Selection set_items()
 
   from hicp import Selection, SelectionItem
 
-  contact_items = {}
+  contact_items = []
   contact_id = 0
   for contact in contacts:
     name = contact.name
@@ -1063,13 +1063,13 @@ Selection set_items()
     else:
       events = Selection.DISABLE
 
-    contact_items[contact_id] = \
-      Selectionitem(contact_id, name_id, events=events, congtact)
+    contact_items.append(
+        Selectionitem(contact_id, name_id, events=events, congtact) )
 
   s.set_items(contact_items)
 
-Replaces all current items with those from the specified dictionary of
-``SelectionItem`` objects indexed by the selection id. No previous items
+Replaces all current items with those from the specified list of
+``SelectionItem`` objects. No previous items
 remain. A ``Selectionitem`` just has the fields passed in as the parameters:
 
 item_id
@@ -1089,8 +1089,8 @@ item
     An arbitrary object associated with this item, so it can be matched without
     needing to look up an object using the item ID.
 
-The dictionary is copied so can be modified afterwards, but the
-``SelectionItems`` are not, so shouldn't be modified accidentally.
+The list can be modified afterwards, but the
+``SelectionItems`` are not duplicated, so shouldn't be modified accidentally.
 
 Selection add_items()
 ---------------------
@@ -1110,17 +1110,16 @@ Selection add_items()
     else:
       events = Selection.DISABLE
 
-    s.add_items( {
-        contact_id:
-          Selectionitem(contact_id, name_id, events=events, congtact)
-      } )
+    s.add_items( [
+        Selectionitem(contact_id, name_id, events=events, congtact)
+      ] )
 
-Adds items from the specified dictionary of ``SelectionItem`` objects indexed
-by the selection id. Existing items with the same item ID are replaced, but any
+Adds items from the specified list of ``SelectionItem`` objects.
+Existing items with the same item ID are replaced, but any
 others will remain.
 
-The dictionary is copied so can be modified afterwards, but the
-``SelectionItems`` are not, so shouldn't be modified accidentally.
+The list can be modified afterwards, but the
+``SelectionItems`` are not duplicated, so shouldn't be modified accidentally.
 
 Selection del_items()
 ---------------------
@@ -1148,8 +1147,8 @@ Selection copy_items()
 
   items = s.copy_items()
 
-Returns a copy of the current ``SelectionItems``, in a dictionary with the same
-format as passed to ``add_items()``. A copy is passed so the returned
+Returns a dictionary of the current ``SelectionItems``.
+A copy is passed so the returned
 dictionary can be modified, but the ``SelectonItems`` are the original and
 shouldn't be changed accidentally.
 
