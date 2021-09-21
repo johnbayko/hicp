@@ -110,13 +110,13 @@ class Reception(App):
         app_selection.set_presentation(Selection.SCROLL)
         app_selection.set_selection_mode(Selection.SINGLE)
         # Add app names to selection list, using sorted app info index as id.
-        app_items = {}
+        app_items = []
         item_id = 0
         for (app_name_id, app_info) in sorted_app_info:
             # Skip adding button for this app.
             if app_info.app_name != self.get_app_name():
                 app_item = SelectionItem(item_id, app_name_id, item=app_info)
-                app_items[app_item.item_id] = app_item
+                app_items.append(app_item)
                 item_id += 1
         app_selection.add_items(app_items)
         app_selection.set_selected_list([0])

@@ -100,9 +100,9 @@ class SelectionAddHandler:
                 ("Number " + str(self.__next_id), Lang.EN),
                 ("Numero " + str(self.__next_id), Lang.FR, Lang.CA)
             ])
-        new_item_list = {
-            self.__next_id : SelectionItem(self.__next_id, item_text_id)
-        }
+        new_item_list = [
+            SelectionItem(self.__next_id, item_text_id)
+        ]
         self.__next_id += 1
         self.__selection.add_items(new_item_list)
         self.__selection.update()
@@ -121,19 +121,18 @@ class SelectionDisableHandler:
         self.__selection = selection
 
     def update(self, hicp, event, button):
-        item_list = self.__selection.copy_items()
+        item_dict = self.__selection.copy_items()
 
         selected_list = self.__selection.copy_selected_list()
         for selected_id in selected_list:
             try:
-                si = item_list[selected_id]
-                if si.item_id == selected_id:
-                    si.events = Selection.DISABLED
+                si = item_dict[selected_id]
+                si.events = Selection.DISABLED
             except KeyError:
-                # Don'e disable what's not there.
+                # Don't disable what's not there.
                 pass
 
-        self.__selection.set_items(item_list)
+        self.__selection.set_items(item_dict.values())
         self.__selection.update()
 
 class SelectionEnableHandler:
@@ -145,11 +144,11 @@ class SelectionEnableHandler:
         # item list.
         selected_list = self.__selection.copy_selected_list()
 
-        item_list = self.__selection.copy_items()
-        for _, item in item_list.items():
+        item_dict = self.__selection.copy_items()
+        for _, item in item_dict.items():
             item.events = Selection.ENABLED
 
-        self.__selection.set_items(item_list)
+        self.__selection.set_items(item_dict.values())
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
 
@@ -158,13 +157,13 @@ class SelectionRandomHandler:
         self.__selection = selection
 
     def update(self, hicp, event, button):
-        item_list = self.__selection.copy_items()
+        item_dict = self.__selection.copy_items()
         selected_list = self.__selection.copy_selected_list()
 
         # Find what's available (not selected, enabled)
         selectable_list = []
         selected_set = set(selected_list)
-        for item_id, item in item_list.items():
+        for item_id, item in item_dict.items():
             if item_id not in selected_set:
                 if item.events != Selection.DISABLED:
                     selectable_list.append(item_id)
@@ -396,20 +395,20 @@ class TestAppML(App):
 
         # Add selection list to list_panel
         selection = Selection()
-        item_list = {}
+        item_list = []
         for item_id in range(1, 5):
             item_text_id = hicp.add_groups_text_get_id( [
                     ("Number " + str(item_id), Lang.EN),
                     ("Numero " + str(item_id), Lang.FR, Lang.CA)
                 ])
             item = SelectionItem(item_id, item_text_id)
-            item_list[item_id] = item
+            item_list.append(item)
         selection.add_items(item_list)
-#        selection.set_presentation(Selection.SCROLL)  # debug
+        selection.set_presentation(Selection.SCROLL)  # debug
 #        selection.set_presentation(Selection.TOGGLE)  # debug
-        selection.set_presentation(Selection.DROPDOWN)  # debug
-        selection.set_selection_mode(Selection.SINGLE)  # debug
-#        selection.set_selection_mode(Selection.MULTIPLE)  # debug
+#        selection.set_presentation(Selection.DROPDOWN)  # debug
+#        selection.set_selection_mode(Selection.SINGLE)  # debug
+        selection.set_selection_mode(Selection.MULTIPLE)  # debug
 #        selection.set_height(5)  # debug
         selection_panel.add(selection, 0, 1)
 
@@ -492,25 +491,25 @@ class TestAppML(App):
         select_lang = Selection()
         select_lang.set_presentation(Selection.DROPDOWN)
         select_lang.set_selection_mode(Selection.SINGLE)
-        lang_list = {}
+        lang_list = []
         lang_text_id = hicp.add_groups_text_get_id( [
                 ( "English", Lang.EN),
                 ( "English", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.ENGLISH, lang_text_id)
-        lang_list[lang_item.item_id] = lang_item
+        lang_list.append(lang_item)
         lang_text_id = hicp.add_groups_text_get_id( [
                 ( "English (UK)", Lang.EN),
                 ( "English (UK)", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.ENGLISH_GB, lang_text_id)
-        lang_list[lang_item.item_id] = lang_item
+        lang_list.append(lang_item)
         lang_text_id = hicp.add_groups_text_get_id( [
                 ( "Français", Lang.EN),
                 ( "Français", Lang.FR, Lang.CA)
             ] )
         lang_item = SelectionItem(LangSelectionHandler.FRENCH_CA, lang_text_id)
-        lang_list[lang_item.item_id] = lang_item
+        lang_list.append(lang_item)
         select_lang.add_items(lang_list)
         select_lang.set_handler(
             EventType.CHANGED,

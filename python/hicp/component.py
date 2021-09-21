@@ -765,7 +765,7 @@ class Selection(ContainedComponent):
         ContainedComponent.__init__(self)
         self.component = Component.SELECTION
 
-        self.__item_list = {} # Key is int, value is SelectionItem
+        self.__item_dict = {} # Key is int, value is SelectionItem
         self.__items = None
 
         self.__selected_list = [] # ID is int
@@ -780,19 +780,20 @@ class Selection(ContainedComponent):
         # TODO item id is part of SelectionItem, so take a list as a parameter,
         # and construct the dict from that.
         """item_list is a dict of int id and SelectionItem."""
-        self.__item_list = item_list.copy()
-        self.items_changed()
+        self.__item_dict = {}
+        self.add_items(item_list)
 
     def add_items(self, item_list):
         """item_list is a dict of int id and SelectionItem."""
-        self.__item_list.update(item_list)
+        for item in item_list:
+            self.__item_dict[item.item_id] = item
         self.items_changed()
 
     def del_items(self, item_list):
         """item_list is a list of int ids."""
         for item_key in item_list:
             try:
-                del self.__item_list[item_key]
+                del self.__item_dict[item_key]
             except KeyError:
                 # Not there, don't want it there, situation is what we want.
                 pass
@@ -800,15 +801,15 @@ class Selection(ContainedComponent):
 
     def get_item(self, item_id):
         """Returns SelectionItem."""
-        return self.__item_list[item_id]
+        return self.__item_dict[item_id]
 
     def copy_items(self):
         """Returns dict of int id and SelectionItem."""
-        return self.__item_list.copy()
+        return self.__item_dict.copy()
 
     def items_changed(self):
         item_str_list = []
-        for item_id, selection_item in self.__item_list.items():
+        for item_id, selection_item in self.__item_dict.items():
             if selection_item.events is not None:
                 item_str_list.append(
                     '%d: text=%d, events=%s' %
@@ -857,7 +858,7 @@ class Selection(ContainedComponent):
         valid_str_list = []
         if selected_list is not None:
             for selected_item in selected_list: # Integers
-                if selected_item in self.__item_list:
+                if selected_item in self.__item_dict:
                     valid_list.append(selected_item)
                     valid_str_list.append(str(selected_item))
 
@@ -869,7 +870,7 @@ class Selection(ContainedComponent):
         if self.__selected_list is None:
             self.__selected_list = [item_id]
         else:
-            if item_id in self.__item_list:
+            if item_id in self.__item_dict:
                 self.__selected_list.append(item_id)
             
         self._update_selected()
@@ -899,7 +900,7 @@ class Selection(ContainedComponent):
         item_list = []
         for item_id in self.__selected_list:
             try:
-                item = self.__item_list[item_id]
+                item = self.__item_dict[item_id]
                 item_list.append(item)
             except IndexError:
                 # Selection out of sync with item list, skip this selection
