@@ -366,7 +366,14 @@ class Message:
             raise TypeError("header value must be a string")
 
         # Store keys as lower case.
-        self.__headers[header_key.lower()] = header_value
+        header_key = header_key.lower()
+
+        # Special case check: EVENT and COMMAND are not headers, they're
+        # message types, so redirect them.
+        if Message.EVENT == header_key or Message.COMMAND == header_key:
+            self.set_type(header_key, header_value)
+        else:
+            self.__headers[header_key.lower()] = header_value
 
     def log(self, msg):
         self.logger.debug(msg)
