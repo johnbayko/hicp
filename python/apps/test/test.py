@@ -315,8 +315,7 @@ class TestApp(App):
         selection = Selection()
         item_list = []
         for item_id in range(1, 12):
-            item_text_id = hicp.add_text_get_id('Number ' + str(item_id))
-            item = SelectionItem(item_id, item_text_id)
+            item = SelectionItem(item_id, 'Number ' + str(item_id), hicp)
             item_list.append(item)
         selection.add_items(item_list)
         selection.set_presentation(Selection.SCROLL)  # debug

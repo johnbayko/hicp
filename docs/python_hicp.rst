@@ -349,8 +349,9 @@ TextSelector
       ('Bonjour-Hi', 'fr', 'ca'),  # Regional variation.
     ] )
 
-A ``TextGroup`` object holds a set of texts with the same meaning, for different
-groups and subgroups. It's created with a list of tuples, each field containing:
+A ``TextSelector`` object holds a set of texts with the same meaning, for
+different groups and subgroups. It's created with a list of tuples, each field
+containing:
 
 - The text for the given group and subgroup.
 
@@ -1152,11 +1153,9 @@ Selection
 
     s = Selection()
     s.add_items( {
-        1: SelectionItem(1, hicp.add_text-get_id(a.name)),
-        2: SelectionItem(2, hicp.add_text-get_id(b.name)),
-        3: SelectionItem(3,
-          hicp.add_text-get_id(c.name),
-          events=Selection.DISABLED),
+        1: SelectionItem(1, a.name, hicp, a),
+        2: SelectionItem(2, b.name, hicp, b),
+        3: SelectionItem(3, c.name, hicp, events=Selection.DISABLED, c),
       } )
     s.set_presentation(Selection.SCROLL)
     s.set_selection_mode(Selection.MULTIPLE)
@@ -1195,32 +1194,48 @@ Selection set_items()
       events = Selection.DISABLE
 
     contact_items.append(
-        Selectionitem(contact_id, name_id, events=events, congtact) )
+        Selectionitem(contact_id, name_id, events=events, contact) )
 
   s.set_items(contact_items)
 
 Replaces all current items with those from the specified list of
-``SelectionItem`` objects. No previous items
-remain. A ``Selectionitem`` just has the fields passed in as the parameters:
+``SelectionItem`` objects. No previous items remain.
+
+A ``Selectionitem`` has these parameters:
 
 item_id
     An arbitrary integer identifying the selection item.
 
-text_id
-    The text ID of the string to display for the item
+text
+    Can be the text ID of the string to display for the item, or a string. If
+    it's a string, and the ``hicp`` parameter is specified, then the text is
+    added to the ``hicp`` object and the text ID is taken from that.
+
+hicp
+    Optional, used if a string is passed as a text parameter, unused otherwise.
 
 events
-    Specity if the item can be selected or unselected to generate changed
-    events. Can be:
+    Optional, specify if the item can be selected or unselected to generate
+    changed events. Can be:
 
-    - Selection.ENABLED
+    - Selection.ENABLED (default)
     - Selection.DISABLED
 
 item
     An arbitrary object associated with this item, so it can be matched without
     needing to look up an object using the item ID.
 
-The list can be modified afterwards, but the
+A ``SelectionItem`` has these fields:
+
+- item_id
+
+- text_id
+
+- events
+
+- item
+
+No reference to the items list itself is saved, but individual
 ``SelectionItems`` are not duplicated, so shouldn't be modified accidentally.
 
 Selection add_items()
@@ -1367,7 +1382,7 @@ Selection copy_selected_list()
 
 Returns a copy of the list of selected item IDs.
 
-Selection get_selected_itsm_list()
+Selection get_selected_item_list()
 ----------------------------------
 
 ::

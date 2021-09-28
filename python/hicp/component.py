@@ -741,11 +741,27 @@ class SelectionItem():
         - events: What events this item generates.
     and an optional object (item) associated with this selection item.
     """
-    def __init__(self, item_id, text_id, events=None, item=None):
+    def __init__(self, item_id, text, hicp=None, events=None, item=None):
         self.item_id = item_id
-        self.text_id = text_id
         self.events = events
         self.item = item
+
+        if text is None:
+            # Has no text to display, required.
+            raise UnboundLocalError("text parameter required")
+        if isinstance(text, int):
+            # If text is an integer, it's a text ID and can be used as is.
+            self.text_id = text
+        elif isinstance(text, str) and hicp is not None:
+            if hicp is not None:
+                # If it's a string and hicp is not None, then add the text to hicp
+                # and get the text ID that way.
+                self.text_id = hicp.add_text_get_id(text)
+            else:
+                raise UnboundLocalError("hicp parameter required when text parameter is string")
+        else:
+            # No usable text parameter type.
+            raise TypeError("text must be specified as integer ID or string with HICP parameter")
 
 class Selection(ContainedComponent):
     MODE = Message.MODE
