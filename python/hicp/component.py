@@ -752,11 +752,18 @@ class SelectionItem():
         if isinstance(text, int):
             # If text is an integer, it's a text ID and can be used as is.
             self.text_id = text
-        elif isinstance(text, str) and hicp is not None:
+        elif isinstance(text, str):
             if hicp is not None:
-                # If it's a string and hicp is not None, then add the text to hicp
-                # and get the text ID that way.
+                # If it's a string and hicp is not None, then add the text to
+                # hicp and get the text ID that way.
                 self.text_id = hicp.add_text_get_id(text)
+            else:
+                raise UnboundLocalError("hicp parameter required when text parameter is string")
+        elif isinstance(text, list):
+            if hicp is not None:
+                # If it's a list of tubles and hicp is not None, then add the
+                # list to hicp and get the text ID that way.
+                self.text_id = hicp.add_groups_text_get_id(text)
             else:
                 raise UnboundLocalError("hicp parameter required when text parameter is string")
         else:

@@ -87,12 +87,12 @@ class Reception(App):
         unsorted_app_info = []
         for app_info in hicp.get_all_app_info().values():
             app_name = app_info.display_name.get_text(group, subgroup)
-            app_name_id = hicp.add_text_get_id(app_name)
+            app_name_id = hicp.add_text_selector_get_id(app_info.display_name)
 
             unsorted_app_info.append((app_name_id, app_info))
 
             app_desc = app_info.description.get_text(group, subgroup)
-            app_desc_id = hicp.add_text_get_id(app_desc)
+            app_desc_id = hicp.add_text_selector_get_id(app_info.description)
 
             app_text_ids[app_info] = (app_name_id, app_desc_id)
         sorted_app_info = hicp.sort(unsorted_app_info)

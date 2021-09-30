@@ -50,9 +50,8 @@ class SelectionAddHandler:
         self.__next_id = next_id
 
     def update(self, hicp, event, button):
-        item_text_id = hicp.add_text_get_id('Number ' + str(self.__next_id))
         new_item_list = [
-            SelectionItem(self.__next_id, item_text_id)
+            SelectionItem(self.__next_id, 'Number ' + str(self.__next_id), hicp)
         ]
         self.__next_id += 1
         self.__selection.add_items(new_item_list)

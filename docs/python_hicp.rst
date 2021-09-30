@@ -163,7 +163,8 @@ HICP set_text_group()
   hicp.set_text_group("es", "mx")
 
 This applies only when using HICP to manage language groups, so will affect
-HICP ``add_text_get_id()``, ``add_groups_text_get_id()``, or component
+HICP ``add_text_get_id()``, ``add_groups_text_get_id()``,
+``add_text_selector_get_id``, or component
 ``set_text()`` or ``set_groups_text()`` described below. This selects the
 specified group and subgroup, then updates the user agent text library to the
 new text strings. This has the effect of updating all text displayed to the
@@ -220,8 +221,8 @@ is always used everywhere the text ID is specified.
 See the "Components supporting text" section for more on using text IDs and
 text groups.
 
-HICP add_text_get_id() and add_groups_text_get_id()
----------------------------------------------------
+HICP add_text_get_id(), add_groups_text_get_id(), add_text_selector_get_id()
+----------------------------------------------------------------------------
 
 ::
 
@@ -231,6 +232,9 @@ HICP add_text_get_id() and add_groups_text_get_id()
 
   NAME_ID = hicp.add_groups_text_get_id([("Name", "en"), ("Nom", "fr")])
 
+  app_info = ...
+  NAME_ID = hicp.add_text_selector_get_id(app_info.display_name)
+
 ``add_text_get_id()`` adds a text string (to the specified group and subgroup,
 to the current text group and subgroup if not specified), but returns an ID for
 it, rather than requiring an ID to be specified. This is useful for dynamically
@@ -239,6 +243,12 @@ method.
 
 ``add_groups_text_get_id()`` ("groups" is plural in this name) stores the given
 texts for the specified text groups, and returns an ID to refer to all of them.
+When the HICP text group is changed, the user agent is updated with the correct
+texts for the new group.
+
+``add_text_selector_get_id()`` stores the given ``TextSelector`` object and
+returns an ID for it. This is useful in cases where a ``TextSelector`` object
+is provided, such as ``AppInfo`` ``display_name`` and ``description`` fields.
 When the HICP text group is changed, the user agent is updated with the correct
 texts for the new group.
 
@@ -1207,8 +1217,9 @@ item_id
     An arbitrary integer identifying the selection item.
 
 text
-    Can be the text ID of the string to display for the item, or a string. If
-    it's a string, and the ``hicp`` parameter is specified, then the text is
+    Can be the text ID of the text to display for the item, a string, or a list
+    of string, group, and subgroup tuples. If it's a string or list of tuples,
+    and the ``hicp`` parameter is specified, then the string or tuples are
     added to the ``hicp`` object and the text ID is taken from that.
 
 hicp
@@ -1225,7 +1236,7 @@ item
     An arbitrary object associated with this item, so it can be matched without
     needing to look up an object using the item ID.
 
-A ``SelectionItem`` has these fields:
+The ``SelectionItem`` has these fields that can be read and modified:
 
 - item_id
 

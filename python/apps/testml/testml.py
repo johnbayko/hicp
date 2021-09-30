@@ -96,13 +96,12 @@ class SelectionAddHandler:
         self.__next_id = next_id
 
     def update(self, hicp, event, button):
-        item_text_id = hicp.add_groups_text_get_id( [
-                ("Number " + str(self.__next_id), Lang.EN),
-                ("Numero " + str(self.__next_id), Lang.FR, Lang.CA)
-            ])
         new_item_list = [
-            SelectionItem(self.__next_id, item_text_id)
-        ]
+            SelectionItem(
+                self.__next_id, [
+                    ("Number " + str(self.__next_id), Lang.EN),
+                    ("Numero " + str(self.__next_id), Lang.FR, Lang.CA)
+                ], hicp ) ]
         self.__next_id += 1
         self.__selection.add_items(new_item_list)
         self.__selection.update()
@@ -176,9 +175,29 @@ class SelectionRandomHandler:
         rand_item_id = random.choice(selectable_list)
 
         # Add to current selection
-        selected_list.append(rand_item_id)
+        if Selection.MULTIPLE == self.__selection.get_selection_mode():
+            # Add to current selection
+            selected_list.append(rand_item_id)
+        else:
+            # Send new selection
+            selected_list = [rand_item_id]
         self.__selection.set_selected_list(selected_list)
         self.__selection.update()
+
+        # Won't get an event back, so pretend we did.
+
+        # Pretend to receive a changed event.
+        event = Message()
+        event.set_type(Message.EVENT, Message.CHANGED)
+
+        # It's from self.__selection.
+        event.add_header(Message.ID, str(self.__selection.component_id))
+
+        # Event selection string looks like "1, 2, 4".
+        selected_str = ", ".join([str(i) for i in selected_list])
+        event.add_header(Message.SELECTED, selected_str) 
+
+        hicp.fake_event(event)
 
 
 class AbleButtonHandler:
@@ -397,11 +416,11 @@ class TestAppML(App):
         selection = Selection()
         item_list = []
         for item_id in range(1, 5):
-            item_text_id = hicp.add_groups_text_get_id( [
-                    ("Number " + str(item_id), Lang.EN),
-                    ("Numero " + str(item_id), Lang.FR, Lang.CA)
-                ])
-            item = SelectionItem(item_id, item_text_id)
+            item = SelectionItem(
+                    item_id, [
+                        ("Number " + str(item_id), Lang.EN),
+                        ("Numero " + str(item_id), Lang.FR, Lang.CA)
+                    ], hicp)
             item_list.append(item)
         selection.add_items(item_list)
         selection.set_presentation(Selection.SCROLL)  # debug
@@ -492,24 +511,21 @@ class TestAppML(App):
         select_lang.set_presentation(Selection.DROPDOWN)
         select_lang.set_selection_mode(Selection.SINGLE)
         lang_list = []
-        lang_text_id = hicp.add_groups_text_get_id( [
+        lang_list.append(
+            SelectionItem(LangSelectionHandler.ENGLISH, [
                 ( "English", Lang.EN),
                 ( "English", Lang.FR, Lang.CA)
-            ] )
-        lang_item = SelectionItem(LangSelectionHandler.ENGLISH, lang_text_id)
-        lang_list.append(lang_item)
-        lang_text_id = hicp.add_groups_text_get_id( [
+            ], hicp) )
+        lang_list.append(
+            SelectionItem(LangSelectionHandler.ENGLISH_GB, [
                 ( "English (UK)", Lang.EN),
                 ( "English (UK)", Lang.FR, Lang.CA)
-            ] )
-        lang_item = SelectionItem(LangSelectionHandler.ENGLISH_GB, lang_text_id)
-        lang_list.append(lang_item)
-        lang_text_id = hicp.add_groups_text_get_id( [
+            ], hicp) )
+        lang_list.append(
+            SelectionItem(LangSelectionHandler.FRENCH_CA, [
                 ( "Français", Lang.EN),
                 ( "Français", Lang.FR, Lang.CA)
-            ] )
-        lang_item = SelectionItem(LangSelectionHandler.FRENCH_CA, lang_text_id)
-        lang_list.append(lang_item)
+            ], hicp) )
         select_lang.add_items(lang_list)
         select_lang.set_handler(
             EventType.CHANGED,

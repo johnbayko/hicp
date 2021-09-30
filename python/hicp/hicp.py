@@ -837,6 +837,12 @@ class TextManager:
 
         text_selector = TextSelector(text_group_list)
 
+        return self.add_text_selector_get_id(text_selector)
+
+    def add_text_selector_get_id(self, text_selector):
+        """Add a TextSelector.
+        Allows duplicates if alrteady exists."""
+
         text_id = find_free_id(self.id_to_selector)
         self.id_to_selector[text_id] = text_selector
 
@@ -1043,6 +1049,20 @@ class HICP:
             raise UnboundLocalError("text_group_list required, not defined")
 
         text_id = self.text_manager.add_groups_text_get_id(text_group_list) 
+
+        # Send text down if there is one for current group and subgroup.
+        text = self.text_manager.get_text(text_id)
+        if text is not None:
+            self.send_add_text_message(text_id, text)
+
+        return text_id
+
+
+    def add_text_selector_get_id(self, text_selector):
+        if text_selector is None:
+            raise UnboundLocalError("text_selector required, not defined")
+
+        text_id = self.text_manager.add_text_selector_get_id(text_selector) 
 
         # Send text down if there is one for current group and subgroup.
         text = self.text_manager.get_text(text_id)
