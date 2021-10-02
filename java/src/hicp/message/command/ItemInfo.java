@@ -38,11 +38,8 @@ public class ItemInfo {
     public CategoryEnum category;
     public String id;
 
-    public static final TextInfo DEFAULT_TEXT_INFO = new TextInfo();
-    public static final GUIInfo DEFAULT_GUI_INFO = new GUIInfo();
-
-    private TextInfo _textInfo = DEFAULT_TEXT_INFO;
-    private GUIInfo _guiInfo = DEFAULT_GUI_INFO;
+    private TextInfo _textInfo = null;
+    private GUIInfo _guiInfo = null;
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
@@ -66,10 +63,10 @@ public class ItemInfo {
         headerMap.putString(HeaderEnum.CATEGORY, category.name);
         headerMap.putString(HeaderEnum.ID, id);
 
-        if (DEFAULT_TEXT_INFO != _textInfo) {
+        if (null != _textInfo) {
             _textInfo.updateHeaderMap(headerMap);
         }
-        if (DEFAULT_GUI_INFO != _guiInfo) {
+        if (null != _guiInfo) {
             _guiInfo.updateHeaderMap(headerMap);
         }
 
@@ -77,26 +74,16 @@ public class ItemInfo {
     }
 
     public TextInfo getTextInfo() {
-        if (DEFAULT_TEXT_INFO == _textInfo) {
+        if (null == _textInfo) {
             _textInfo = new TextInfo(_headerMap);
         }
         return _textInfo;
     }
 
-    public ItemInfo setTextInfo(final TextInfo i) {
-        _textInfo = i;
-        return this;
-    }
-
     public GUIInfo getGUIInfo() {
-        if (DEFAULT_GUI_INFO == _guiInfo) {
+        if (null == _guiInfo) {
             _guiInfo = new GUIInfo(_headerMap);
         }
         return _guiInfo;
-    }
-
-    public ItemInfo setGUIInfo(final GUIInfo i) {
-        _guiInfo = i;
-        return this;
     }
 }

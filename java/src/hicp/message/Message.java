@@ -39,11 +39,8 @@ public class Message {
     public final static String TRUE = "true";
     public final static String FALSE = "false";
 
-    public static final CommandInfo DEFAULT_COMMAND_INFO = new CommandInfo();
-    public static final EventInfo DEFAULT_EVENT_INFO = new EventInfo();
-
-    protected CommandInfo _commandInfo = DEFAULT_COMMAND_INFO;
-    protected EventInfo _eventInfo = DEFAULT_EVENT_INFO;
+    protected CommandInfo _commandInfo = null;
+    protected EventInfo _eventInfo = null;
 
     public static final HeaderMap DEFAULT_HEADER_MAP = new HeaderMap();
     protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
@@ -93,10 +90,10 @@ public class Message {
     public HeaderMap getHeaders() {
         final HeaderMap headerMap = new HeaderMap();
 
-        if (DEFAULT_COMMAND_INFO != _commandInfo) {
+        if (null != _commandInfo) {
             _commandInfo.updateHeaderMap(headerMap);
         }
-        if (DEFAULT_EVENT_INFO != _eventInfo) {
+        if (null != _eventInfo) {
             _eventInfo.updateHeaderMap(headerMap);
         }
         return headerMap;
@@ -110,7 +107,7 @@ public class Message {
     }
 
     public CommandInfo getCommandInfo() {
-        if (DEFAULT_COMMAND_INFO == _commandInfo) {
+        if (null == _commandInfo) {
             if (isCommand()) {
                 _commandInfo = new CommandInfo(_headerMap);
             }
@@ -126,7 +123,7 @@ public class Message {
     }
 
     public EventInfo getEventInfo() {
-        if (DEFAULT_EVENT_INFO == _eventInfo) {
+        if (null == _eventInfo) {
             if (isEvent()) {
                 _eventInfo = new EventInfo(_headerMap);
             }

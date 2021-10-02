@@ -40,13 +40,8 @@ public class CommandInfo {
 
     public Command command;
 
-    public static final AuthenticateInfo DEFAULT_AUTHENTICATE_INFO =
-        new AuthenticateInfo();
-    public static final ItemInfo DEFAULT_ITEM_INFO =
-        new ItemInfo();
-
-    private AuthenticateInfo _authenticateInfo = DEFAULT_AUTHENTICATE_INFO;
-    private ItemInfo _itemInfo = DEFAULT_ITEM_INFO;
+    private AuthenticateInfo _authenticateInfo = null;
+    private ItemInfo _itemInfo = null;
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
@@ -71,36 +66,26 @@ public class CommandInfo {
     ) {
         headerMap.putString(HeaderEnum.COMMAND, command.name);
 
-        if (DEFAULT_AUTHENTICATE_INFO != _authenticateInfo) {
+        if (null != _authenticateInfo) {
             _authenticateInfo.updateHeaderMap(headerMap);
         }
-        if (DEFAULT_ITEM_INFO != _itemInfo) {
+        if (null != _itemInfo) {
             _itemInfo.updateHeaderMap(headerMap);
         }
         return this;
     }
 
     public AuthenticateInfo getAuthenticateInfo() {
-        if (DEFAULT_AUTHENTICATE_INFO == _authenticateInfo) {
+        if (null == _authenticateInfo) {
             _authenticateInfo = new AuthenticateInfo(_headerMap);
         }
         return _authenticateInfo;
     }
 
-    public CommandInfo setAuthenticateInfo(final AuthenticateInfo i) {
-        _authenticateInfo = i;
-        return this;
-    }
-
     public ItemInfo getItemInfo() {
-        if (DEFAULT_ITEM_INFO == _itemInfo) {
+        if (null == _itemInfo) {
             _itemInfo = new ItemInfo(_headerMap);
         }
         return _itemInfo;
-    }
-
-    public CommandInfo setItemInfo(final ItemInfo i) {
-        _itemInfo = i;
-        return this;
     }
 }
