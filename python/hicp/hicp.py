@@ -476,7 +476,10 @@ class EventThread(threading.Thread):
                             # Can't authenticate, send disconnect
                             # command and go back to wait for connect.
                             self.disconnect()
-                            state = STATE_WAIT_CONNECT
+                            # Not connecting, but no longer authenticating,
+                            # change to running until reuqested disconnect
+                            # happens.
+                            state = STATE_RUNNING
                 else:
                     # Ignore any other messages.
                     pass
@@ -1149,7 +1152,6 @@ class HICP:
 
         if 0 == len(header_list):
             # There are no modified fields.
-            self.logger.debug("No modified fields.") # debug
             return
 
         message = Message()

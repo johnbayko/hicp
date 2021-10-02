@@ -342,7 +342,7 @@ public class Controller
                     == _messageExchange.getLastMessage().getEventInfo().event
                 ) {
                     // User authentication failure.
-                    log("User authentication failure.");
+                    LOGGER.log(Level.FINE, "User authentication failure.");
 
                     // TODO: Find a better way to notify the user.
                 }
