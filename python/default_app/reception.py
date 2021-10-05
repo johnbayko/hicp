@@ -140,11 +140,12 @@ class Reception(App):
 
         # Add app description label here.
         app_desc.set_text_id(initial_desc_id)
-        app_panel.add(app_desc, 0, 1)
+        app_panel.add(app_desc, 1, 0)
 
         # Add start button here.
         start_button.set_text_id(initial_name_id)
         start_button.set_handler(
             EventType.CLICK, start_button_handler
         )
-        app_panel.add(start_button, 1, 0)
+        start_button.set_size(1, 1)
+        app_panel.add(start_button, 0, 1)

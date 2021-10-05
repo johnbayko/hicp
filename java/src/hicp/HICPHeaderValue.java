@@ -66,7 +66,7 @@ public class HICPHeaderValue {
             return null;
         }
         // get() only works once without resetting, so only do it once.
-        if (null == _bytes) {
+        if (null == _bytes) synchronized(this) {
             _bytes = new byte[_byteBuffer.remaining()];
             _byteBuffer.get(_bytes);
         }
@@ -74,7 +74,10 @@ public class HICPHeaderValue {
     }
 
     public String getString() {
-        if (null == _string) {
+        if (null == _byteBuffer) {
+            return null;
+        }
+        if (null == _string) synchronized(this) {
             try {
                 final CharBuffer charBuffer = _decoder.decode(_byteBuffer);
                 _string = charBuffer.toString();
