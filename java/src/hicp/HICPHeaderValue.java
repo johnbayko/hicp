@@ -74,16 +74,17 @@ public class HICPHeaderValue {
     }
 
     public String getString() {
-        if (null == _byteBuffer) {
-            return null;
-        }
         if (null == _string) synchronized(this) {
+            if (null == _byteBuffer) {
+                // No binary representation to try to convert.
+                return null;
+            }
             try {
                 final CharBuffer charBuffer = _decoder.decode(_byteBuffer);
                 _string = charBuffer.toString();
             } catch (CharacterCodingException ex) {
-                // Let _string remain null, don't need to do
-                // anything else.
+                // No string representation of this binary value, let _string
+                // remain null, don't need to do anything else.
             }
         }
         return _string;
