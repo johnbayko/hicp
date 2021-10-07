@@ -321,8 +321,9 @@ HICP get_all_app_info()
   name = all_apps['cals'].display_name.get_text()
   description = all_apps['cals'].description.get_text()
 
-Returns a dictionary of AppInfo objects, indexed by the AppInfo.app_name value.
-AppInfo objects are explained in the App section below.
+Returns a dictionary of ``AppInfo`` objects, indexed by the
+``AppInfo.app_name`` value.
+``AppInfo`` objects are explained in the App section below.
 
 HICP switch_app()
 -----------------
