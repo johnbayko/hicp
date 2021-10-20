@@ -175,7 +175,7 @@ HICP get_text_group()
 
 ::
 
-  (group, subgroup) = hicp.get_text_group
+  (group, subgroup) = hicp.get_text_group()
 
 Returns the current text group and subgroup, or ``None`` when not set.
 
