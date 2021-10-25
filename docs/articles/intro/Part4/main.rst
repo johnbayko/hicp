@@ -2,7 +2,8 @@
 HICP in Python: Languages
 =========================
 
-Text in the HICP is stored in a library, and the ID of the text items are used
+In Holistic Interface Control Protocol (HICP) clients text is stored in a
+library, and the ID of the text items are used
 to specify text shown in labels, buttons, selection lists, and so on.
 The text in the library can be replaced by a different language, which would
 appear everywhere it was used.
@@ -71,7 +72,8 @@ In this example, IDs are specified in code, but could be assigned by an
 
 You could write code to manage different languages this way, replacing the
 strings in the ``hicp`` object when the language is changed, or if changing the
-language after starting is not supported, the strings can be added once.
+language after starting is not supported by the app, the strings can be added
+once.
 
 Assign text ID to a string
 ==========================
@@ -88,7 +90,7 @@ database, ``hicp`` can assign an unused ID to it by using
 
 In a case like this, there will be a new ID assigned any time ``greeting_text``
 is changed and added again. The old text will be just taking up space, unused.
-So it would be better to exiplicitly set the new text using the text ID for the
+So it would be better to explicitly set the new text using the text ID for the
 text being replaced.  If the text has been added before, the old ID will be
 returned. That might not be what you want if the text is changed later.
 
@@ -155,8 +157,24 @@ The ``hicp`` object manages the text groups, which can be set and retrieved.
 
 The tuple that most closely matches the current hicp group and subgroup is used
 for the current text and sent to the client for display, the rest are stored.
-If the text group or subgroup are changed, than the text most closely matching
-the new group replace the previous text.
+If the text group or subgroup is changed, then the text most closely matching
+the new group replaces the previous text.
+
+Text groups for components
+==========================
+
+For convenience, you can set a text group on a component directly. The ID is
+stored internally, but otherwise operates the same as above. The only unusual
+part is that the ``hicp`` object must be passed as a parameter so it can be
+updated.
+
+::
+
+  button.set_groups_text([
+          ("Start", "en"),
+          ("Commencer", "fr"),
+          ("Comienzo", "es"),
+      ], hicp)
 
 Example
 =======

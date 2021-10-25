@@ -35,7 +35,7 @@ class. To be useful, it must implement these methods:
 
 ``get_app_info()``
     Provides additional information in an ``AppInfo`` object.
-    It can be used to allow the user to select an app, so also needs to be a
+    It can be used to allow the user to select an app, so it also needs to be a
     class method that can be called before the app is actually created.
     ``AppInfo`` contains:
 
@@ -49,14 +49,17 @@ class. To be useful, it must implement these methods:
         A ``TextSelector`` with the description of the app.
 
     ``TextSelector`` objects provide a way to organize text into groups and
-    subgroups, if desired. The relevant string can be selected by galling the
+    subgroups, if desired. The relevant string can be selected by calling the
     ``get_text()`` method, the ``group`` and ``subgroup`` fields can be
     omitted.
 
-    An ``Appnfo`` object can be created giving the ``display_name`` and
-    ``description`` parameters as strings, tuples of the form ``(string,
-    optional group, optional subgroup)``, a list of tuples, of a
-    ``TextSelector`` object.
+    An ``Appnfo`` object can be created given the ``display_name`` and
+    ``description`` parameters in one of these forms:
+
+    - A string.
+    - A tuple of the form ``(string, optional group, optional subgroup)``.
+    - A list of tuples.
+    - A ``TextSelector`` object.
 
 ``connected(hicp)``
     Indicates that a connection from a client has been made, so
@@ -86,9 +89,9 @@ class. To be useful, it must implement these methods:
             ...
 
 The ``Calc`` app doesn't support different languages, but the ``AppInfo``
-fields might be displayed in a multilingual setting, so need to use
+fields might be displayed in a multilingual setting, so they need to be a
 ``TextSelector``. The example here provides the display name and description as
-only 'en' (English), those will be returned in for any language.
+only 'en' (English), so those will be returned for any language.
 
 The first thing Calc does is create the class which holds the calculator state.
 The ``connected()`` method exits once the display has been created, so any

@@ -3,15 +3,15 @@ What's HICP?
 ============
 
 HICP itself is a communication protocol for creating remote graphical user
-interfaces. A client application receives requests to display elements, and
-present content, and sends events that the user performs back to the server,
-which runs an application that processes them, and can update the display in
-response. This is done over a persistent connection, like ssh does, but how
-that connection is established isn't specified.
+interfaces. A client application receives requests to display elements and
+present content, and sends events that the user performs back to the server.
+The server runs an application that processes event messagers, and can update
+the display in response. This is done over a persistent connection, like ssh
+does, but how that connection is established isn't specified.
 
 The client's job is to receive requests, update the display, and send events,
 with no other processing done. The protocol doesn't specify how to display the
-requested components, beyond a general layout, and general functionality (e.g.
+requested components beyond a general layout and general functionality (e.g.
 buttons which can be clicked, but can look like anything). The demo client I've
 written is in Java, using the Swing components and layout managers.
 
@@ -45,7 +45,11 @@ application field is left blank, the app found in default_app runs. Currently
 that app displays the apps found in the ``apps`` subdirectories, with a button
 to start the selected app.
 
-There's a demo app looks like this:
+.. image:: ../../../images/reception_start.png
+   :alt Select app: Demo calculator
+
+The app to start is selected from the list, the description is shown tot he
+right, and the button below starts the app. The "Test ML" app looks like this:
 
 .. image:: ../../../images/testml_start.png
    :alt Amazing! Button Please click the button. This is text. English
@@ -61,7 +65,7 @@ been changed.", and replaces the text you typed with "Woo-hoo!".
 
 There is a selection list with items named "Number 1", "Number 2", and so on,
 and a text field below which shows the ID of all items that have been selected.
-The buttons to the side modify the list as described"
+The buttons to the side modify the list as described:
 
 - Add new
 - Remove selected

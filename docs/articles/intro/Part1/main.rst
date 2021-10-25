@@ -63,7 +63,7 @@ much larger initial page download. But improvements in performance and capacity
 meant at least these added problems were not noticeable like they were in the
 past.
 
-It's still adding complexity to hide problems, rather avoiding the fundamental
+It's still adding complexity to hide problems, avoiding the fundamental
 thing causing the problems in the first place. Rather than basing all this on a
 batch style processing model, going back to a single persistent connection
 would simplify things. Command line interfaces have done this since before the
