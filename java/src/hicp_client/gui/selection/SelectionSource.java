@@ -29,14 +29,7 @@ public class SelectionSource {
           case SCROLL:
             return new ScrollItem(m, textLibrary, messageExchange);
           case TOGGLE:
-            switch (guiSelectionInfo.mode) {
-              case SINGLE:
-                // TODO Think these will be the same. If so, remove mode check.
-                return new ToggleItem(m, textLibrary, messageExchange);
-              case MULTIPLE:
-                return new ToggleItem(m, textLibrary, messageExchange);
-            }
-            break;
+            return new ToggleItem(m, textLibrary, messageExchange);
           case DROPDOWN:
             return new DropdownItem(m, textLibrary, messageExchange);
         }

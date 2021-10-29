@@ -14,6 +14,11 @@ import hicp.message.HeaderEnum;
 import hicp.message.Message;
 
 public class GUISelectionInfo {
+    private static final Logger LOGGER =
+        Logger.getLogger( GUISelectionInfo.class.getName() );
+//LOGGER.log(Level.FINE, "");  // debug
+//LOGGER.log(Level.FINE, " " + );  // debug
+
     public static enum EventsEnum {
         ENABLED("enabled"),
         DISABLED("disabled"),
@@ -43,8 +48,6 @@ public class GUISelectionInfo {
     public static class Item {
         private static final Logger LOGGER =
             Logger.getLogger( Item.class.getName() );
-//LOGGER.log(Level.FINE, "");  // debug
-//LOGGER.log(Level.FINE, " " + );  // debug
 
         public final String id;
         public final String textId;

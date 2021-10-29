@@ -323,14 +323,14 @@ public class ToggleItem
         _hasWidth = guiSelectionInfo.hasWidth();
         _width = guiSelectionInfo.getWidth();
 
-        updateItems(guiSelectionInfo);
-
         if (null != guiSelectionInfo.events) {
             updateEvents(guiSelectionInfo.events);
         }
         if (null != guiSelectionInfo.mode) {
             _mode = guiSelectionInfo.mode;
         }
+        updateItems(guiSelectionInfo);
+
         return this;
     }
 
