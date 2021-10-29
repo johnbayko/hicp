@@ -918,8 +918,7 @@ class Selection(ContainedComponent):
         return self.__selected_list.copy()
 
     def get_selected_item_list(self):
-        """Returns a list (not a map, can't be passed to set_items()) of
-        SelectionItem."""
+        """Returns a list of SelectionItem."""
         item_list = []
         for item_id in self.__selected_list:
             try:

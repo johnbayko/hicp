@@ -99,7 +99,6 @@ class WriteThread(threading.Thread):
         while True:
             message = self.write_queue.get()
             if message is None:
-                self.logger.debug("Got None from queue") # debug
                 # End of messages to write.
                 return
 
