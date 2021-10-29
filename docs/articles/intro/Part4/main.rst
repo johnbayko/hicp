@@ -2,6 +2,11 @@
 HICP in Python: Languages
 =========================
 
+The code for HICP and the demo apps is available at
+<https://github.com/johnbayko/hicp>. GThis describes the Python library for
+creating user interfaces, and how it handles the multiple language feature of
+HICP.
+
 In Holistic Interface Control Protocol (HICP) clients text is stored in a
 library, and the ID of the text items are used
 to specify text shown in labels, buttons, selection lists, and so on.

@@ -1214,38 +1214,45 @@ Replaces all current items with those from the specified list of
 
 A ``Selectionitem`` has these parameters:
 
-item_id
+``item_id``
     An arbitrary integer identifying the selection item.
 
-text
+``text``
     Can be the text ID of the text to display for the item, a string, or a list
     of string, group, and subgroup tuples. If it's a string or list of tuples,
     and the ``hicp`` parameter is specified, then the string or tuples are
     added to the ``hicp`` object and the text ID is taken from that.
 
-hicp
+``hicp``
     Optional, used if a string is passed as a text parameter, unused otherwise.
 
-events
+``events``
     Optional, specify if the item can be selected or unselected to generate
     changed events. Can be:
 
-    - Selection.ENABLED (default)
-    - Selection.DISABLED
+    ``Selection.ENABLED``
+        (Default) Item can be selected or unselected.
 
-item
-    An arbitrary object associated with this item, so it can be matched without
-    needing to look up an object using the item ID.
+    ``Selection.DISABLED``
+        Item cannot be selected or unselected.
+
+    ``Selection.UNSELECT``
+        Item can be unselected if selected, but unselected items cannot be
+        selected.
+
+``item``
+    An arbitrary object associated with this item, so it can be selected
+    without needing to look up an object using the item ID.
 
 The ``SelectionItem`` has these fields that can be read and modified:
 
-- item_id
+- ``item_id``
 
-- text_id
+- ``text_id``
 
-- events
+- ``events``
 
-- item
+- ``item``
 
 No reference to the items list itself is saved, but individual
 ``SelectionItems`` are not duplicated, so shouldn't be modified accidentally.
