@@ -21,9 +21,12 @@ import hicp_client.text.AttributeTrackDocument;
 
 public class TextFieldItem
     extends Item
+    implements Positionable
 {
     private static final Logger LOGGER =
         Logger.getLogger( TextFieldItem.class.getName() );
+
+    protected final PositionInfo _positionInfo;
 
     protected final MessageExchange _messageExchange;
 
@@ -38,6 +41,8 @@ public class TextFieldItem
         MessageExchange messageExchange
     ) {
         super(m);
+        _positionInfo = new PositionInfo(m);
+
         _messageExchange = messageExchange;
     }
 
@@ -120,15 +125,19 @@ public class TextFieldItem
         }
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         return java.awt.GridBagConstraints.EAST;
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.HORIZONTAL;
     }
 

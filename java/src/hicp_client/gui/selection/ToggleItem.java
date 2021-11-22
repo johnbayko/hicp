@@ -22,6 +22,8 @@ import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
+import hicp_client.gui.Positionable;
+import hicp_client.gui.PositionInfo;
 import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
 import hicp_client.text.TextLibrary;
@@ -30,11 +32,14 @@ import hicp_client.text.TextListenerInvoker;
 
 public class ToggleItem
     extends Item
+    implements Positionable
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
 //LOGGER.log(Level.FINE, "");  // debug
 //LOGGER.log(Level.FINE, " " + );  // debug
+
+    protected final PositionInfo _positionInfo;
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
@@ -181,6 +186,7 @@ public class ToggleItem
         MessageExchange messageExchange
     ) {
         super(m);
+        _positionInfo = new PositionInfo(m);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
@@ -337,11 +343,15 @@ public class ToggleItem
         return this;
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         if (hicp.TextDirection.RIGHT == _parent.getHorizontalTextDirection()) {
             return java.awt.GridBagConstraints.WEST;
         } else {
@@ -349,7 +359,7 @@ public class ToggleItem
         }
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.NONE;
     }
 

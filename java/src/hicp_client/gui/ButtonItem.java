@@ -17,10 +17,12 @@ import hicp_client.text.TextItemAdapter;
 
 public class ButtonItem
     extends Item
-    implements TextItemAdapterListener
+    implements Positionable, TextItemAdapterListener
 {
     private static final Logger LOGGER =
         Logger.getLogger( ButtonItem.class.getName() );
+
+    protected final PositionInfo _positionInfo;
 
     protected final MessageExchange _messageExchange;
 
@@ -33,6 +35,8 @@ public class ButtonItem
         final MessageExchange messageExchange
     ) {
         super(m);
+        _positionInfo = new PositionInfo(m);
+
         _messageExchange = messageExchange;
     }
 
@@ -73,15 +77,19 @@ public class ButtonItem
         return this;
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         return java.awt.GridBagConstraints.CENTER;
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.NONE;
     }
 

@@ -15,15 +15,19 @@ import hicp.message.Message;
 
 public class PanelItem
     extends LayoutItem
+    implements Positionable
 {
     private static final Logger LOGGER =
         Logger.getLogger( PanelItem.class.getName() );
+
+    protected final PositionInfo _positionInfo;
 
     // Should be used only from GUI thread.
     protected JPanel _component;
 
     public PanelItem(final Message m) {
         super(m);
+        _positionInfo = new PositionInfo(m);
     }
 
     /**
@@ -40,17 +44,18 @@ public class PanelItem
     protected Item remove(Item guiItem) {
         super.remove(guiItem);
 
-        // Run an event to remove guiItem's component from this item's
-        // component.
-        SwingUtilities.invokeLater(new RunRemove(guiItem));
-
+        if (guiItem instanceof Positionable) {
+            // Run an event to remove guiItem's component from this item's
+            // component.
+            SwingUtilities.invokeLater(new RunRemove((Positionable)guiItem));
+        }
         return this;
     }
 
     class RunRemove
         extends LayoutItem.RunRemove
     {
-        public RunRemove(Item guiItem)
+        public RunRemove(Positionable guiItem)
         {
             super(guiItem);
         }
@@ -71,15 +76,19 @@ public class PanelItem
         _component.add(component, gridBagConstraints);
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         return java.awt.GridBagConstraints.CENTER;
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.BOTH;
     }
 
@@ -110,32 +119,24 @@ LOGGER.log(Level.FINE, "PanelItem.dispose() done remove");  // debug
     public Item add(Item guiItem) {
         super.add(guiItem);
 
-        // Run an event to add guiItem's component to this item's
-        // component.
-        SwingUtilities.invokeLater(new RunAdd(guiItem));
-
+        if (guiItem instanceof Positionable) {
+            // Run an event to add guiItem's component to this item's
+            // component.
+            SwingUtilities.invokeLater(new RunAdd((Positionable)guiItem));
+        }
         return this;
     }
 
     class RunAdd
         extends LayoutItem.RunAdd
     {
-        public RunAdd(Item guiItem)
+        public RunAdd(Positionable guiItem)
         {
             super(guiItem);
         }
 
         public void run()
         {
-            if ( (POSITION_LIMIT <= horizontalPosition)
-              && (POSITION_LIMIT <= verticalPosition)
-              && (0 > horizontalPosition)
-              && (0 > verticalPosition) )
-            {
-                // Exceeds max horizontal or vertical.
-                return;
-            }
-
             super.run();
         }
     }

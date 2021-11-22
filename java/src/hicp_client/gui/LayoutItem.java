@@ -69,23 +69,34 @@ public abstract class LayoutItem
     class RunAdd
         implements Runnable
     {
-        protected final Item _guiItem;
+        protected final Positionable _guiItem;
         protected boolean _addSuccessful = false;
 
-        public RunAdd(Item guiItem)
+        public RunAdd(Positionable guiItem)
         {
             _guiItem = guiItem;
         }
 
         public void run()
         {
+            final PositionInfo positionInfo = _guiItem.getPositionInfo();
+
+            if ( (POSITION_LIMIT <= positionInfo.horizontalPosition)
+              || (POSITION_LIMIT <= positionInfo.verticalPosition)
+              || (0 > positionInfo.horizontalPosition)
+              || (0 > positionInfo.verticalPosition) )
+            {
+                // Exceeds max horizontal or vertical.
+                return;
+            }
+
             // Add to item size list.
             final SizeInfo sizeInfo = new SizeInfo(_guiItem);
 
             // Add to position grid.
             _positionGrid
-                [_guiItem.horizontalPosition]
-                [_guiItem.verticalPosition] = sizeInfo;
+                [positionInfo.horizontalPosition]
+                [positionInfo.verticalPosition] = sizeInfo;
 
             _itemSizeList.add(sizeInfo);
 
@@ -97,9 +108,9 @@ public abstract class LayoutItem
     class RunRemove
         implements Runnable
     {
-        protected final Item _guiItem;
+        protected final Positionable _guiItem;
 
-        public RunRemove(Item guiItem)
+        public RunRemove(Positionable guiItem)
         {
             _guiItem = guiItem;
         }
@@ -109,8 +120,10 @@ public abstract class LayoutItem
             // Remove guiItem's component from this item's component.
             removeComponentInvoked(_guiItem.getComponent());
 
-            final int horizontalPosition = _guiItem.horizontalPosition;
-            final int verticalPosition = _guiItem.verticalPosition;
+            final var positionInfo = _guiItem.getPositionInfo();
+
+            final int horizontalPosition = positionInfo.horizontalPosition;
+            final int verticalPosition = positionInfo.verticalPosition;
 
             final SizeInfo sizeInfo =
                 _positionGrid[horizontalPosition][verticalPosition];
@@ -140,10 +153,11 @@ public abstract class LayoutItem
             sizeInfo.oldHorizontalSize = sizeInfo.horizontalSize;
             sizeInfo.oldVerticalSize = sizeInfo.verticalSize;
 
-            final Item guiItem = sizeInfo.guiItem;
+            final Positionable guiItem = sizeInfo.guiItem;
+            final PositionInfo positionInfo = guiItem.getPositionInfo();
 
-            final int horizontalPosition = guiItem.horizontalPosition;
-            final int verticalPosition = guiItem.verticalPosition;
+            final int horizontalPosition = positionInfo.horizontalPosition;
+            final int verticalPosition = positionInfo.verticalPosition;
 
             if (horizontalPosition > maxHorizontal) {
                 maxHorizontal = horizontalPosition;
@@ -170,14 +184,15 @@ public abstract class LayoutItem
                     _positionGrid[horizontalPosition][verticalPosition];
 
                 if (null != sizeInfo) {
-                    final Item guiItem = sizeInfo.guiItem;
+                    final Positionable guiItem = sizeInfo.guiItem;
+                    final PositionInfo positionInfo = guiItem.getPositionInfo();
 
-                    if ( (1 <= guiItem.horizontalSize)
-                      && (1 <= guiItem.verticalSize) )
+                    if ( (1 <= positionInfo.horizontalSize)
+                      && (1 <= positionInfo.verticalSize) )
                     {
                         // Calculate initial limits.
                         int horizontalLim =
-                            horizontalPosition + guiItem.horizontalSize;
+                            horizontalPosition + positionInfo.horizontalSize;
                         if (horizontalLim == horizontalPosition) {
                             // Size of 0, treat it as 1.
                             horizontalLim++;
@@ -187,7 +202,7 @@ public abstract class LayoutItem
                         }
 
                         int verticalLim =
-                            verticalPosition + guiItem.verticalSize;
+                            verticalPosition + positionInfo.verticalSize;
                         if (verticalLim == verticalPosition) {
                             // Size of 0, treat it as 1.
                             verticalLim++;
@@ -269,10 +284,11 @@ adjustSizeLoop:
                     _positionGrid[horizontalPosition][verticalPosition];
 
                 if (null != sizeInfo) {
-                    final Item guiItem = sizeInfo.guiItem;
+                    final Positionable guiItem = sizeInfo.guiItem;
+                    final PositionInfo positionInfo = guiItem.getPositionInfo();
 
-                    if ( (0 == guiItem.horizontalSize)
-                      && (0 != guiItem.verticalSize) )
+                    if ( (0 == positionInfo.horizontalSize)
+                      && (0 != positionInfo.verticalSize) )
                     {
                         // Find new horizontal size.
 
@@ -317,8 +333,8 @@ adjustZeroHorizSizeLoop:
                             verticalStart,
                             verticalLim
                         );
-                    } else if ( (0 != guiItem.horizontalSize)
-                        && (0 == guiItem.verticalSize) )
+                    } else if ( (0 != positionInfo.horizontalSize)
+                        && (0 == positionInfo.verticalSize) )
                     {
                         // Find new vertical size.
 
@@ -362,8 +378,8 @@ adjustZeroVertSizeLoop:
                             verticalStart,
                             verticalLim
                         );
-                    } else if ( (0 == guiItem.horizontalSize)
-                        && (0 == guiItem.verticalSize) )
+                    } else if ( (0 == positionInfo.horizontalSize)
+                        && (0 == positionInfo.verticalSize) )
                     {
                         // Adjust both sizes.
 
@@ -431,13 +447,15 @@ adjustZeroSizeLoop:
               || (sizeInfo.oldVerticalSize != sizeInfo.verticalSize) )
             {
                 final var guiItem = sizeInfo.guiItem;
+                final var positionInfo = guiItem.getPositionInfo();
+
                 removeComponentInvoked(guiItem.getComponent());
 
                 // Set layout parameters.
                 final GridBagConstraints gridBagConstraints =
                     new GridBagConstraints(
-                        guiItem.horizontalPosition,
-                        guiItem.verticalPosition,
+                        positionInfo.horizontalPosition,
+                        positionInfo.verticalPosition,
                         sizeInfo.horizontalSize,
                         sizeInfo.verticalSize,
                         1.0, 1.0,
@@ -500,7 +518,7 @@ adjustZeroSizeLoop:
 }
 
 class SizeInfo {
-    public final Item guiItem;
+    public final Positionable guiItem;
 
     public int horizontalSize = 0;
     public int verticalSize = 0;
@@ -508,7 +526,7 @@ class SizeInfo {
     public int oldHorizontalSize = 0;
     public int oldVerticalSize = 0;
 
-    public SizeInfo(Item newItem) {
+    public SizeInfo(Positionable newItem) {
         guiItem = newItem;
     }
 
@@ -520,9 +538,11 @@ class SizeInfo {
         if (null == sizeInfo.guiItem) {
             return (null == guiItem);
         }
-        final Item otherItem = sizeInfo.guiItem;
-        return ( (otherItem.horizontalSize == horizontalSize)
-            && (otherItem.verticalSize == verticalSize) );
+        final Positionable otherItem = sizeInfo.guiItem;
+        final PositionInfo positionInfo = otherItem.getPositionInfo();
+
+        return ( (positionInfo.horizontalSize == horizontalSize)
+            && (positionInfo.verticalSize == verticalSize) );
     }
 
     public int hashCode() {

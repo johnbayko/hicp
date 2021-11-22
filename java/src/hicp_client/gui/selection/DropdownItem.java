@@ -21,10 +21,13 @@ import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
+import hicp_client.gui.Positionable;
+import hicp_client.gui.PositionInfo;
 import hicp_client.text.TextLibrary;
 
 public class DropdownItem
     extends Item
+    implements Positionable
 {
     private static final Logger LOGGER =
         Logger.getLogger( ScrollItem.class.getName() );
@@ -33,6 +36,8 @@ public class DropdownItem
 
     protected final TextLibrary _textLibrary;
     protected final MessageExchange _messageExchange;
+
+    protected final PositionInfo _positionInfo;
 
     protected DropdownModel _dropdownModel = null;
     protected boolean _shouldSendChangedEvent = true;
@@ -123,6 +128,7 @@ public class DropdownItem
         MessageExchange messageExchange
     ) {
         super(m);
+        _positionInfo = new PositionInfo(m);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
@@ -230,11 +236,15 @@ public class DropdownItem
         return this;
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         if (hicp.TextDirection.RIGHT == _parent.getHorizontalTextDirection()) {
             return java.awt.GridBagConstraints.WEST;
         } else {
@@ -242,7 +252,7 @@ public class DropdownItem
         }
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.NONE;
     }
 

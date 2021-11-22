@@ -14,17 +14,19 @@ import hicp_client.text.TextItemAdapter;
 
 public class LabelItem
     extends Item
-    implements TextItemAdapterListener
+    implements Positionable, TextItemAdapterListener
 {
     private static final Logger LOGGER =
         Logger.getLogger( LabelItem.class.getName() );
 
+    protected final PositionInfo _positionInfo;
     protected TextItemAdapter _textItemAdapter;
 
     protected JLabel _component;
 
     public LabelItem(final Message m) {
         super(m);
+        _positionInfo = new PositionInfo(m);
     }
 
     public void setAdapter(TextItemAdapter tia) {
@@ -50,11 +52,15 @@ public class LabelItem
         return this;
     }
 
-    protected Component getComponent() {
+    public Component getComponent() {
         return _component;
     }
 
-    protected int getGridBagAnchor() {
+    public PositionInfo getPositionInfo() {
+        return _positionInfo;
+    }
+
+    public int getGridBagAnchor() {
         if (hicp.TextDirection.RIGHT == _parent.getHorizontalTextDirection()) {
             return java.awt.GridBagConstraints.WEST;
         } else {
@@ -62,7 +68,7 @@ public class LabelItem
         }
     }
 
-    protected int getGridBagFill() {
+    public int getGridBagFill() {
         return java.awt.GridBagConstraints.NONE;
     }
 

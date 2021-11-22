@@ -5,14 +5,9 @@ import javax.swing.SwingUtilities;
 
 import hicp.message.Message;
 
-public abstract class Item
-{
+public abstract class Item {
     public final String idString;
     public final String component;
-    public final int horizontalPosition;
-    public final int verticalPosition;
-    public final int horizontalSize;
-    public final int verticalSize;
 
     /** What this is contained by. */
     protected ContainerItem _parent = null;
@@ -24,26 +19,15 @@ public abstract class Item
         final var commandInfo = m.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
-        final var containedGUIInfo = guiInfo.getContainedGUIInfo();
 
         idString = itemInfo.id;
 
         component = guiInfo.component.name;
-
-        horizontalPosition = containedGUIInfo.position.horizontal;
-        verticalPosition = containedGUIInfo.position.vertical;
-        horizontalSize = containedGUIInfo.size.horizontal;
-        verticalSize = containedGUIInfo.size.vertical;
     }
 
     public Item() {
         idString = null;
         component = null;
-
-        horizontalPosition = 0;
-        verticalPosition = 0;
-        horizontalSize = 0;
-        verticalSize = 0;
     }
 
     public final Item add(Message addCmd) {
@@ -107,12 +91,6 @@ public abstract class Item
 
         return this;
     }
-
-    protected abstract Component getComponent();
-
-    protected abstract int getGridBagAnchor();
-
-    protected abstract int getGridBagFill();
 
     /*
         The dispose method is called only when things are being shut

@@ -132,17 +132,18 @@ public class WindowItem
     protected Item remove(Item guiItem) {
         super.remove(guiItem);
 
-        // Run an event to remove guiItem's component from this item's
-        // component.
-        SwingUtilities.invokeLater(new RunRemove(guiItem));
-
+        if (guiItem instanceof Positionable) {
+            // Run an event to remove guiItem's component from this item's
+            // component.
+            SwingUtilities.invokeLater(new RunRemove((Positionable)guiItem));
+        }
         return this;
     }
 
     class RunRemove
         extends LayoutItem.RunRemove
     {
-        public RunRemove(Item guiItem)
+        public RunRemove(Positionable guiItem)
         {
             super(guiItem);
         }
@@ -167,20 +168,6 @@ public class WindowItem
         Component component, GridBagConstraints gridBagConstraints
     ) {
         _panel.add(component, gridBagConstraints);
-    }
-
-    protected Component getComponent() {
-        return _component;
-    }
-
-    // These don't really make sense for a window, but needs to be
-    // implemented.
-    protected int getGridBagAnchor() {
-        return java.awt.GridBagConstraints.CENTER;
-    }
-
-    protected int getGridBagFill() {
-        return java.awt.GridBagConstraints.NONE;
     }
 
     /**
@@ -232,32 +219,24 @@ public class WindowItem
     public Item add(Item guiItem) {
         super.add(guiItem);
 
-        // Run an event to add guiItem's component to this item's
-        // component.
-        SwingUtilities.invokeLater(new RunAdd(guiItem));
-
+        if (guiItem instanceof Positionable) {
+            // Run an event to add guiItem's component to this item's
+            // component.
+            SwingUtilities.invokeLater(new RunAdd((Positionable)guiItem));
+        }
         return this;
     }
 
     class RunAdd
         extends LayoutItem.RunAdd
     {
-        public RunAdd(Item guiItem)
+        public RunAdd(Positionable guiItem)
         {
             super(guiItem);
         }
 
         public void run()
         {
-            if ( (POSITION_LIMIT <= horizontalPosition)
-              && (POSITION_LIMIT <= verticalPosition)
-              && (0 > horizontalPosition)
-              && (0 > verticalPosition) )
-            {
-                // Exceeds max horizontal or vertical.
-                return;
-            }
-
             super.run();
 
             // If visible, resize.
