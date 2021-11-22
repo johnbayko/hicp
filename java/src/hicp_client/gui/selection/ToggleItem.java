@@ -218,6 +218,9 @@ public class ToggleItem
         _selectionItemList = new LinkedList<>();
 
         final GridBagConstraints c = new GridBagConstraints();
+        // TODO: This should all follow the text direction of the container
+        // it's added to.
+        c.anchor = GridBagConstraints.LINE_START;
         c.gridx = 0;
         c.gridy = 0;
 

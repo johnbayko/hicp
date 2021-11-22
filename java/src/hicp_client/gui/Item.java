@@ -9,10 +9,10 @@ public abstract class Item
 {
     public final String idString;
     public final String component;
-    public int horizontalPosition = 0;
-    public int verticalPosition = 0;
-    public int horizontalSize = 0;
-    public int verticalSize = 0;
+    public final int horizontalPosition;
+    public final int verticalPosition;
+    public final int horizontalSize;
+    public final int verticalSize;
 
     /** What this is contained by. */
     protected ContainerItem _parent = null;
@@ -27,7 +27,9 @@ public abstract class Item
         final var containedGUIInfo = guiInfo.getContainedGUIInfo();
 
         idString = itemInfo.id;
+
         component = guiInfo.component.name;
+
         horizontalPosition = containedGUIInfo.position.horizontal;
         verticalPosition = containedGUIInfo.position.vertical;
         horizontalSize = containedGUIInfo.size.horizontal;
@@ -37,6 +39,11 @@ public abstract class Item
     public Item() {
         idString = null;
         component = null;
+
+        horizontalPosition = 0;
+        verticalPosition = 0;
+        horizontalSize = 0;
+        verticalSize = 0;
     }
 
     public final Item add(Message addCmd) {
