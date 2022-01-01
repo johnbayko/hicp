@@ -1,6 +1,7 @@
 package hicp_client.gui.selection;
 
 import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -18,9 +19,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
 
 import hicp.MessageExchange;
+import hicp.TextDirection;
 import hicp.message.Message;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
+import hicp_client.gui.ContainerItem;
 import hicp_client.gui.Item;
 import hicp_client.gui.Positionable;
 import hicp_client.gui.PositionInfo;
@@ -324,6 +327,7 @@ public class ToggleItem
             _component = new JPanel(new GridBagLayout());
             break;
         }
+        applyTextDirectionInvoked();
 
         // These are only set when adding, not when modifying, so save them for
         // any future modify command.
@@ -393,6 +397,38 @@ public class ToggleItem
             updateEvents(guiSelectionInfo.events);
         }
         // Changed parent ID is handled by Controller.
+        return this;
+    }
+
+    /**
+        GUI thread.
+     */
+    @Override
+    public Item setParent(final ContainerItem parent) {
+        super.setParent(parent);
+        applyTextDirectionInvoked();
+
+        return this;
+    }
+
+    /*
+        Add message and set parent are invoked on the GUI thread, and order
+        might not be as expected. This sets text direction from parent, and is
+        called in both cases (addInvoked() and setParent() ). So either parent
+        or component might be missing. Only do this if both exist.
+     */
+    protected Item applyTextDirectionInvoked() {
+        if (null == _parent || null == _component) {
+            // No parent yet.
+            return this;
+        }
+       if (TextDirection.RIGHT == _parent.getHorizontalTextDirection()) {
+           _component
+               .setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+       } else {
+           _component
+               .setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+       }
         return this;
     }
 }

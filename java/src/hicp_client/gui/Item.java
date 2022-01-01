@@ -87,6 +87,11 @@ public abstract class Item {
      */
     public Item setParent(ContainerItem parent) {
         _parent = parent;
+        if (null == _parent) {
+            // Makes no sense (parent can only be set once, if set to null then
+            // it will never be used), but could happen.
+            return this;
+        }
         _parent.add(this);
 
         return this;
