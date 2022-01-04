@@ -100,7 +100,12 @@ public class ToggleItem
                 component = null;
                 break;
             }
-
+            {
+                final var co = getComponentOrientation();
+                if (ComponentOrientation.UNKNOWN != co) {
+                    component.applyComponentOrientation(co);
+                }
+            }
             // This will be added to _selectionItemList after construction but
             // before being added to the container component, so the listener
             // will never be triggered until after then, meaning it's okay for
@@ -227,8 +232,6 @@ public class ToggleItem
         _selectionItemList = new LinkedList<>();
 
         final GridBagConstraints c = new GridBagConstraints();
-        // TODO: This should all follow the text direction of the container
-        // it's added to.
         c.anchor = GridBagConstraints.LINE_START;
         c.gridx = 0;
         c.gridy = 0;
@@ -411,24 +414,27 @@ public class ToggleItem
         return this;
     }
 
-    /*
-        Add message and set parent are invoked on the GUI thread, and order
-        might not be as expected. This sets text direction from parent, and is
-        called in both cases (addInvoked() and setParent() ). So either parent
-        or component might be missing. Only do this if both exist.
-     */
     protected Item applyTextDirectionInvoked() {
+        final var co = getComponentOrientation();
+        if (ComponentOrientation.UNKNOWN != co) {
+            _component.applyComponentOrientation(co);
+        }
+        return this;
+    }
+
+    public ComponentOrientation getComponentOrientation() {
+        /*
+            Add message and set parent are invoked on the GUI thread, and order
+            might not be as expected. This sets text direction from parent, and
+            is called in both cases (addInvoked() and setParent() ). So either
+            parent or component might be missing. Only do this if both exist.
+         */
         if (null == _parent || null == _component) {
             // No parent yet.
-            return this;
+            return ComponentOrientation.UNKNOWN;
         }
-       if (TextDirection.RIGHT == _parent.getHorizontalTextDirection()) {
-           _component
-               .setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-       } else {
-           _component
-               .setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-       }
-        return this;
+        return (TextDirection.RIGHT == _parent.getHorizontalTextDirection())
+            ? ComponentOrientation.LEFT_TO_RIGHT
+            : ComponentOrientation.RIGHT_TO_LEFT;
     }
 }
