@@ -1285,6 +1285,10 @@ text: <integer>
   "label":
     Displayed by the label. Required, there is no default.
 
+  "panel":
+    If specified, displayed as part of a border around the panel. No border is
+    displayed if there is no text specified.
+
   "window":
     Used in the title bar. Default is should be something like the application
     name and window ID.

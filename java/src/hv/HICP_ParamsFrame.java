@@ -116,6 +116,7 @@ public class HICP_ParamsFrame
                     hicpPanel.add(new JLabel("User"), hicpLC);
 
                     _username = new JTextField(30);
+                    _username.setText("user1");  // debug
                     hicpLC.anchor = GridBagConstraints.WEST;
                     hicpLC.fill = GridBagConstraints.HORIZONTAL;
                     hicpLC.gridx = 1;
@@ -131,6 +132,7 @@ public class HICP_ParamsFrame
                     hicpPanel.add(new JLabel("Password"), hicpLC);
 
                     _password = new JPasswordField(30);
+                    _password.setText("password1");  // debug
                     hicpLC.anchor = GridBagConstraints.WEST;
                     hicpLC.fill = GridBagConstraints.HORIZONTAL;
                     hicpLC.gridx = 1;

@@ -8,36 +8,58 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
+import hicp_client.text.TextItemAdapterListener;
+import hicp_client.text.TextItemAdapter;
 
 public class PanelItem
     extends LayoutItem
-    implements Positionable
+    implements Positionable, TextItemAdapterListener
 {
     private static final Logger LOGGER =
         Logger.getLogger( PanelItem.class.getName() );
 
     protected final PositionInfo _positionInfo;
+    protected TextItemAdapter _textItemAdapter;
 
     // Should be used only from GUI thread.
     protected JPanel _component;
+    protected TitledBorder _border;
 
     public PanelItem(final Message m) {
         super(m);
         _positionInfo = new PositionInfo(m);
     }
 
+    public void setAdapter(TextItemAdapter tia) {
+        _textItemAdapter = tia;
+        _textItemAdapter.setAdapter(this);
+    }
+
     /**
         GUI thread.
      */
     protected Item addInvoked(final Message addCmd) {
-        _component = new JPanel();
+        final var commandInfo = addCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiPanelInfo = guiInfo.getGUIPanelInfo();
 
+        _component = new JPanel();
         _component.setLayout(new GridBagLayout());
 
+        // Panel string.
+        if (null != guiPanelInfo.text) {
+            // Text gets set by TextitemAdapter calling this.
+            _border = javax.swing.BorderFactory.createTitledBorder("");
+            _component.setBorder(_border);
+
+            _textItemAdapter.setTextIdInvoked(guiPanelInfo.text);
+        }
         return super.addInvoked(addCmd);
     }
 
@@ -92,6 +114,17 @@ public class PanelItem
         return java.awt.GridBagConstraints.BOTH;
     }
 
+    /**
+        Called in GUI thread.
+     */
+    public void setTextInvoked(String text) {
+        _border.setTitle(text);
+    }
+
+    public void removeAdapter() {
+        _textItemAdapter.removeAdapter();
+    }
+
     public void dispose() {
 LOGGER.log(Level.FINE, "PanelItem.dispose() entered");  // debug
         // ContainerItem will remove any items added to this.
@@ -143,8 +176,18 @@ LOGGER.log(Level.FINE, "PanelItem.dispose() done remove");  // debug
 
     protected Item modifyInvoked(final Message modifyCmd) {
         super.modifyInvoked(modifyCmd);
+
+        final var commandInfo = modifyCmd.getCommandInfo();
+        final var itemInfo = commandInfo.getItemInfo();
+        final var guiInfo = itemInfo.getGUIInfo();
+        final var guiPanelInfo = guiInfo.getGUIPanelInfo();
+
         // See what's changed.
 
+        // New text item?
+        if (null != guiPanelInfo.text) {
+            _textItemAdapter.setTextIdInvoked(guiPanelInfo.text);
+        }
         return this;
     }
 

@@ -1012,6 +1012,21 @@ class Panel(Container):
         Container.__init__(self)
 
         self.component = Component.PANEL
+        self.component_text = ComponentText(self)
+
+    def set_text_id(self, text_id):
+        self.component_text.set_text_id(text_id)
+
+    def set_text(self, text, hicp):
+        self.component_text.set_text_get_id(text, hicp)
+
+    def set_groups_text(self, text_group_list, hicp):
+        self.component_text.set_groups_text(text_group_list, hicp)
+
+    def fill_headers_add(self, message):
+        Container.fill_headers_add(self, message)
+        self.component_text.fill_headers_add(message)
+
 
 class Window(Container):
     def __init__(self):

@@ -267,12 +267,9 @@ class TestApp(App):
         window.set_text_id(self.WINDOW_TITLE_ID)
         hicp.add(window)
 
-        amazing_label = Label()
-        amazing_label.set_text_id(self.AMAZING_ID)
-        window.add(amazing_label, 0, 0)
-
         # Components being tested get their own panel
         component_panel = Panel()
+        component_panel.set_text_id(self.AMAZING_ID)
 
         status_label = Label()
         status_label.set_text_id(self.LABEL_CLICK_ID)
@@ -305,10 +302,7 @@ class TestApp(App):
         # There's going to be a bunch of controls for testing the selection
         # component, so make a panel for them.
         selection_panel = Panel()
-
-        selection_label = Label()
-        selection_label.set_text_id(self.SELECTION_LABEL_ID)
-        selection_panel.add(selection_label, 0, 0)
+        selection_panel.set_text_id(self.SELECTION_LABEL_ID)
 
         # Add selection list to selection_panel
         selection = Selection()

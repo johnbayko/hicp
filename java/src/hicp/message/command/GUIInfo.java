@@ -46,6 +46,7 @@ public class GUIInfo {
 
     private GUIButtonInfo _guiButtonInfo = null;
     private GUILabelInfo _guiLabelInfo = null;
+    private GUIPanelInfo _guiPanelInfo = null;
     private GUISelectionInfo _guiSelectionInfo = null;
     private GUITextFieldInfo _guiTextFieldInfo = null;
     private GUIWindowInfo _guiWindowInfo = null;
@@ -58,8 +59,8 @@ public class GUIInfo {
     public GUIInfo(final HeaderMap headerMap) {
         _headerMap = headerMap;
 
-        component =
-            ComponentEnum.getEnum(headerMap.getString(HeaderEnum.COMPONENT));
+        final String componentName = headerMap.getString(HeaderEnum.COMPONENT);
+        component = ComponentEnum.getEnum(componentName);
     }
 
     public GUIInfo updateHeaderMap(
@@ -79,6 +80,9 @@ public class GUIInfo {
         }
         if (null != _guiLabelInfo) {
             _guiLabelInfo.updateHeaderMap(headerMap);
+        }
+        if (null != _guiPanelInfo) {
+            _guiPanelInfo.updateHeaderMap(headerMap);
         }
         if (null != _guiSelectionInfo) {
             _guiSelectionInfo.updateHeaderMap(headerMap);
@@ -120,6 +124,13 @@ public class GUIInfo {
             _guiLabelInfo = new GUILabelInfo(_headerMap);
         }
         return _guiLabelInfo;
+    }
+
+    public GUIPanelInfo getGUIPanelInfo() {
+        if (null == _guiPanelInfo) {
+            _guiPanelInfo = new GUIPanelInfo(_headerMap);
+        }
+        return _guiPanelInfo;
     }
 
     public GUISelectionInfo getGUISelectionInfo() {

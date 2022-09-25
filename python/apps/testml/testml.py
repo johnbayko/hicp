@@ -358,6 +358,11 @@ class TestAppML(App):
 
         # Components being tested get their own panel
         component_panel = Panel()
+        component_panel.set_groups_text( [
+                ( "Amazing!", Lang.EN),
+                ( "Brilliant!", Lang.EN, Lang.GB),
+                ( "Sensationnel!", Lang.FR, Lang.CA)
+            ], hicp)
 
         status_label = Label()
         status_label.set_groups_text( [
@@ -404,13 +409,10 @@ class TestAppML(App):
         # There's going to be a bunch of controls for testing the selection
         # component, so make a panel for them.
         selection_panel = Panel()
-
-        selection_label = Label()
-        selection_label.set_groups_text( [
+        selection_panel.set_groups_text( [
                 ( "Selection", Lang.EN),
                 ( "Sélection", Lang.FR, Lang.CA)
             ], hicp)
-        selection_panel.add(selection_label, 0, 0)
 
         # Add selection list to list_panel
         selection = Selection()
