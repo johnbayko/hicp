@@ -119,6 +119,8 @@ public class PanelItem
      */
     public void setTextInvoked(String text) {
         _border.setTitle(text);
+        // Known bug, repaint after changing border text.
+        _component.repaint();
     }
 
     public void removeAdapter() {
@@ -126,13 +128,10 @@ public class PanelItem
     }
 
     public void dispose() {
-LOGGER.log(Level.FINE, "PanelItem.dispose() entered");  // debug
         // ContainerItem will remove any items added to this.
         super.dispose();
-LOGGER.log(Level.FINE, "PanelItem.dispose() done super.dispose()");  // debug
 
         if (null == _component) {
-LOGGER.log(Level.FINE, "Item has no component");  // debug
             return;
         }
 
@@ -143,10 +142,7 @@ LOGGER.log(Level.FINE, "Item has no component");  // debug
 //        }
 
         // Dispose of this object.
-LOGGER.log(Level.FINE, "PanelItem.dispose() invokeLater(RunDispose)");  // debug
         _component = null;
-
-LOGGER.log(Level.FINE, "PanelItem.dispose() done remove");  // debug
     }
 
     public Item add(Item guiItem) {
