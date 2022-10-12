@@ -1,16 +1,11 @@
 # Test framework to open server port and start recep[tion app.
-import importlib
-import inspect
 import os
 import os.path
-import pathlib
-import pkgutil
 import socket
 import sys
 import threading
 
 from hicp import HICP, newLogger, Message
-from hicp import AppSpec, App
 
 class Authenticator:
     "A simple authenticator, uses plain text file with 'user, password' lines"
@@ -63,8 +58,6 @@ class HICPd(threading.Thread):
 
         self.socket = None
         self.port = None
-        self.default_app = None
-        self.app_list = {}
         self.is_stopped = False
 
     def run(self):
@@ -73,8 +66,6 @@ class HICPd(threading.Thread):
         addr = self.socket.getsockname()
         self.port = addr[1]
         print(f"Server socket: {addr[1]}") # debug
-
-        self.find_apps()
 
         while not self.is_stopped:
             # Wait for socket connect
@@ -98,8 +89,6 @@ class HICPd(threading.Thread):
             hicp = HICP(
                 in_stream=f,
                 out_stream=f,
-                app_list=self.app_list,
-                default_app=self.default_app,
                 authenticator=authenticator)
 
             print("about to start HICP")
@@ -108,78 +97,13 @@ class HICPd(threading.Thread):
 
             cs.close()
         # There is a possibility that the loop will exit before the socket
-        # is closed. Not important since this will exit anyway, but clean up
-        # properly anyway.
+        # is closed. Not important since this will exit anyway, but clean up # properly anyway.
         self.socket.close()
 
     def stop(self):
         # If waiting for socket connection, interrupt.
         self.is_stopped = True
         self.socket.close()
-
-    def __get_app_path(self):
-        hicp_path = os.getenv('HICPPATH', default='.')
-        app_path = os.path.join(hicp_path, 'apps')
-        return app_path
-
-    def __get_default_app_path(self):
-        hicp_path = os.getenv('HICPPATH', default='.')
-        app_path = os.path.join(hicp_path, 'default_app')
-        return app_path
-
-    def find_apps(self):
-        """Find and load apps in the app path.
-
-        If source files are changed, restart the server, it's not worth
-        reloading modules and tracking down and killing active apps.
-        """
-        new_app_list = {}
-        new_default_app = None
-
-        app_path = self.__get_app_path()
-        app_dirs_list = \
-            [os.path.join(app_path, f) for f
-                in os.listdir(app_path)
-                if os.path.isdir(os.path.join(app_path, f)) ]
-
-        # Add default app dir to beginning of list, if it exists.
-        default_app_path = self.__get_default_app_path()
-        if os.path.isdir(default_app_path):
-            app_dirs_list.insert(0, default_app_path)
-
-        for importer, package_name, _ in pkgutil.iter_modules(app_dirs_list):
-            full_package_name = '%s.%s' % (app_path, package_name)
-            module_spec = importer.find_spec(package_name)
-            module = importlib.util.module_from_spec(module_spec)
-            sys.modules[module.__name__] = module
-            module_spec.loader.exec_module(module)
-            for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-                # Filter out imported classes
-                if inspect.getmodule(cls) == module:
-                    app = None
-                    if issubclass(cls, App):
-                        module_dirname = os.path.dirname(module_spec.origin)
-                        module_path = pathlib.Path(module_dirname)
-
-                        app_name = cls.get_app_name()
-                        if module_dirname == default_app_path:
-                            new_default_app = app_name
-
-                        new_app_list[app_name] = AppSpec(cls, module_path)
-
-            # Not practical to unload a module with no apps found, just leave
-            # it around as garbage.
-
-        self.app_list = new_app_list
-
-        if new_default_app is not None:
-            self.default_app = new_default_app
-        else:
-            # None found, default to first app in list - might not be the same
-            # each time, so probably won't work normally.
-            # Take one iteration of new_app_list (will iterate keys, which are
-            # app names).
-            self.default_app = next(iter(new_app_list))
 
     def get_port(self):
         return self.port

@@ -1,12 +1,18 @@
+import importlib
+import inspect
 import os
 import os.path
 import pathlib
+import pkgutil
 import queue
+import sys
 import threading
 
 from datetime import datetime, timedelta
 from enum import Enum, auto
 
+# Can't import App, AppSpec from here. Specify them as hicp.app.App etc.
+import hicp.app
 from hicp.logger import newLogger
 from hicp.message import Message
 
@@ -880,6 +886,9 @@ class TextManager:
         return self.id_to_selector.keys()
 
 
+# TODO Move to class when this is changed from thread to process
+hicp_default_app = None  # debug
+hicp_app_list = {}  # debug
 class HICP:
     "HICP control class"
 
@@ -892,8 +901,6 @@ class HICP:
         self,
         in_stream,
         out_stream,
-        app_list,
-        default_app=None,
         text_group=None,
         text_subgroup=None,
         authenticator=None):
@@ -910,8 +917,10 @@ class HICP:
 
         self.in_stream = in_stream
         self.out_stream = out_stream
-        self.__default_app = default_app
-        self.__app_list = app_list
+        self.find_apps()  # debug
+        # TODO These will be done in find_apps() when this is changed from thread to process
+        self.__default_app = hicp_default_app  # debug
+        self.__app_list = hicp_app_list  # debug
 
         if text_group is None:
             # Default language. If they don't specify, make it awkward enough
@@ -927,6 +936,76 @@ class HICP:
         # Things for this object
         self.__gui_id = 0
         self.__component_list = {}
+
+    def _get_app_path(self):
+        hicp_path = os.getenv('HICPPATH', default='.')
+        app_path = os.path.join(hicp_path, 'apps')
+        return app_path
+
+    def _get_default_app_path(self):
+        hicp_path = os.getenv('HICPPATH', default='.')
+        app_path = os.path.join(hicp_path, 'default_app')
+        return app_path
+
+    def find_apps(self):
+        """Find and load apps in the app path.
+
+        If source files are changed, restart the server, it's not worth
+        reloading modules and tracking down and killing active apps.
+        """
+        # TODO These won't be needed when this is changed from thread to preocess
+        global hicp_app_list  # debug
+        if 0 != len(hicp_app_list):  # debug
+            # Already found apps.
+            return  # debug
+
+        new_app_list = {}
+        new_default_app = None
+
+        app_path = self._get_app_path()
+        app_dirs_list = \
+            [os.path.join(app_path, f) for f
+                in os.listdir(app_path)
+                if os.path.isdir(os.path.join(app_path, f)) ]
+
+        # Add default app dir to beginning of list, if it exists.
+        default_app_path = self._get_default_app_path()
+        if os.path.isdir(default_app_path):
+            app_dirs_list.insert(0, default_app_path)
+
+        for importer, package_name, _ in pkgutil.iter_modules(app_dirs_list):
+            full_package_name = '%s.%s' % (app_path, package_name)
+            module_spec = importer.find_spec(package_name)
+            module = importlib.util.module_from_spec(module_spec)
+            sys.modules[module.__name__] = module
+            module_spec.loader.exec_module(module)
+            for cls_name, cls in inspect.getmembers(module, inspect.isclass):
+                # Filter out imported classes
+                if inspect.getmodule(cls) == module:
+                    app = None
+                    if issubclass(cls, hicp.app.App):
+                        module_dirname = os.path.dirname(module_spec.origin)
+                        module_path = pathlib.Path(module_dirname)
+
+                        app_name = cls.get_app_name()
+                        if module_dirname == default_app_path:
+                            new_default_app = app_name
+
+                        new_app_list[app_name] = hicp.app.AppSpec(cls, module_path)
+
+            # Not practical to unload a module with no apps found, just leave
+            # it around as garbage.
+
+        hicp_app_list = new_app_list
+
+        if new_default_app is not None:
+            hicp_default_app = new_default_app
+        else:
+            # None found, default to first app in list - might not be the same
+            # each time, so probably won't work normally.
+            # Take one iteration of new_app_list (will iterate keys, which are
+            # app names).
+            hicp_default_app = next(iter(new_app_list))
 
     def start(self):
         self.__write_thread = WriteThread(self.out_stream)
