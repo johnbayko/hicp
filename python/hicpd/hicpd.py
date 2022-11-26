@@ -1,4 +1,3 @@
-# Test framework to open server port and start recep[tion app.
 import os
 import os.path
 import socket
@@ -7,58 +6,55 @@ import threading
 
 from hicp import HICP, newLogger, Message
 
-class Authenticator:
-    "A simple authenticator, uses plain text file with 'user, password' lines"
+class HICP_thread(threading.Thread):
+    """Actual app will be run as a process to manage resources, but there's no
+    portable way to signal child termination, so start a thread to join() the
+    process, then put itself on a queue for a final join() of the thread.
 
-    def __init__(self, user_password_path):
-        self.__user_password = {}
-        self.__logger = newLogger(type(self).__name__)
+    Why not have the process signal it's done through a Queue or something? A
+    process can terminate unexpectedly, a thread (ignoring bugs) should always
+    be able to put itself away cleanly if everything else is still running.
+    """
+    def __init__(
+        self,
+        io_socket,
+        text_group=None,
+        text_subgroup=None):
 
-        user_password_file = open(user_password_path, "r")
-        for user_password_line in user_password_file:
-            # split on comma
-            user_password_split = user_password_line.find(",")
-            # Ignore lines in wrong format.
-            if 0 < user_password_split:
-                user = user_password_line[0:user_password_split].strip()
-                password = user_password_line[user_password_split + 1:].strip()
-                self.__user_password[user] = password
-            else:
-                self.__logger.error("Wrong format in file: " + user_password_line)
+        # These must be specified for this to work.
+        if io_socket is None:
+            raise UnboundLocalError("io_socket required, not defined")
 
-    def authenticate(self, message):
-        method = message.get_header(Message.METHOD)
-        if method is None:
-            # No authentication method, fails.
-            return False
+        self.io_socket = io_socket
+        self.text_group = text_group
+        self.text_subgroup = text_subgroup
 
-        if method != Message.PLAIN:
-            # This only handles plain passwords.
-            return False
+        threading.Thread.__init__(self)
 
-        check_user = message.get_header(Message.USER)
-        check_password = message.get_header(Message.PASSWORD)
+    def run(self):
+        hicp = HICP(io_socket=self.io_socket)
 
-        try:
-            if check_password == self.__user_password[check_user]:
-                return True
-            else:
-                return False
-        except KeyError:
-            # No such user
-            return False
+        print("before HICP start")
+        hicp.start()
 
-    def get_methods(self):
-        return ["plain"]
+        # Close socket here, process will keep it open.
+        self.io_socket.close()
+
+        hicp.join()
+        print("after HICP join")
+        
+        # TODO: Add to queue for final cleanup.
 
 
 class HICPd(threading.Thread):
+    """Open server port, and start HICP instance per connection.
+    """
     def __init__(self):
-        threading.Thread.__init__(self)
-
         self.socket = None
         self.port = None
         self.is_stopped = False
+
+        threading.Thread.__init__(self)
 
     def run(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -71,7 +67,7 @@ class HICPd(threading.Thread):
             # Wait for socket connect
             try:
                 self.socket.listen()
-                (cs, address) = self.socket.accept()
+                (io_socket, address) = self.socket.accept()
             except ConnectionAbortedError as cae:
                 if self.is_stopped:
                     # Normal, no error.
@@ -80,24 +76,21 @@ class HICPd(threading.Thread):
                     raise cae
 
             # start actual reception app.
-            f = cs.makefile(mode='rw', encoding='utf-8', newline='\n')
-
-            # Make an authenticator.
-            authenticator = Authenticator(os.path.join(sys.path[0], "users"))
 
             # Make an HICP object.
-            hicp = HICP(
-                in_stream=f,
-                out_stream=f,
-                authenticator=authenticator)
+            hicp = HICP_thread(io_socket)
 
-            print("about to start HICP")
+            print("before HICP thread start")
             hicp.start()
-            print("done HICP")
+            # TODO: Going to need a separate thread to monitor a queue, and
+            # join() any threads it receives to release them.
+            # Meanwhile, just join() here.
+            hicp.join()
+            print("after HICP thread join")
 
-            cs.close()
         # There is a possibility that the loop will exit before the socket
-        # is closed. Not important since this will exit anyway, but clean up # properly anyway.
+        # is closed. Not important since this will exit anyway, but clean up
+        # properly anyway.
         self.socket.close()
 
     def stop(self):

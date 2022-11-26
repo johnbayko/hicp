@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import multiprocessing
 import os
 import os.path
 import pathlib
@@ -15,6 +16,51 @@ from enum import Enum, auto
 import hicp.app
 from hicp.logger import newLogger
 from hicp.message import Message
+
+class Authenticator:
+    "A simple authenticator, uses plain text file with 'user, password' lines"
+
+    def __init__(self, user_password_path):
+        self.__user_password = {}
+        self.__logger = newLogger(type(self).__name__)
+
+        user_password_file = open(user_password_path, "r")
+        for user_password_line in user_password_file:
+            # split on comma
+            user_password_split = user_password_line.find(",")
+            # Ignore lines in wrong format.
+            if 0 < user_password_split:
+                user = user_password_line[0:user_password_split].strip()
+                password = user_password_line[user_password_split + 1:].strip()
+                self.__user_password[user] = password
+            else:
+                self.__logger.error("Wrong format in file: " + user_password_line)
+
+    def authenticate(self, message):
+        method = message.get_header(Message.METHOD)
+        if method is None:
+            # No authentication method, fails.
+            return False
+
+        if method != Message.PLAIN:
+            # This only handles plain passwords.
+            return False
+
+        check_user = message.get_header(Message.USER)
+        check_password = message.get_header(Message.PASSWORD)
+
+        try:
+            if check_password == self.__user_password[check_user]:
+                return True
+            else:
+                return False
+        except KeyError:
+            # No such user
+            return False
+
+    def get_methods(self):
+        return ["plain"]
+
 
 def find_free_id(map_to_search):
     ids = map_to_search.keys()
@@ -886,10 +932,7 @@ class TextManager:
         return self.id_to_selector.keys()
 
 
-# TODO Move to class when this is changed from thread to process
-hicp_default_app = None  # debug
-hicp_app_list = {}  # debug
-class HICP:
+class HICP(multiprocessing.Process):
     "HICP control class"
 
     LEFT = Message.LEFT
@@ -899,28 +942,18 @@ class HICP:
 
     def __init__(
         self,
-        in_stream,
-        out_stream,
+        io_socket,
         text_group=None,
-        text_subgroup=None,
-        authenticator=None):
+        text_subgroup=None):
 
         # These must be specified for this to work.
-        if in_stream is None:
-            raise UnboundLocalError("in_stream required, not defined")
-
-        if out_stream is None:
-            raise UnboundLocalError("out_stream required, not defined")
+        if io_socket is None:
+            raise UnboundLocalError("io_socket required, not defined")
 
         self.logger = newLogger(type(self).__name__)
         self.text_manager = TextManager(text_group, text_subgroup)
 
-        self.in_stream = in_stream
-        self.out_stream = out_stream
-        self.find_apps()  # debug
-        # TODO These will be done in find_apps() when this is changed from thread to process
-        self.__default_app = hicp_default_app  # debug
-        self.__app_list = hicp_app_list  # debug
+        self.io_socket = io_socket
 
         if text_group is None:
             # Default language. If they don't specify, make it awkward enough
@@ -931,11 +964,12 @@ class HICP:
 
         self.__text_group = text_group
         self.__text_subgroup = text_subgroup
-        self.__authenticator = authenticator
 
         # Things for this object
         self.__gui_id = 0
         self.__component_list = {}
+
+        multiprocessing.Process.__init__(self)
 
     def _get_app_path(self):
         hicp_path = os.getenv('HICPPATH', default='.')
@@ -953,12 +987,6 @@ class HICP:
         If source files are changed, restart the server, it's not worth
         reloading modules and tracking down and killing active apps.
         """
-        # TODO These won't be needed when this is changed from thread to preocess
-        global hicp_app_list  # debug
-        if 0 != len(hicp_app_list):  # debug
-            # Already found apps.
-            return  # debug
-
         new_app_list = {}
         new_default_app = None
 
@@ -996,20 +1024,30 @@ class HICP:
             # Not practical to unload a module with no apps found, just leave
             # it around as garbage.
 
-        hicp_app_list = new_app_list
+        self.__app_list = new_app_list
 
         if new_default_app is not None:
-            hicp_default_app = new_default_app
+            self.__default_app = new_default_app
         else:
             # None found, default to first app in list - might not be the same
             # each time, so probably won't work normally.
             # Take one iteration of new_app_list (will iterate keys, which are
             # app names).
-            hicp_default_app = next(iter(new_app_list))
+             self.__default_app = next(iter(new_app_list))
 
-    def start(self):
+    def run(self):
+        self.find_apps()  # debug
+
+        f = self.io_socket.makefile(mode='rw', encoding='utf-8', newline='\n')
+        # TODO: consolidate these into one stream field,
+        # having two is just a leftover from earlier implementation.
+        self.in_stream = f
+        self.out_stream = f
+
         self.__write_thread = WriteThread(self.out_stream)
         self.__write_thread.start()
+
+        self.__authenticator = Authenticator(os.path.join(sys.path[0], "users"))
 
         self.__event_thread = EventThread(
             self,
