@@ -198,8 +198,14 @@ block.
 
   Q: Why not use XML, JSON, or YAML?
 
-  A: Those are good for representing hierarchical data. These messages are
-  not hierarchical, so they add nothing but complexity.
+  A: When I started, JSON and YAML didn't exist. XML is complex and best for
+  representing hierarchical data. These messages are not hierarchical, so that
+  adds nothing but complexity.
+
+  JSON is simpler and unambiguous, so if I were starting over, I'd probably use
+  that. but my original thought was to model after the format of email
+  messages, with the possibility that existing email processing code might be
+  usable. That didn't turn out to be the case.
 
   Q: But a UI definition is hierarchical, that's why XUL was invented.
 
@@ -212,6 +218,9 @@ block.
   A: Binary messages still need martialling and byte re-ordering, the
   difference isn't that great. I also think there are advantages to having
   a human-readable message format.
+
+  Also when I started, there was no standard binary format available. There is
+  now, but I still think it's not worth the complexity.
 
   Q: Binary data in a header value isn't human-readable.
 

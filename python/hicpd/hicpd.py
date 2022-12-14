@@ -1,6 +1,7 @@
 import os
 import os.path
 import socket
+import queue
 import sys
 import threading
 
@@ -18,6 +19,7 @@ class HICP_thread(threading.Thread):
     def __init__(
         self,
         io_socket,
+        done_queue,
         text_group=None,
         text_subgroup=None):
 
@@ -26,6 +28,7 @@ class HICP_thread(threading.Thread):
             raise UnboundLocalError("io_socket required, not defined")
 
         self.io_socket = io_socket
+        self._done_queue = done_queue
         self.text_group = text_group
         self.text_subgroup = text_subgroup
 
@@ -33,23 +36,32 @@ class HICP_thread(threading.Thread):
 
     def run(self):
         hicp = HICP(io_socket=self.io_socket)
-
-        print("before HICP start")
         hicp.start()
+
+        # Tell joiner to wait for this thread. It will try to wait in order,
+        # even if a thread started later exits sooner, but that's okay, it just
+        # exists to make sure things are cleaned up eventually. It's done this
+        # way to ensure the server waits for all processes before it exists,
+        # otherwise a server exit will cause the join thread to exit with
+        # unjoined threads.
+        # Note there is a minor race condition here that's too unlikely for me
+        # to fix.
+        self._done_queue.put(self)
 
         # Close socket here, process will keep it open.
         self.io_socket.close()
 
         hicp.join()
-        print("after HICP join")
+        # TODO: Log any anomolies (process exit not 0).
         
-        # TODO: Add to queue for final cleanup.
 
 
-class HICPd(threading.Thread):
+class HICPd_starter(threading.Thread):
     """Open server port, and start HICP instance per connection.
     """
-    def __init__(self):
+    def __init__(self, done_queue):
+        self._done_queue = done_queue
+
         self.socket = None
         self.port = None
         self.is_stopped = False
@@ -78,15 +90,8 @@ class HICPd(threading.Thread):
             # start actual reception app.
 
             # Make an HICP object.
-            hicp = HICP_thread(io_socket)
-
-            print("before HICP thread start")
+            hicp = HICP_thread(io_socket, self._done_queue)
             hicp.start()
-            # TODO: Going to need a separate thread to monitor a queue, and
-            # join() any threads it receives to release them.
-            # Meanwhile, just join() here.
-            hicp.join()
-            print("after HICP thread join")
 
         # There is a possibility that the loop will exit before the socket
         # is closed. Not important since this will exit anyway, but clean up
@@ -98,19 +103,45 @@ class HICPd(threading.Thread):
         self.is_stopped = True
         self.socket.close()
 
+        # Indicate this thread is stopped to join thread. That thread does not
+        # try to join this, but will exit when it sees this has stopped.
+        self._done_queue.put(self)
+
     def get_port(self):
         return self.port
 
+
+class HICPd_joiner(threading.Thread):
+    "Join thread to clean up."
+    def __init__(self, done_queue):
+        self._done_queue = done_queue
+
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            t = self._done_queue.get()
+            if type(t) is HICPd_starter:
+                # End of threads to join.
+                return
+            t.join()
+
+
 if __name__ == "__main__":
-    hicpd = HICPd()
-    hicpd.start()
+    done_queue = queue.Queue()
+
+    hicpd_starter = HICPd_starter(done_queue)
+    hicpd_starter.start()
+
+    hicpd_joiner = HICPd_joiner(done_queue)
+    hicpd_joiner.start()
 
     while True:
         # TODO: How to wait for socket number to be available?
-        socket = hicpd.get_port()
+        socket = hicpd_starter.get_port()
         c = input(f"{socket} x ?: ")
         if c == "x":
-            hicpd.stop()
+            hicpd_starter.stop()
             print("stopped")
             break
         elif c == "":
@@ -120,4 +151,5 @@ if __name__ == "__main__":
             print("x: Exit after all apps exit")
             print("?: help")
 
-    hicpd.join()
+    hicpd_starter.join()
+    hicpd_joiner.join()
