@@ -82,7 +82,8 @@ To run the sample server and client:
     leave the application field blank to run the default application, which
     will let you choose which application to run.
 
-- Server will allow one connection at a time, until the 'x' command is entered.
+- Server will accept connections until the 'x' command is entered. It will then
+  exit after the last app has exited.
 
 Installation packages
 ---------------------

@@ -2,6 +2,7 @@ import os
 import random
 
 from datetime import datetime
+from enum import IntEnum, auto
 
 from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField, Selection, SelectionItem
 from hicp import App, AppInfo
@@ -206,24 +207,29 @@ class ClockHandler(TimeHandler):
         self.clock_text.update()
 
 
-class TestApp(App):
-    WINDOW_TITLE_ID = 1
-    AMAZING_ID = 2
-    BUTTON_ID = 3
-    LABEL_CLICK_ID = 4
-    LABEL_THANKS_ID = 5
-    LABEL_CHANGED_ID = 6
-    LABEL_PATH_ID = 7
-    LABEL_CLOCK_ID = 8
-    DISABLE_BUTTON_ID = 9
-    ENABLE_BUTTON_ID = 10
-    SELECTION_LABEL_ID = 11
-    SELECTION_ADD_ID = 12
-    SELECTION_REMOVE_ID = 13
-    SELECTION_DISABLE_ID = 14
-    SELECTION_ENABLE_ID = 15
-    SELECTION_RANDOM_ID = 16
+class TextEnum(IntEnum):
+    WINDOW_TITLE_ID = auto()
+    AMAZING_ID = auto()
+    BUTTON_ID = auto()
+    LABEL_CLICK_ID = auto()
+    LABEL_THANKS_ID = auto()
+    LABEL_CHANGED_ID = auto()
+    LABEL_PATH_ID = auto()
+    LABEL_CLOCK_ID = auto()
+    DISABLE_BUTTON_ID = auto()
+    ENABLE_BUTTON_ID = auto()
+    SELECTION_LABEL_ID = auto()
+    SELECTION_ADD_ID = auto()
+    SELECTION_REMOVE_ID = auto()
+    SELECTION_DISABLE_ID = auto()
+    SELECTION_ENABLE_ID = auto()
+    SELECTION_RANDOM_ID = auto()
+    TEXT_LABEL_ID = auto()
+    # Del prev
+    # add random
+    # del follow
 
+class TestApp(App):
     def __init__(self):
         self.__logger = newLogger(type(self).__name__)
 
@@ -244,46 +250,50 @@ class TestApp(App):
         hicp.set_disconnect_handler(DisconnectHandler())
 
         hicp.add_all_text({
-            self.WINDOW_TITLE_ID : "Button window",
-            self.AMAZING_ID : "Amazing!",
-            self.BUTTON_ID : "Button",
-            self.LABEL_CLICK_ID : "Please click the button.",
-            self.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
-            self.LABEL_CHANGED_ID : "Text has been changed.",
-            self.LABEL_PATH_ID : "Current path:",
-            self.LABEL_CLOCK_ID : "Current time:",
-            self.DISABLE_BUTTON_ID : "Disable",
-            self.ENABLE_BUTTON_ID : "Enable",
-            self.SELECTION_LABEL_ID : "Selection",
-            self.SELECTION_ADD_ID : "Add new",
-            self.SELECTION_REMOVE_ID : "Remove selected",
-            self.SELECTION_DISABLE_ID : "Disable selected",
-            self.SELECTION_ENABLE_ID : "Enable all",
-            self.SELECTION_RANDOM_ID : 'Select random',
+            TextEnum.WINDOW_TITLE_ID : "Button window",
+            TextEnum.AMAZING_ID : "Amazing!",
+            TextEnum.BUTTON_ID : "Button",
+            TextEnum.LABEL_CLICK_ID : "Please click the button.",
+            TextEnum.LABEL_THANKS_ID : "Thank you. Don't click the button again.",
+            TextEnum.LABEL_CHANGED_ID : "Text has been changed.",
+            TextEnum.LABEL_PATH_ID : "Current path:",
+            TextEnum.LABEL_CLOCK_ID : "Current time:",
+            TextEnum.DISABLE_BUTTON_ID : "Disable",
+            TextEnum.ENABLE_BUTTON_ID : "Enable",
+            TextEnum.SELECTION_LABEL_ID : "Selection",
+            TextEnum.SELECTION_ADD_ID : "Add new",
+            TextEnum.SELECTION_REMOVE_ID : "Remove selected",
+            TextEnum.SELECTION_DISABLE_ID : "Disable selected",
+            TextEnum.SELECTION_ENABLE_ID : "Enable all",
+            TextEnum.SELECTION_RANDOM_ID : 'Select random',
+            TextEnum.TEXT_LABEL_ID : 'Text field',
         })
         self.__logger.debug("TestApp done add text")
 
         window = self.new_app_window()
-        window.set_text_id(self.WINDOW_TITLE_ID)
+        window.set_text_id(TextEnum.WINDOW_TITLE_ID)
         hicp.add(window)
 
         # Components being tested get their own panel
         component_panel = Panel()
-        component_panel.set_text_id(self.AMAZING_ID)
+        component_panel.set_text_id(TextEnum.AMAZING_ID)
 
         status_label = Label()
-        status_label.set_text_id(self.LABEL_CLICK_ID)
+        status_label.set_text_id(TextEnum.LABEL_CLICK_ID)
         status_label.set_size(1, 1)  # debug
         component_panel.add(status_label, 1, 0)
 
         button = Button()
-        button.set_text_id(self.BUTTON_ID)
+        button.set_text_id(TextEnum.BUTTON_ID)
         button.set_size(1, 1)  # debug
         button.set_handler(
             EventType.CLICK,
-            ButtonHandler(status_label, self.LABEL_THANKS_ID)
+            ButtonHandler(status_label, TextEnum.LABEL_THANKS_ID)
         )
         component_panel.add(button, 0, 0)
+
+        text_panel = Panel()
+        text_panel.set_text_id(TextEnum.TEXT_LABEL_ID)
 
         text_field = TextField()
         text_field.set_content("This is text.")
@@ -295,14 +305,20 @@ class TestApp(App):
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
         text_field.set_handler(
             EventType.CHANGED,
-            TextFieldHandler(status_label, self.LABEL_CHANGED_ID)
+            TextFieldHandler(status_label, TextEnum.LABEL_CHANGED_ID)
         )
-        component_panel.add(text_field, 0, 1)
+        text_panel.add(text_field, 0, 0)
+
+        # Del prev
+        # add random
+        # del follow
+
+        component_panel.add(text_panel, 0, 1)
 
         # There's going to be a bunch of controls for testing the selection
         # component, so make a panel for them.
         selection_panel = Panel()
-        selection_panel.set_text_id(self.SELECTION_LABEL_ID)
+        selection_panel.set_text_id(TextEnum.SELECTION_LABEL_ID)
 
         # Add selection list to selection_panel
         selection = Selection()
@@ -322,7 +338,7 @@ class TestApp(App):
 
         # Add button
         selection_add_button = Button()
-        selection_add_button.set_text_id(self.SELECTION_ADD_ID)
+        selection_add_button.set_text_id(TextEnum.SELECTION_ADD_ID)
         selection_add_button.set_handler(
             EventType.CLICK,
             SelectionAddHandler(selection, len(item_list) + 1)
@@ -331,7 +347,7 @@ class TestApp(App):
 
         # Remove button
         selection_remove_button = Button()
-        selection_remove_button.set_text_id(self.SELECTION_REMOVE_ID)
+        selection_remove_button.set_text_id(TextEnum.SELECTION_REMOVE_ID)
         selection_remove_button.set_handler(
             EventType.CLICK,
             SelectionRemoveHandler(selection)
@@ -340,7 +356,7 @@ class TestApp(App):
 
         # Disable button
         selection_disable_button = Button()
-        selection_disable_button.set_text_id(self.SELECTION_DISABLE_ID)
+        selection_disable_button.set_text_id(TextEnum.SELECTION_DISABLE_ID)
         selection_disable_button.set_handler(
             EventType.CLICK,
             SelectionDisableHandler(selection)
@@ -349,7 +365,7 @@ class TestApp(App):
 
         # Enable button
         selection_enable_button = Button()
-        selection_enable_button.set_text_id(self.SELECTION_ENABLE_ID)
+        selection_enable_button.set_text_id(TextEnum.SELECTION_ENABLE_ID)
         selection_enable_button.set_handler(
             EventType.CLICK,
             SelectionEnableHandler(selection)
@@ -358,7 +374,7 @@ class TestApp(App):
 
         # Select random
         selection_random_button = Button()
-        selection_random_button.set_text_id(self.SELECTION_RANDOM_ID)
+        selection_random_button.set_text_id(TextEnum.SELECTION_RANDOM_ID)
         selection_random_button.set_handler(
             EventType.CLICK,
             SelectionRandomHandler(selection)
@@ -380,17 +396,17 @@ class TestApp(App):
 
         # Button to emable/disable component panel stuff.
         able_button = Button()
-        able_button.set_text_id(self.DISABLE_BUTTON_ID)
+        able_button.set_text_id(TextEnum.DISABLE_BUTTON_ID)
         able_button.set_handler(
             EventType.CLICK,
             AbleButtonHandler(
-                button, text_field, selection, self.ENABLE_BUTTON_ID, self.DISABLE_BUTTON_ID
+                button, text_field, selection, TextEnum.ENABLE_BUTTON_ID, TextEnum.DISABLE_BUTTON_ID
             )
         )
         window.add(able_button, 0, 1)
 
         path_label = Label()
-        path_label.set_text_id(self.LABEL_PATH_ID)
+        path_label.set_text_id(TextEnum.LABEL_PATH_ID)
         window.add(path_label, 0, 2)
 
         path_field = TextField()
@@ -399,7 +415,7 @@ class TestApp(App):
         window.add(path_field, 1, 2)
 
         clock_label = Label()
-        clock_label.set_text_id(self.LABEL_CLOCK_ID)
+        clock_label.set_text_id(TextEnum.LABEL_CLOCK_ID)
         window.add(clock_label, 0, 3)
 
         clock_text = TextField()

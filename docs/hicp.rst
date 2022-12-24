@@ -945,7 +945,7 @@ attributes: <attribute specifiers>
 
     "content"
       Reserved, so as not to interfere with content updates specified in
-      the "delta-list" header. Any attribute with this name should be
+      the "change-list" header. Any attribute with this name should be
       received and ignored.
 
     "underline" (binary)
@@ -1186,10 +1186,7 @@ parent: [ <integer> | "none" ]
   This field is ignored for windows, all windows implicitly have the GUI
   root as a parent.
 
-delta-list: <content/attribute changes>
-  [I think I'll remove this, it was intended for "server" type editing which I
-  already removed]
-
+change-list: <content/attribute changes>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
@@ -1231,7 +1228,7 @@ delta-list: <content/attribute changes>
     the component cursor position (sometimes called the caret). If the
     character count is 0, then attribute changes are applied to the next
     text inserted (for example "bold: on(0)" would affect the next
-    character typed if events is "enabled", or the text added by
+    character typed, or the text added by
     "content: add(Hi)"). Once text has been inserted with that
     attribute, text changes follow the normal rules.
 
@@ -1262,18 +1259,15 @@ delta-list: <content/attribute changes>
 
       A: Maybe, but it would require two parameters and be inconsistent.
 
-delta: <single content/attribute change>
-  [I think I'll remove this, it was intended for "server" type editing which I
-  already removed]
-
+change: <single content/attribute change>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Like "delta-list", but Specifies a single change for smaller messages. The
-    change is the same format as for "delta-list", but on a single line. For
+    Like "change-list", but Specifies a single change for smaller messages. The
+    change is the same format as for "change-list", but on a single line. For
     example, to add the letter "a" at the current cursor position:
 
-    delta: content: add(a)
+    change: content: add(a)
 
 "gui" optional headers
 ''''''''''''''''''''''
