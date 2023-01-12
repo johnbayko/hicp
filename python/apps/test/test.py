@@ -24,17 +24,20 @@ class ButtonHandler:
 
 
 class TextFieldHandler:
-    def __init__(self, label, next_text_id):
+    def __init__(self, len_field, label, next_text_id):
         self.logger = newLogger(type(self).__name__)
+        self.__len_field = len_field
         self.__label = label
         self.__next_text_id = next_text_id
 
     def update(self, hicp, event, text_field):
+        self.__len_field.set_content(
+            str(len(event.message.get_header(Message.CONTENT)))
+        )
+        self.__len_field.update()
+
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
-
-        text_field.set_content("Woo-hoo!")
-        text_field.update()
 
 class SelectionHandler:
     def __init__(self, selection_field):
@@ -308,10 +311,6 @@ class TestApp(App):
         # debug - test value attribute - size of "text"
         # Should be: 8 2=4 1
         text_field.set_attribute(TextField.SIZE, 8, 4, "2")
-        text_field.set_handler(
-            EventType.CHANGED,
-            TextFieldHandler(status_label, TextEnum.LABEL_CHANGED_ID)
-        )
         text_panel.add(text_field, 0, 0)
 
         # Text length label
@@ -324,6 +323,13 @@ class TestApp(App):
         text_len_field.set_events(TextField.DISABLED)
         # TODO: Add handler to update when text field changes
         text_panel.add(text_len_field, 1, 1)
+
+        text_field.set_handler(
+            EventType.CHANGED,
+            TextFieldHandler(
+                text_len_field, status_label, TextEnum.LABEL_CHANGED_ID
+            )
+        )
 
         # Position
         text_position_field = TextField()
