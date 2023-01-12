@@ -1225,7 +1225,9 @@ change-list: <content/attribute changes>
 
     The final integer is the index of the character (starting at 0)
     which the change is applied to. If it is omitted, changes occur at
-    the component cursor position (sometimes called the caret). If the
+    the component cursor position (sometimes called the caret). If the position
+    is beyond the beginning or end of the content, the position is taken to be
+    the beginning or end. If the
     character count is 0, then attribute changes are applied to the next
     text inserted (for example "bold: on(0)" would affect the next
     character typed, or the text added by
@@ -1243,7 +1245,7 @@ change-list: <content/attribute changes>
     change the content to "Hi there!".
 
     When text is added or deleted from the content, the corresponding
-    attribute segment is incremented or decremented. If the segment
+    attribute segments are incremented or decremented. If the segment
     length reaches 0, then it is removed, and if the value for the
     segments on either side are the same (always the case for binary
     attributes), then they are merged.

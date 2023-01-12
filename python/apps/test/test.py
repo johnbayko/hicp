@@ -225,9 +225,10 @@ class TextEnum(IntEnum):
     SELECTION_ENABLE_ID = auto()
     SELECTION_RANDOM_ID = auto()
     TEXT_LABEL_ID = auto()
-    # Del prev
-    # add random
-    # del follow
+    TEXT_LENGTH_ID = auto()
+    TEXT_DEL_BEFORE_ID = auto()
+    TEXT_DEL_AFTER_ID = auto()
+    TEXT_ADD_ID = auto()
 
 class TestApp(App):
     def __init__(self):
@@ -267,6 +268,10 @@ class TestApp(App):
             TextEnum.SELECTION_ENABLE_ID : "Enable all",
             TextEnum.SELECTION_RANDOM_ID : 'Select random',
             TextEnum.TEXT_LABEL_ID : 'Text field',
+            TextEnum.TEXT_LENGTH_ID : 'Length',
+            TextEnum.TEXT_DEL_BEFORE_ID : '- Before',
+            TextEnum.TEXT_DEL_AFTER_ID : '- After',
+            TextEnum.TEXT_ADD_ID : '+'
         })
         self.__logger.debug("TestApp done add text")
 
@@ -309,9 +314,53 @@ class TestApp(App):
         )
         text_panel.add(text_field, 0, 0)
 
-        # Del prev
-        # add random
-        # del follow
+        # Text length label
+        text_len_label = Label()
+        text_len_label.set_text_id(TextEnum.TEXT_LENGTH_ID)
+        text_panel.add(text_len_label, 0, 1)
+
+        # Text length field
+        text_len_field = TextField()
+        text_len_field.set_events(TextField.DISABLED)
+        # TODO: Add handler to update when text field changes
+        text_panel.add(text_len_field, 1, 1)
+
+        # Position
+        text_position_field = TextField()
+        text_position_field.set_content('0')
+        # TODO: Add handler
+        text_panel.add(text_position_field, 0, 2)
+
+        # Del before
+        text_del_before_button = Button()
+        text_del_before_button.set_text_id(TextEnum.TEXT_DEL_BEFORE_ID)
+        # TODO: Add handler
+        text_panel.add(text_del_before_button, 1, 2)
+
+        # Del after
+        text_del_after_button = Button()
+        text_del_after_button.set_text_id(TextEnum.TEXT_DEL_AFTER_ID)
+        # TODO: Add handler
+        text_panel.add(text_del_after_button, 2, 2)
+
+        # Del count
+        text_del_cnt_field = TextField()
+        text_del_cnt_field.set_content('0')
+        # TODO: Add handler
+        text_panel.add(text_del_cnt_field, 3, 2)
+
+        # Add
+        text_add_button = Button()
+        text_add_button.set_text_id(TextEnum.TEXT_ADD_ID)
+        # TODO: Add handler
+        text_panel.add(text_add_button, 4, 2)
+
+        # Add text
+        text_add_field = TextField()
+        # Placeholder content to set size
+        text_add_field.set_content('text to add')
+        # TODO: Add handler
+        text_panel.add(text_add_field, 5, 2)
 
         component_panel.add(text_panel, 0, 1)
 
