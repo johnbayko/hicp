@@ -9,7 +9,7 @@ from hicp import App, AppInfo
 
 class DisconnectHandler:
     def process(self, event_message):
-        print("DisconnectHandler.process()")  # debug
+        pass
 
 class ButtonHandler:
     def __init__(self, label, next_text_id):
@@ -31,13 +31,111 @@ class TextFieldHandler:
         self.__next_text_id = next_text_id
 
     def update(self, hicp, event, text_field):
-        self.__len_field.set_content(
-            str(len(event.message.get_header(Message.CONTENT)))
-        )
+        new_text = event.message.get_header(Message.CONTENT)
+        new_text_len = len(new_text)
+        new_text_len_str = str(new_text_len)
+        self.__len_field.set_content(new_text_len_str)
         self.__len_field.update()
 
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
+
+class TextFieldChanger:
+    def __init__(self, field):
+        self._field = field
+
+        self._position = 0
+        self._del_cnt = 0
+        self._add_text = ''
+
+    def get_position(self):
+        return self._position
+
+    def set_position(self, position: int):
+        self._position = position
+        return self._position
+
+    def get_del_cnt(self):
+        return self._del_cnt
+
+    def set_del_cnt(self, del_cnt: int):
+        self._del_cnt = del_cnt
+        return self._del_cnt
+
+    def get_add_text(self):
+        return self._add_text
+
+    def set_add_text(self, add_text: str):
+        self._add_text = add_text
+        return self._add_text
+
+    # TODO: When content changes, update text length field.
+
+class TextPositionHandler:
+    def __init__(self, text_field_changer, text_position_field):
+        self._text_field_changer = text_field_changer
+
+        position_str = text_position_field.get_content()
+        try:
+            self._position = int(position_str)
+        except ValueError:
+            self._position = 0
+
+    def update(self, hicp, event, text_position_field):
+        new_position_str = event.message.get_header(Message.CONTENT)
+        try:
+            # Must be integer, but no range checks, protocol must handle that.
+            new_position = int(new_position_str)
+            self._text_field_changer.set_position(new_position)
+
+            # Update to canonical representation.
+            new_position_str = str(new_position)
+            text_position_field.set_content(new_position_str)
+            text_position_field.update()
+        except ValueError:
+            old_position = self._text_field_changer.get_position()
+            # Set contents to old valid value.
+            old_position_str = str(old_position)
+            text_position_field.set_content(old_position_str)
+            text_position_field.update()
+
+class TextDelCntHandler:
+    def __init__(self, text_field_changer, text_del_cnt_field):
+        self._text_field_changer = text_field_changer
+
+        del_cnt_str = text_del_cnt_field.get_content()
+        try:
+            self._del_cnt = int(del_cnt_str)
+        except ValueError:
+            self._del_cnt = 0
+
+    def update(self, hicp, event, text_del_cnt_field):
+        new_del_cnt_str = event.message.get_header(Message.CONTENT)
+        try:
+            # Must be integer, but no range checks, protocol must handle that.
+            new_del_cnt = int(new_del_cnt_str)
+            self._text_field_changer.set_del_cnt(new_del_cnt)
+
+            # Update to canonical representation.
+            new_del_cnt_str = str(new_del_cnt)
+            text_del_cnt_field.set_content(new_del_cnt_str)
+            text_del_cnt_field.update()
+        except ValueError:
+            old_del_cnt = self._text_field_changer.get_del_cnt()
+            # Set contents to old valid value.
+            old_del_cnt_str = str(old_del_cnt)
+            text_del_cnt_field.set_content(old_del_cnt_str)
+            text_del_cnt_field.update()
+
+class TextAddTextHandler:
+    def __init__(self, text_field_changer, text_add_text_field):
+        self._text_field_changer = text_field_changer
+
+        self._add_text = text_add_text_field.get_content()
+
+    def update(self, hicp, event, text_add_text_field):
+        new_add_text = event.message.get_header(Message.CONTENT)
+        self._text_field_changer.set_add_text(new_add_text)
 
 class SelectionHandler:
     def __init__(self, selection_field):
@@ -321,7 +419,9 @@ class TestApp(App):
         # Text length field
         text_len_field = TextField()
         text_len_field.set_events(TextField.DISABLED)
-        # TODO: Add handler to update when text field changes
+        # User events aren't generated when set from the server side (ie
+        # text_field.set_content() ), so explicitly set the length here.
+        text_len_field.set_content(str(len(text_field.get_content())))
         text_panel.add(text_len_field, 1, 1)
 
         text_field.set_handler(
@@ -331,10 +431,15 @@ class TestApp(App):
             )
         )
 
+        text_field_changer = TextFieldChanger(text_field)
+
         # Position
         text_position_field = TextField()
         text_position_field.set_content('0')
-        # TODO: Add handler
+        text_position_field.set_handler(
+            EventType.CHANGED,
+            TextPositionHandler(text_field_changer, text_position_field)
+        )
         text_panel.add(text_position_field, 0, 2)
 
         # Del before
@@ -352,7 +457,10 @@ class TestApp(App):
         # Del count
         text_del_cnt_field = TextField()
         text_del_cnt_field.set_content('0')
-        # TODO: Add handler
+        text_del_cnt_field.set_handler(
+            EventType.CHANGED,
+            TextDelCntHandler(text_field_changer, text_del_cnt_field)
+        )
         text_panel.add(text_del_cnt_field, 3, 2)
 
         # Add
@@ -362,11 +470,14 @@ class TestApp(App):
         text_panel.add(text_add_button, 4, 2)
 
         # Add text
-        text_add_field = TextField()
+        text_add_text_field = TextField()
         # Placeholder content to set size
-        text_add_field.set_content('text to add')
-        # TODO: Add handler
-        text_panel.add(text_add_field, 5, 2)
+        text_add_text_field.set_content('text to add')
+        text_add_text_field.set_handler(
+            EventType.CHANGED,
+            TextAddTextHandler(text_field_changer, text_add_text_field)
+        )
+        text_panel.add(text_add_text_field, 5, 2)
 
         component_panel.add(text_panel, 0, 1)
 
@@ -481,4 +592,3 @@ class TestApp(App):
 
         window.set_visible(True)
         window.update()
-
