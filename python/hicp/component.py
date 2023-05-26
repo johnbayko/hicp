@@ -9,6 +9,14 @@ class Component:
 keep track of which items have been changed so they can be sent in
 "modify" messages when updated."""
 
+    class HeaderValues:
+        def __init__(self, other=None):
+            if other is not None:
+                self.set_from(other)
+
+        def set_from(self, other):
+            pass
+        
     COMPONENT = "component"
 
     BUTTON = "button"
@@ -21,6 +29,9 @@ keep track of which items have been changed so they can be sent in
 
     def __init__(self):
         self.logger = newLogger(type(self).__name__)
+
+        self.current = self.HeaderValues()
+        self.sent = None
 
         self.component_id = None
         self.added_to_hicp = None
@@ -50,7 +61,6 @@ keep track of which items have been changed so they can be sent in
         message.add_header(self.COMPONENT, self.component)
 
     def fill_headers_modify(self, message):
-        self.logger.debug("Component fill modify headers")
         message.add_header(Message.CATEGORY, Message.GUI)
         message.add_header(Message.ID, str(self.component_id))
 
@@ -70,7 +80,25 @@ class ContainedComponent(Component):
     """Contained within a container, needs to keep track of parent and
 position."""
 
-    # Indexes to __position and __size
+    class HeaderValues(Component.HeaderValues):
+        def __init__(self, other=None):
+            self.parent_id = None  # Number
+            self.position = [None, None] # [Number, Number]
+            self.size = [None, None] # [Number, Number]
+            self.events = None
+
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+
+            self.parent_id = other.parent_id
+            # TODO Duplicate these lists, don't just reference them.
+            self.position = other.position
+            self.size = other.size
+            self.events = other.events
+
+    # Indexes to position and size
     HORIZONTAL = 0
     VERTICAL = 1
 
@@ -79,12 +107,7 @@ position."""
     DISABLED = Message.DISABLED
 
     def __init__(self):
-        Component.__init__(self)
-
-        self.__parent_id = None  # Number
-        self.__position = [None, None] # [Number, Number]
-        self.__size = [None, None] # [Number, Number]
-        self.__events = None
+        super().__init__()
 
     def set_parent(self, component):
         if component is None:
@@ -101,26 +124,27 @@ position."""
             self.logger.debug("ContainedComponent.set_parent() component has no .component_id attribute")
             return
 
-        self.__parent_id = component.component_id
-        self.set_changed_header(Message.PARENT, str(self.__parent_id))
+        self.current.parent_id = component.component_id
+        self.set_changed_header(Message.PARENT, str(self.current.parent_id))
 
     def __position_field(self):
         field = None
-        if ( self.__position[ContainedComponent.HORIZONTAL] is not None
-          or self.__position[ContainedComponent.VERTICAL] is not None
+        position = self.current.position
+        if ( position[ContainedComponent.HORIZONTAL] is not None
+          or position[ContainedComponent.VERTICAL] is not None
         ):
             field = ""
-            if self.__position[ContainedComponent.HORIZONTAL] is not None:
-                field = field + str(self.__position[ContainedComponent.HORIZONTAL])
+            if position[ContainedComponent.HORIZONTAL] is not None:
+                field = field + str(position[ContainedComponent.HORIZONTAL])
             field = field + ","
-            if self.__position[ContainedComponent.VERTICAL] is not None:
-                field = field + str(self.__position[ContainedComponent.VERTICAL])
+            if position[ContainedComponent.VERTICAL] is not None:
+                field = field + str(position[ContainedComponent.VERTICAL])
         return field
 
     def set_position(self, horizontal, vertical):
         # horizontal and vertical are integers.
-        self.__position[ContainedComponent.HORIZONTAL] = horizontal
-        self.__position[ContainedComponent.VERTICAL] = vertical
+        self.current.position[ContainedComponent.HORIZONTAL] = horizontal
+        self.current.position[ContainedComponent.VERTICAL] = vertical
 
         field = self.__position_field()
         if field is None:
@@ -129,21 +153,22 @@ position."""
 
     def __size_field(self):
         field = None
-        if ( self.__size[ContainedComponent.HORIZONTAL] is not None
-          or self.__size[ContainedComponent.VERTICAL] is not None
+        size = self.current.size
+        if ( size[ContainedComponent.HORIZONTAL] is not None
+          or size[ContainedComponent.VERTICAL] is not None
         ):
             field = ""
-            if self.__size[ContainedComponent.HORIZONTAL] is not None:
-                field = field + str(self.__size[ContainedComponent.HORIZONTAL])
+            if size[ContainedComponent.HORIZONTAL] is not None:
+                field = field + str(size[ContainedComponent.HORIZONTAL])
             field = field + ","
-            if self.__size[ContainedComponent.VERTICAL] is not None:
-                field = field + str(self.__size[ContainedComponent.VERTICAL])
+            if size[ContainedComponent.VERTICAL] is not None:
+                field = field + str(size[ContainedComponent.VERTICAL])
         return field
 
     def set_size(self, horizontal, vertical):
         # horizontal and vertical are integers.
-        self.__size[ContainedComponent.HORIZONTAL] = horizontal
-        self.__size[ContainedComponent.VERTICAL] = vertical
+        self.current.size[ContainedComponent.HORIZONTAL] = horizontal
+        self.current.size[ContainedComponent.VERTICAL] = vertical
 
         field = self.__size_field()
         if field is None:
@@ -151,24 +176,20 @@ position."""
         self.set_changed_header(Message.SIZE, field)
 
     def set_events(self, field):
-        self.__events = field
+        self.current.events = field
         self.set_changed_header(Message.EVENTS, field)
 
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
-        if self.__parent_id is not None:
-            message.add_header(Message.PARENT, str(self.__parent_id))
+        message.add_header(Message.PARENT, str(self.current.parent_id))
+        message.add_header(Message.POSITION, self.__position_field())
+        message.add_header(Message.SIZE, self.__size_field())
+        message.add_header(Message.EVENTS, self.current.events)
 
-        field = self.__position_field()
-        if field is not None:
-            message.add_header(Message.POSITION, field)
-
-        field = self.__size_field()
-        if field is not None:
-            message.add_header(Message.SIZE, field)
-
-        if self.__events is not None:
-            message.add_header(Message.EVENTS, self.__events)
+# Change to this?
+#    def fill_headers_modify(self, message):
+#        Component.fill_headers_modify(self, message)
+#        message.add_header(Message.EVENTS, self.__unsent_contained_component.current.events)
 
 
 class ComponentText():
@@ -198,47 +219,66 @@ class ComponentText():
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
-        if self.__text_id is not None:
-            message.add_header(Message.TEXT, self.__text_id)
+        message.add_header(Message.TEXT, self.__text_id)
 
 
 class Label(ContainedComponent):
+    class HeaderValues(ContainedComponent.HeaderValues):
+        def __init__(self, other=None):
+            self.component_text = ComponentText(self)
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.component_text = other.component_text
+
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.LABEL
-        self.component_text = ComponentText(self)
+        # TODO workaround until set_changed_header() is removed.
+        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.component_text.set_text_id(text_id)
+        self.current.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text_get_id(text, hicp)
+        self.current.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.component_text.set_groups_text(text_group_list, hicp)
+        self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
-        self.component_text.fill_headers_add(message)
+        self.current.component_text.fill_headers_add(message)
 
 class Button(ContainedComponent):
+    class HeaderValues(ContainedComponent.HeaderValues):
+        def __init__(self, other=None):
+            self.component_text = ComponentText(self)
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.component_text = other.component_text
+
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.BUTTON
-        self.component_text = ComponentText(self)
+        # TODO workaround until set_changed_header() is removed.
+        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.component_text.set_text_id(text_id)
+        self.current.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text_get_id(text, hicp)
+        self.current.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.component_text.set_groups_text(text_group_list, hicp)
+        self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
-        self.component_text.fill_headers_add(message)
+        self.current.component_text.fill_headers_add(message)
 
     def set_handler(self, event_type, handler):
         if EventType.CLICK == event_type:
@@ -313,6 +353,31 @@ class TextField(ContainedComponent):
 
     ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *")
 
+    class HeaderValues(ContainedComponent.HeaderValues):
+        def __init__(self, other=None):
+            self.content = ""
+
+            # Maps attribute name to a list of TextFieldAttribute objects.
+            # When content is set, all attributes are cleared.
+            self.attribute_map = {}
+
+            # __attributes is the whole attribute list, there's no way to
+            # send them separately. However, each attribute can have its own
+            # string stored to reduce extra work.
+            self.attribute_string_map = {}
+
+            # Attribute header is string representation of __attribute_map.
+            # It's easier to generate it when attributes are set and treat
+            # it like any other header string than to detect it when headers
+            # are written out and generate it then.
+            self.attributes = ""
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.content = other._content
+            self.attributes = other._attributes
+
     def __init__(self):
         ContainedComponent.__init__(self)
 
@@ -356,6 +421,16 @@ class TextField(ContainedComponent):
     def get_content(self):
         return self.__content
 
+#    def content_del_before(self, del_len, del_pos=None):
+#        # If this has not been sent (message will be ADD command), then
+#        # directly change content.
+#        # If this has been sent (message will be MODIFY command), then add to
+#        # attribute map using key "change-list".
+#
+#    def content_del_after(self, del_len, del_pos=None):
+#
+#    def content_add(self, add_content, add_pos=None):
+
     def set_attribute(
         self,
         attribute,
@@ -363,6 +438,8 @@ class TextField(ContainedComponent):
         new_attribute_range_length=1,
         value=None
     ):
+        # TODO: support MODIFY attributes
+
         # Attribute and value (if specified) must be strings.
         attribute = str(attribute)
         if value is not None:
@@ -428,7 +505,7 @@ class TextField(ContainedComponent):
         # 12         :   +-+           :   +-+
         # 13         :   : +-+         :   : +-+
         #
-        # For attributes which differ fron the new attribute:
+        # For attributes which differ from the new attribute:
         #   new:     +---+
         # 3 old: +-----+ :      Truncate old range, becomes same as 2
         # 4      +-------+
@@ -453,6 +530,7 @@ class TextField(ContainedComponent):
         #
         # 12         :   +-+    Add new range.
         #            :   :      Copy old range unchanged.
+        #
         # For attributes which are the same as the new attribute (new
         # range is not actually added, old range with same value is
         # extended to include new):
@@ -692,8 +770,7 @@ class TextField(ContainedComponent):
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
-        if self.__content is not None:
-            message.add_header(Message.CONTENT, self.__content)
+        message.add_header(Message.CONTENT, self.__content)
         if self.__attributes is not None and self.__attributes != "":
             message.add_header(Message.ATTRIBUTES, self.__attributes)
 
@@ -784,39 +861,55 @@ class Selection(ContainedComponent):
     DISABLED = Message.DISABLED
     UNSELECT = Message.UNSELECT
 
+    class HeaderValues(ContainedComponent.HeaderValues):
+        def __init__(self, other=None):
+            self.item_dict = {} # Key is int, value is SelectionItem
+            self.items = None
+
+            self.selected_list = [] # ID is int
+            self.selected = None
+
+            self.mode = None
+            self.presentation = None
+            self.height = None
+            self.width = None
+
+            super().__init__(other)
+
+        def set_from(self, other):
+            self.item_dict = other.item_dict
+            self.items = other.items
+
+            self.selected_list = other.selected_list
+            self.selected = other.selected
+
+            self.mode = other.mode
+            self.presentation = other.presentation
+            self.height = other.height
+            self.width = other.width
+
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.SELECTION
-
-        self.__item_dict = {} # Key is int, value is SelectionItem
-        self.__items = None
-
-        self.__selected_list = [] # ID is int
-        self.__selected = None
-
-        self.__mode = None
-        self.__presentation = None
-        self.__height = None
-        self.__width = None
 
     def set_items(self, item_list):
         # TODO item id is part of SelectionItem, so take a list as a parameter,
         # and construct the dict from that.
         """item_list is a dict of int id and SelectionItem."""
-        self.__item_dict = {}
+        self.current.item_dict = {}
         self.add_items(item_list)
 
     def add_items(self, item_list):
         """item_list is a dict of int id and SelectionItem."""
         for item in item_list:
-            self.__item_dict[item.item_id] = item
+            self.current.item_dict[item.item_id] = item
         self.items_changed()
 
     def del_items(self, item_list):
         """item_list is a list of int ids."""
         for item_key in item_list:
             try:
-                del self.__item_dict[item_key]
+                del self.current.item_dict[item_key]
             except KeyError:
                 # Not there, don't want it there, situation is what we want.
                 pass
@@ -824,15 +917,15 @@ class Selection(ContainedComponent):
 
     def get_item(self, item_id):
         """Returns SelectionItem."""
-        return self.__item_dict[item_id]
+        return self.current.item_dict[item_id]
 
     def copy_items(self):
         """Returns dict of int id and SelectionItem."""
-        return self.__item_dict.copy()
+        return self.current.item_dict.copy()
 
     def items_changed(self):
         item_str_list = []
-        for item_id, selection_item in self.__item_dict.items():
+        for item_id, selection_item in self.current.item_dict.items():
             if selection_item.events is not None:
                 item_str_list.append(
                     '%d: text=%d, events=%s' %
@@ -845,23 +938,23 @@ class Selection(ContainedComponent):
                         (selection_item.item_id,
                          selection_item.text_id) )
 
-        self.__items = '\r\n'.join(item_str_list)
-        self.set_changed_header(Message.ITEMS, self.__items)
+        self.current.items = '\r\n'.join(item_str_list)
+        self.set_changed_header(Message.ITEMS, self.current.items)
 
         # Delete selection (it needs to be set with IDs for these items if you
         # want to keep the selections)
         self.set_selected_list(None)
 
     def set_selection_mode(self, mode):
-        self.__mode = mode
-        self.set_changed_header(Message.MODE, self.__mode)
+        self.current.mode = mode
+        self.set_changed_header(Message.MODE, self.current.mode)
 
     def get_selection_mode(self):
-        return self.__mode
+        return self.current.mode
 
     def set_presentation(self, presentation):
-        self.__presentation = presentation
-        self.set_changed_header(Message.PRESENTATION, self.__presentation)
+        self.current.presentation = presentation
+        self.set_changed_header(Message.PRESENTATION, self.current.presentation)
 
     def set_selected_string(self, selected_list_str):
         # Split by ','.
@@ -872,8 +965,8 @@ class Selection(ContainedComponent):
             self.set_selected_list(selected_list)
         except ValueError:
             # Not valid selection string
-            self.__selected_list = []
-            self.__selected = None
+            self.current.selected_list = []
+            self.current.selected = None
 
     def set_selected_list(self, selected_list):
         # Verify that selected items are actual items
@@ -881,26 +974,26 @@ class Selection(ContainedComponent):
         valid_str_list = []
         if selected_list is not None:
             for selected_item in selected_list: # Integers
-                if selected_item in self.__item_dict:
+                if selected_item in self.current.item_dict:
                     valid_list.append(selected_item)
                     valid_str_list.append(str(selected_item))
 
-        self.__selected_list = valid_list
-        self.__selected = ", ".join(valid_str_list)
-        self.set_changed_header(Message.SELECTED, self.__selected)
+        self.current.selected_list = valid_list
+        self.current.selected = ", ".join(valid_str_list)
+        self.set_changed_header(Message.SELECTED, self.current.selected)
 
     def add_selected_item(self, item_id):
-        if self.__selected_list is None:
-            self.__selected_list = [item_id]
+        if self.current.selected_list is None:
+            self.current.selected_list = [item_id]
         else:
-            if item_id in self.__item_dict:
-                self.__selected_list.append(item_id)
+            if item_id in self.current.item_dict:
+                self.current.selected_list.append(item_id)
             
         self._update_selected()
 
     def del_selected_item(self, item_id):
         try:
-            self.__selected_list.remove(item_id)
+            self.current.selected_list.remove(item_id)
 
             self._update_selected()
         except ValueError:
@@ -909,20 +1002,20 @@ class Selection(ContainedComponent):
 
     # Update selected string from selected list and add to changed header list.
     def _update_selected(self):
-        valid_str_list = [str(s) for s in self.__selected_list]
-        self.__selected = ", ".join(valid_str_list)
-        self.set_changed_header(Message.SELECTED, self.__selected)
+        valid_str_list = [str(s) for s in self.current.selected_list]
+        self.current.selected = ", ".join(valid_str_list)
+        self.set_changed_header(Message.SELECTED, self.current.selected)
 
     def copy_selected_list(self):
         """Returns a copy of the selected list."""
-        return self.__selected_list.copy()
+        return self.current.selected_list.copy()
 
     def get_selected_item_list(self):
         """Returns a list of SelectionItem."""
         item_list = []
-        for item_id in self.__selected_list:
+        for item_id in self.current.selected_list:
             try:
-                item = self.__item_dict[item_id]
+                item = self.current.item_dict[item_id]
                 item_list.append(item)
             except IndexError:
                 # Selection out of sync with item list, skip this selection
@@ -930,26 +1023,21 @@ class Selection(ContainedComponent):
         return item_list
 
     def set_height(self, height):
-        self.__height = str(height)
+        self.current.height = str(height)
 
     def set_width(self, width):
-        self.__width = str(width)
+        self.current.width = str(width)
 
     def fill_headers_add(self, message):
         ContainedComponent.fill_headers_add(self, message)
         # "items" from item list
-        if self.__items is not None:
-            message.add_header(Message.ITEMS, self.__items)
-        if self.__mode is not None:
-            message.add_header(Message.MODE, self.__mode)
-        if self.__presentation is not None:
-            message.add_header(Message.PRESENTATION, self.__presentation)
-        if len(self.__selected_list) > 0:
-            message.add_header(Message.SELECTED, self.__selected)
-        if self.__height is not None:
-            message.add_header(Message.HEIGHT, self.__height)
-        if self.__width is not None:
-            message.add_header(Message.WIDTH, self.__width)
+        message.add_header(Message.ITEMS, self.current.items)
+        message.add_header(Message.MODE, self.current.mode)
+        message.add_header(Message.PRESENTATION, self.current.presentation)
+        if len(self.current.selected_list) > 0:
+            message.add_header(Message.SELECTED, self.current.selected)
+        message.add_header(Message.HEIGHT, self.current.height)
+        message.add_header(Message.WIDTH, self.current.width)
 
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
@@ -1008,45 +1096,66 @@ class Container(ContainedComponent):
 
 
 class Panel(Container):
+    class HeaderValues(Container.HeaderValues):
+        def __init__(self, other=None):
+            self.component_text = ComponentText(self)
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.component_text = other.component_text
+
     def __init__(self):
         Container.__init__(self)
 
         self.component = Component.PANEL
-        self.component_text = ComponentText(self)
+        # TODO workaround until set_changed_header() is removed.
+        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.component_text.set_text_id(text_id)
+        self.current.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text_get_id(text, hicp)
+        self.current.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.component_text.set_groups_text(text_group_list, hicp)
+        self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         Container.fill_headers_add(self, message)
-        self.component_text.fill_headers_add(message)
+        self.current.component_text.fill_headers_add(message)
 
 
 class Window(Container):
+    class HeaderValues(Container.HeaderValues):
+        def __init__(self, other=None):
+            self.component_text = ComponentText(self)
+            self.visible = False
+            super().__init__(other)
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.component_text = other.component_text
+            self.visible = other.visible
+
     def __init__(self):
         Container.__init__(self)
 
         self.component = Component.WINDOW
-        self.component_text = ComponentText(self)
-        self.__visible = False
+        # TODO workaround until set_changed_header() is removed.
+        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.component_text.set_text_id(text_id)
+        self.current.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.component_text.set_text_get_id(text, hicp)
+        self.current.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.component_text.set_groups_text(text_group_list, hicp)
+        self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def set_visible(self, visible):
-        self.__visible = visible
+        self.current.visible = visible
         if visible:
             self.set_changed_header(Message.VISIBLE, "true")
         else:
@@ -1079,12 +1188,10 @@ class Window(Container):
     def fill_headers_add(self, message):
         Component.fill_headers_add(self, message)
 
-        if self.__visible is not None:
+        if self.current.visible is not None:
             message.add_header(Message.VISIBLE, "true")
         else:
             message.add_header(Message.VISIBLE, "false")
 
-        self.component_text.fill_headers_add(message)
-
-
+        self.current.component_text.fill_headers_add(message)
 

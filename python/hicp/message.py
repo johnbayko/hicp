@@ -27,6 +27,8 @@ class Message:
     ATTRIBUTES = "attributes"
     APPLICATION = "application"
     CATEGORY = "category"
+#    CHANGE = "change"
+#    CHANGE_LIST = "change-list"
     CONTENT = "content"
     EVENTS = "events"
     GUI = "gui"
@@ -360,6 +362,9 @@ class Message:
         return header_value
 
     def add_header(self, header_key, header_value):
+        if header_value is None:
+            # Not an error, just nothing to add.
+            return
         if not isinstance(header_key, str):
             raise TypeError("header key must be a string")
         if not isinstance(header_value, str):
