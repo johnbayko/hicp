@@ -10,11 +10,15 @@ keep track of which items have been changed so they can be sent in
 "modify" messages when updated."""
 
     class HeaderValues:
-        def __init__(self, other=None):
-            if other is not None:
-                self.set_from(other)
+        def __init__(self):
+            pass
 
         def set_from(self, other):
+            """
+            When headers are sent, the current values are copied to the send
+            values. The current values should never be removed, so no need to
+            check for not None, just copy them over.
+            """
             pass
         
     COMPONENT = "component"
@@ -31,7 +35,7 @@ keep track of which items have been changed so they can be sent in
         self.logger = newLogger(type(self).__name__)
 
         self.current = self.HeaderValues()
-        self.sent = None
+        self.sent = self.HeaderValues()
 
         self.component_id = None
         self.added_to_hicp = None
@@ -66,6 +70,10 @@ keep track of which items have been changed so they can be sent in
 
         # Other fields are in the changed header list, used by update.
 
+    def notify_sent(self):
+        # Copy current values to sent.
+        self.sent.set_from(self.current)
+
     def update(self):
         if self.added_to_hicp is None:
             # No hicp to handle update call.
@@ -73,29 +81,25 @@ keep track of which items have been changed so they can be sent in
 
         self.added_to_hicp.update(self)
 
-    def log(self, msg):
-        self.logger.debug(msg)
-
 class ContainedComponent(Component):
     """Contained within a container, needs to keep track of parent and
 position."""
 
     class HeaderValues(Component.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.parent_id = None  # Number
             self.position = [None, None] # [Number, Number]
             self.size = [None, None] # [Number, Number]
             self.events = None
 
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
 
             self.parent_id = other.parent_id
-            # TODO Duplicate these lists, don't just reference them.
-            self.position = other.position
-            self.size = other.size
+            self.position = other.position.copy()
+            self.size = other.size.copy()
             self.events = other.events
 
     # Indexes to position and size
@@ -197,13 +201,19 @@ class ComponentText():
         self.logger = newLogger(type(self).__name__)
 
         self.control = control
-        self.__text_id = None # Number
+        self.text_id = None # Number
+
+    def set_from(self, other):
+        # self.control shouldn't be used, copied so that methods that need it
+        # don't fail unexpectedly if used for unforseen reasons.
+        self.control = other.control
+        self.text_id = other.text_id
 
     def set_text_id(self, text_id):
         text_id_str = str(text_id)
-        if text_id_str != self.__text_id:
-            self.__text_id = text_id_str
-            self.control.set_changed_header(Message.TEXT, self.__text_id)
+        if text_id_str != self.text_id:
+            self.text_id = text_id_str
+            self.control.set_changed_header(Message.TEXT, self.text_id)
 
     def set_text_get_id(self, text, hicp, group = None, subgroup = None):
         text_id = hicp.add_text_get_id(text, group, subgroup)
@@ -219,18 +229,18 @@ class ComponentText():
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
-        message.add_header(Message.TEXT, self.__text_id)
+        message.add_header(Message.TEXT, self.text_id)
 
 
 class Label(ContainedComponent):
     class HeaderValues(ContainedComponent.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.component_text = ComponentText(self)
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text = other.component_text
+            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -253,13 +263,13 @@ class Label(ContainedComponent):
 
 class Button(ContainedComponent):
     class HeaderValues(ContainedComponent.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.component_text = ComponentText(self)
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text = other.component_text
+            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -354,7 +364,7 @@ class TextField(ContainedComponent):
     ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *")
 
     class HeaderValues(ContainedComponent.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.content = ""
 
             # Maps attribute name to a list of TextFieldAttribute objects.
@@ -371,12 +381,12 @@ class TextField(ContainedComponent):
             # it like any other header string than to detect it when headers
             # are written out and generate it then.
             self.attributes = ""
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.content = other._content
-            self.attributes = other._attributes
+            self.content = other.content
+            self.attributes = other.attributes
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -862,7 +872,7 @@ class Selection(ContainedComponent):
     UNSELECT = Message.UNSELECT
 
     class HeaderValues(ContainedComponent.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.item_dict = {} # Key is int, value is SelectionItem
             self.items = None
 
@@ -874,13 +884,13 @@ class Selection(ContainedComponent):
             self.height = None
             self.width = None
 
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
-            self.item_dict = other.item_dict
+            self.item_dict = other.item_dict.copy()
             self.items = other.items
 
-            self.selected_list = other.selected_list
+            self.selected_list = other.selected_list.copy()
             self.selected = other.selected
 
             self.mode = other.mode
@@ -1097,13 +1107,13 @@ class Container(ContainedComponent):
 
 class Panel(Container):
     class HeaderValues(Container.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.component_text = ComponentText(self)
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text = other.component_text
+            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         Container.__init__(self)
@@ -1128,14 +1138,14 @@ class Panel(Container):
 
 class Window(Container):
     class HeaderValues(Container.HeaderValues):
-        def __init__(self, other=None):
+        def __init__(self):
             self.component_text = ComponentText(self)
             self.visible = False
-            super().__init__(other)
+            super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text = other.component_text
+            self.component_text.set_from(other.component_text)
             self.visible = other.visible
 
     def __init__(self):

@@ -1249,6 +1249,8 @@ class HICP(multiprocessing.Process):
 
         self.__write_thread.write(message)
 
+        component.notify_sent()
+
     def update(self, component):
         """Normally, the component's update method is called, then it calls this method."""
 
@@ -1281,6 +1283,7 @@ class HICP(multiprocessing.Process):
 
         self.__write_thread.write(message)
 
+        component.notify_sent()
         component.changed_header_list.clear()
 
     def remove(self, component):
