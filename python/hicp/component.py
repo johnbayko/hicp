@@ -184,15 +184,14 @@ position."""
         self.set_changed_header(Message.EVENTS, field)
 
     def fill_headers_add(self, message):
-        Component.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         message.add_header(Message.PARENT, str(self.current.parent_id))
         message.add_header(Message.POSITION, self.__position_field())
         message.add_header(Message.SIZE, self.__size_field())
         message.add_header(Message.EVENTS, self.current.events)
 
-# Change to this?
-#    def fill_headers_modify(self, message):
-#        Component.fill_headers_modify(self, message)
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
 #        message.add_header(Message.EVENTS, self.__unsent_contained_component.current.events)
 
 
@@ -258,7 +257,7 @@ class Label(ContainedComponent):
         self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         self.current.component_text.fill_headers_add(message)
 
 class Button(ContainedComponent):
@@ -287,7 +286,7 @@ class Button(ContainedComponent):
         self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         self.current.component_text.fill_headers_add(message)
 
     def set_handler(self, event_type, handler):
@@ -779,7 +778,7 @@ class TextField(ContainedComponent):
         return self.__attributes
 
     def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         message.add_header(Message.CONTENT, self.__content)
         if self.__attributes is not None and self.__attributes != "":
             message.add_header(Message.ATTRIBUTES, self.__attributes)
@@ -1039,7 +1038,7 @@ class Selection(ContainedComponent):
         self.current.width = str(width)
 
     def fill_headers_add(self, message):
-        ContainedComponent.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         # "items" from item list
         message.add_header(Message.ITEMS, self.current.items)
         message.add_header(Message.MODE, self.current.mode)
@@ -1132,7 +1131,7 @@ class Panel(Container):
         self.current.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
-        Container.fill_headers_add(self, message)
+        super().fill_headers_add(message)
         self.current.component_text.fill_headers_add(message)
 
 
@@ -1196,7 +1195,7 @@ class Window(Container):
             return None
 
     def fill_headers_add(self, message):
-        Component.fill_headers_add(self, message)
+        super().fill_headers_add(message)
 
         if self.current.visible is not None:
             message.add_header(Message.VISIBLE, "true")
