@@ -192,27 +192,48 @@ position."""
 
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
-#        message.add_header(Message.EVENTS, self.__unsent_contained_component.current.events)
+        if self.sent.events != self.current.events:
+            print('changed_header_list', self.changed_header_list.get(Message.EVENTS, '-'))  # debug
+            print('current Message.EVENTS', self.current.events)  # debug
+#            message.add_header(Message.EVENTS, self.current.events)
+        if self.sent.size != self.current.size:
+            print('changed_header_list', self.changed_header_list.get(Message.SIZE, '-'))  # debug
+            print('current Message.SIZE', self.__size_field())  # debug
+#            message.add_header(Message.SIZE, self.__size_field())
+##        message.add_header(Message.EVENTS, self.__unsent_contained_component.current.events)
 
 
 class ComponentText():
+    class HeaderValues(ContainedComponent.HeaderValues):
+        def __init__(self):
+            self.text_id = None # Number
+            super().__init__()
+
+        def set_from(self, other):
+            super().set_from(other)
+            self.text_id = other.text_id
+
     def __init__(self, control):
         self.logger = newLogger(type(self).__name__)
 
-        self.control = control
-        self.text_id = None # Number
+        self.current = self.HeaderValues()
+        self.sent = self.HeaderValues()
 
+        self.control = control
+        self.current.text_id = None # Number
+
+    # TODO Remove when components are all updated.
     def set_from(self, other):
         # self.control shouldn't be used, copied so that methods that need it
         # don't fail unexpectedly if used for unforseen reasons.
         self.control = other.control
-        self.text_id = other.text_id
+        self.current.text_id = other.current.text_id
 
     def set_text_id(self, text_id):
         text_id_str = str(text_id)
-        if text_id_str != self.text_id:
-            self.text_id = text_id_str
-            self.control.set_changed_header(Message.TEXT, self.text_id)
+        if text_id_str != self.current.text_id:
+            self.current.text_id = text_id_str
+            self.control.set_changed_header(Message.TEXT, self.current.text_id)
 
     def set_text_get_id(self, text, hicp, group = None, subgroup = None):
         text_id = hicp.add_text_get_id(text, group, subgroup)
@@ -228,66 +249,88 @@ class ComponentText():
         self.set_text_id(text_id)
 
     def fill_headers_add(self, message):
-        message.add_header(Message.TEXT, self.text_id)
+        message.add_header(Message.TEXT, self.current.text_id)
+
+    def fill_headers_modify(self, message):
+        if self.sent.text_id != self.current.text_id:
+            print('changed_header_list', self.control.changed_header_list.get(Message.TEXT, '-'))  # debug
+            print('current Message.TEXT', self.current.text_id)  # debug
+#            message.add_header(Message.TEXT, self.current.text_id)
+
+    def notify_sent(self):
+        # Copy current values to sent.
+        self.sent.set_from(self.current)
 
 
 class Label(ContainedComponent):
     class HeaderValues(ContainedComponent.HeaderValues):
         def __init__(self):
-            self.component_text = ComponentText(self)
             super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.LABEL
+        self.component_text = ComponentText(self)
         # TODO workaround until set_changed_header() is removed.
-        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.current.component_text.set_text_id(text_id)
+        self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.current.component_text.set_text_get_id(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.current.component_text.set_groups_text(text_group_list, hicp)
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
-        self.current.component_text.fill_headers_add(message)
+        self.component_text.fill_headers_add(message)
+
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+        self.component_text.fill_headers_modify(message)
+
+    def notify_sent(self):
+        super().notify_sent()
+        self.component_text.notify_sent()
+
 
 class Button(ContainedComponent):
     class HeaderValues(ContainedComponent.HeaderValues):
         def __init__(self):
-            self.component_text = ComponentText(self)
             super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         ContainedComponent.__init__(self)
         self.component = Component.BUTTON
-        # TODO workaround until set_changed_header() is removed.
-        self.current.component_text.control = self
+        self.component_text = ComponentText(self)
 
     def set_text_id(self, text_id):
-        self.current.component_text.set_text_id(text_id)
+        self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.current.component_text.set_text_get_id(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.current.component_text.set_groups_text(text_group_list, hicp)
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
-        self.current.component_text.fill_headers_add(message)
+        self.component_text.fill_headers_add(message)
+
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+        self.component_text.fill_headers_modify(message)
+
+    def notify_sent(self):
+        super().notify_sent()
+        self.component_text.notify_sent()
 
     def set_handler(self, event_type, handler):
         if EventType.CLICK == event_type:
@@ -783,6 +826,10 @@ class TextField(ContainedComponent):
         if self.__attributes is not None and self.__attributes != "":
             message.add_header(Message.ATTRIBUTES, self.__attributes)
 
+#    def fill_headers_modify(self, message):
+#        self.set_changed_header(Message.CONTENT, self.__content)
+#        self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
             self.__handle_changed = handler
@@ -1048,6 +1095,30 @@ class Selection(ContainedComponent):
         message.add_header(Message.HEIGHT, self.current.height)
         message.add_header(Message.WIDTH, self.current.width)
 
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+        # Assume items string is always a canonical representation (always the
+        # same if items are the same).
+        if self.sent.items != self.current.items:
+            print('changed_header_list', self.changed_header_list.get(Message.ITEMS, '-'))  # debug
+            print('current Message.ITEMS', self.current.items)  # debug
+#            message.add_header(Message.ITEMS, self.current.items)
+
+        if self.sent.mode != self.current.mode:
+            print('changed_header_list', self.changed_header_list.get(Message.MODE, '-'))  # debug
+            print('current Message.MODE', self.current.mode)  # debug
+#            message.add_header(Message.MODE, self.current.mode)
+
+        if self.sent.presentation != self.current.presentation:
+            print('changed_header_list', self.changed_header_list.get(Message.PRESENTATION, '-'))  # debug
+            print('current Message.PRESENTATION', self.current.presentation)  # debug
+#            message.add_header(Message.PRESENTATION, self.current.presentation)
+
+        if self.sent.selected != self.current.selected:
+            print('changed_header_list', self.changed_header_list.get(Message.SELECTED, '-'))  # debug
+            print('current Message.SELECTED', self.current.selected)  # debug
+#            message.add_header(Message.SELECTED, self.current.selected)
+
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
             self.__handle_changed = handler
@@ -1107,61 +1178,67 @@ class Container(ContainedComponent):
 class Panel(Container):
     class HeaderValues(Container.HeaderValues):
         def __init__(self):
-            self.component_text = ComponentText(self)
             super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text.set_from(other.component_text)
 
     def __init__(self):
         Container.__init__(self)
 
         self.component = Component.PANEL
-        # TODO workaround until set_changed_header() is removed.
-        self.current.component_text.control = self
+        self.component_text = ComponentText(self)
 
     def set_text_id(self, text_id):
-        self.current.component_text.set_text_id(text_id)
+        self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.current.component_text.set_text_get_id(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.current.component_text.set_groups_text(text_group_list, hicp)
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
-        self.current.component_text.fill_headers_add(message)
+        self.component_text.fill_headers_add(message)
+
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+        self.component_text.fill_headers_modify(message)
+
+    def notify_sent(self):
+        super().notify_sent()
+        self.component_text.notify_sent()
 
 
 class Window(Container):
     class HeaderValues(Container.HeaderValues):
         def __init__(self):
-            self.component_text = ComponentText(self)
+#            self.component_text = ComponentText(self)
             self.visible = False
             super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-            self.component_text.set_from(other.component_text)
+#            self.component_text.set_from(other.component_text)
             self.visible = other.visible
 
     def __init__(self):
         Container.__init__(self)
 
         self.component = Component.WINDOW
+        self.component_text = ComponentText(self)
         # TODO workaround until set_changed_header() is removed.
-        self.current.component_text.control = self
+#        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
-        self.current.component_text.set_text_id(text_id)
+        self.component_text.set_text_id(text_id)
 
     def set_text(self, text, hicp):
-        self.current.component_text.set_text_get_id(text, hicp)
+        self.component_text.set_text_get_id(text, hicp)
 
     def set_groups_text(self, text_group_list, hicp):
-        self.current.component_text.set_groups_text(text_group_list, hicp)
+        self.component_text.set_groups_text(text_group_list, hicp)
 
     def set_visible(self, visible):
         self.current.visible = visible
@@ -1202,5 +1279,19 @@ class Window(Container):
         else:
             message.add_header(Message.VISIBLE, "false")
 
-        self.current.component_text.fill_headers_add(message)
+        self.component_text.fill_headers_add(message)
+
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+
+        if self.sent.visible != self.current.visible:
+            print('changed_header_list', self.changed_header_list.get(Message.VISIBLE, '-'))  # debug
+            print('current Message.VISIBLE', self.current.visible)  # debug
+#            message.add_header(Message.VISIBLE, self.current.visible)
+
+        self.component_text.fill_headers_modify(message)
+
+    def notify_sent(self):
+        super().notify_sent()
+        self.component_text.notify_sent()
 
