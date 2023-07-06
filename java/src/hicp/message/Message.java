@@ -46,10 +46,6 @@ public class Message {
     protected HeaderMap _headerMap = DEFAULT_HEADER_MAP;
 
 
-    // Only used by Event constructor, remove when that goes away.
-    public Message() {
-    }
-
     public Message(final CommandInfo.Command command) {
         _commandInfo = new CommandInfo(command);
 

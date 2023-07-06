@@ -211,7 +211,6 @@ public class TextFieldItem
 // To start, just log the string.
             final String modifyAttributes =
                 guiTextFieldInfo.attributes.toString();
-LOGGER.log(Level.FINE, "modifyAttributes: " + modifyAttributes);  // debug
         }
         if (null != guiTextFieldInfo.events) {
             setEventsInvoked(guiTextFieldInfo.events);

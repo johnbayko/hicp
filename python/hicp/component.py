@@ -192,15 +192,23 @@ position."""
 
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
-        if self.sent.events != self.current.events:
-            print('changed_header_list', self.changed_header_list.get(Message.EVENTS, '-'))  # debug
-            print('current Message.EVENTS', self.current.events)  # debug
-#            message.add_header(Message.EVENTS, self.current.events)
+        if self.sent.parent_id != self.current.parent_id:
+            print('changed_header_list', self.changed_header_list.get(Message.PARENT, '-'))  # debug
+            print('current Message.PARENT', self.current.parent_id)  # debug
+#            message.add_header(Message.PARENT, self.current.parent_id)
+# TODO
+        if self.sent.position != self.current.position:
+            print('changed_header_list', self.changed_header_list.get(Message.POSITION, '-'))  # debug
+            print('current Message.POSITION', self.__position_field())  # debug
+#            message.add_header(Message.POSITION, self.__position_field())
         if self.sent.size != self.current.size:
             print('changed_header_list', self.changed_header_list.get(Message.SIZE, '-'))  # debug
             print('current Message.SIZE', self.__size_field())  # debug
 #            message.add_header(Message.SIZE, self.__size_field())
-##        message.add_header(Message.EVENTS, self.__unsent_contained_component.current.events)
+        if self.sent.events != self.current.events:
+            print('changed_header_list', self.changed_header_list.get(Message.EVENTS, '-'))  # debug
+            print('current Message.EVENTS', self.current.events)  # debug
+#            message.add_header(Message.EVENTS, self.current.events)
 
 
 class ComponentText():
@@ -274,7 +282,6 @@ class Label(ContainedComponent):
         ContainedComponent.__init__(self)
         self.component = Component.LABEL
         self.component_text = ComponentText(self)
-        # TODO workaround until set_changed_header() is removed.
 
     def set_text_id(self, text_id):
         self.component_text.set_text_id(text_id)
@@ -413,12 +420,12 @@ class TextField(ContainedComponent):
             # When content is set, all attributes are cleared.
             self.attribute_map = {}
 
-            # __attributes is the whole attribute list, there's no way to
+            # attributes is the whole attribute list, there's no way to
             # send them separately. However, each attribute can have its own
             # string stored to reduce extra work.
             self.attribute_string_map = {}
 
-            # Attribute header is string representation of __attribute_map.
+            # Attribute header is string representation of attribute_map.
             # It's easier to generate it when attributes are set and treat
             # it like any other header string than to detect it when headers
             # are written out and generate it then.
@@ -428,28 +435,14 @@ class TextField(ContainedComponent):
         def set_from(self, other):
             super().set_from(other)
             self.content = other.content
+            self.attribute_map = other.attribute_map.copy()
+            self.attribute_string_map = other.attribute_string_map.copy()
             self.attributes = other.attributes
 
     def __init__(self):
         ContainedComponent.__init__(self)
 
         self.component = Component.TEXTFIELD
-        self.__content = ""
-
-        # Maps attribute name to a list of TextFieldAttribute objects.
-        # When content is set, all attributes are cleared.
-        self.__attribute_map = {}
-
-        # __attributes is the whole attribute list, there's no way to
-        # send them separately. However, each attribute can have its own
-        # string stored to reduce extra work.
-        self.__attribute_string_map = {}
-
-        # Attribute header is string representation of __attribute_map.
-        # It's easier to generate it when attributes are set and treat
-        # it like any other header string than to detect it when headers
-        # are written out and generate it then.
-        self.__attributes = ""
 
     def set_content(self, content):
         # Content must be a string.
@@ -461,17 +454,17 @@ class TextField(ContainedComponent):
         content_invalid_match = self.CONTENT_INVALID_RE.search(content)
         if content_invalid_match is not None:
             content = content[:content_invalid_match.start(0)]
-        self.__content = content
-        self.set_changed_header(Message.CONTENT, self.__content)
+        self.current.content = content
+        self.set_changed_header(Message.CONTENT, self.current.content)
 
         # Clear attributes if there are any.
-        if 0 < len(self.__attributes):
-            self.__attribute_map.clear()
-            self.__attributes = ""
-            self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+        if 0 < len(self.current.attributes):
+            self.current.attribute_map.clear()
+            self.current.attributes = ""
+            self.set_changed_header(Message.ATTRIBUTES, self.current.attributes)
 
     def get_content(self):
-        return self.__content
+        return self.current.content
 
 #    def content_del_before(self, del_len, del_pos=None):
 #        # If this has not been sent (message will be ADD command), then
@@ -501,7 +494,7 @@ class TextField(ContainedComponent):
             is_multivalued = False
 
         # New attribute range can't start past end of content.
-        if len(self.__content) < new_attribute_range_start:
+        if len(self.current.content) < new_attribute_range_start:
             # Nothing to apply attribute to.
             return
 
@@ -511,8 +504,8 @@ class TextField(ContainedComponent):
             new_attribute_range_start + new_attribute_range_length
 
         # New attribute range cannot go past end of content - truncate.
-        if len(self.__content) < new_attribute_range_end:
-            new_attribute_range_end = len(self.__content)
+        if len(self.current.content) < new_attribute_range_end:
+            new_attribute_range_end = len(self.current.content)
             new_attribute_range_length = \
                 new_attribute_range_end - new_attribute_range_start
 
@@ -521,20 +514,20 @@ class TextField(ContainedComponent):
         # Should either strip them out or reject this action - deal with
         # that later.
 
-        attribute_list = self.__attribute_map.get(attribute)
+        attribute_list = self.current.attribute_map.get(attribute)
         if attribute_list is None:
             # This is a new attribute for this content.
             if is_multivalued:
                 # Initial value of multivalued attributes is user agent
                 # default, indicated by "".
                 default_attribute_range = \
-                    TextFieldAttribute(len(self.__content), is_multivalued, "")
+                    TextFieldAttribute(len(self.current.content), is_multivalued, "")
             else:
                 # Initial value of binary attributes is False ("0").
                 default_attribute_range = \
-                    TextFieldAttribute(len(self.__content), is_multivalued, "0")
+                    TextFieldAttribute(len(self.current.content), is_multivalued, "0")
             attribute_list = [default_attribute_range]
-            self.__attribute_map[attribute] = attribute_list
+            self.current.attribute_map[attribute] = attribute_list
 
         # Construct new attribute list from old. Any attributes which
         # don't overlap the new attribute range are copied unchanged,
@@ -740,7 +733,7 @@ class TextField(ContainedComponent):
 
                 # For 9, 7, 9, 10 do nothing (discard old).
 
-        self.__attribute_map[attribute] = new_attribute_list
+        self.current.attribute_map[attribute] = new_attribute_list
 
         # Generate new attributes string for this attribute.
         # Separator string.
@@ -759,13 +752,13 @@ class TextField(ContainedComponent):
                 attribute_val_list.append(str(attribute_range.length))
 
         attribute_string = attribute + ': ' + ', '.join(attribute_val_list)
-        self.__attribute_string_map[attribute] = attribute_string
+        self.current.attribute_string_map[attribute] = attribute_string
 
-        # Generate new __attributes string from all indiviaual attribute
+        # Generate new attributes string from all indiviaual attribute
         # strings.
-        self.__attributes = \
-            '\r\n'.join( list(self.__attribute_string_map.values()) )
-        self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+        self.current.attributes = \
+            '\r\n'.join( list(self.current.attribute_string_map.values()) )
+        self.set_changed_header(Message.ATTRIBUTES, self.current.attributes)
 
     def set_attribute_string(self, attribute_list_string):
         if attribute_list_string is None:
@@ -811,24 +804,31 @@ class TextField(ContainedComponent):
                     self.logger.debug("attribute list invalid: " + attribute_string)
                     pass
             
-        self.__attribute_map = new_attribute_map
+        self.current.attribute_map = new_attribute_map
         # Maybe should construct strings from attribute map because they
         # might have had errors?
-        self.__attribute_string_map = new_attribute_string_map
-        self.__attributes = attribute_list_string
+        self.current.attribute_string_map = new_attribute_string_map
+        self.current.attributes = attribute_list_string
 
     def get_attribute_string(self):
-        return self.__attributes
+        return self.current.attributes
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
-        message.add_header(Message.CONTENT, self.__content)
-        if self.__attributes is not None and self.__attributes != "":
-            message.add_header(Message.ATTRIBUTES, self.__attributes)
+        message.add_header(Message.CONTENT, self.current.content)
+        if self.current.attributes is not None and self.current.attributes != "":
+            message.add_header(Message.ATTRIBUTES, self.current.attributes)
 
-#    def fill_headers_modify(self, message):
-#        self.set_changed_header(Message.CONTENT, self.__content)
-#        self.set_changed_header(Message.ATTRIBUTES, self.__attributes)
+    def fill_headers_modify(self, message):
+        super().fill_headers_modify(message)
+        if self.sent.content != self.current.content:
+            print('changed_header_list', self.control.changed_header_list.get(Message.CONTENT, '-'))  # debug
+            print('current Message.CONTENT', self.current.content)  # debug
+#            message.add_header(Message.CONTENT, self.current.text_id)
+        if self.sent.attributes != self.current.attributes:
+            print('changed_header_list', self.control.changed_header_list.get(Message.ATTRIBUTES, '-'))  # debug
+            print('current Message.ATTRIBUTES', self.current.attributes)  # debug
+#            message.add_header(Message.ATTRIBUTES, self.current.attributes)
 
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
@@ -851,7 +851,7 @@ class TextField(ContainedComponent):
         # Get content from event
         content = event.message.get_header(Message.CONTENT)
         if content is not None:
-            self.__content = content
+            self.current.content = content
 
         # Get attributes from event.
         attribute_header = event.message.get_header(Message.ATTRIBUTES)
@@ -1214,13 +1214,11 @@ class Panel(Container):
 class Window(Container):
     class HeaderValues(Container.HeaderValues):
         def __init__(self):
-#            self.component_text = ComponentText(self)
             self.visible = False
             super().__init__()
 
         def set_from(self, other):
             super().set_from(other)
-#            self.component_text.set_from(other.component_text)
             self.visible = other.visible
 
     def __init__(self):
@@ -1228,8 +1226,6 @@ class Window(Container):
 
         self.component = Component.WINDOW
         self.component_text = ComponentText(self)
-        # TODO workaround until set_changed_header() is removed.
-#        self.current.component_text.control = self
 
     def set_text_id(self, text_id):
         self.component_text.set_text_id(text_id)
