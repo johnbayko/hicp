@@ -40,8 +40,6 @@ keep track of which items have been changed so they can be sent in
         self.component_id = None
         self.added_to_hicp = None
 
-        self.changed_header_list = {}
-
     def set_handler(self, event_type, handler):
         # Maybe in the future, this will be a map, but for now handlers are
         # tracked by individual component classes.
@@ -50,14 +48,6 @@ keep track of which items have been changed so they can be sent in
     def get_handler(self, event):
         # See set_handler().
         return None
-
-    def set_changed_header(self, header, field):
-        # Must be a string - the value that will be put in the update
-        # message.
-        if not isinstance(field, str):
-            raise TypeError("header must be a string as in a message header field")
-
-        self.changed_header_list[header] = field
 
     def fill_headers_add(self, message):
         message.add_header(Message.CATEGORY, Message.GUI)
@@ -115,7 +105,7 @@ position."""
 
     def set_parent(self, component):
         if component is None:
-            # No partent component to add to.
+            # No parent component to add to.
             self.logger.debug("ContainedComponent.set_parent() component is null")
             return
         try:
@@ -129,7 +119,6 @@ position."""
             return
 
         self.current.parent_id = component.component_id
-        self.set_changed_header(Message.PARENT, str(self.current.parent_id))
 
     def __position_field(self):
         field = None
@@ -150,11 +139,6 @@ position."""
         self.current.position[ContainedComponent.HORIZONTAL] = horizontal
         self.current.position[ContainedComponent.VERTICAL] = vertical
 
-        field = self.__position_field()
-        if field is None:
-            field = ","
-        self.set_changed_header(Message.POSITION, field)
-
     def __size_field(self):
         field = None
         size = self.current.size
@@ -174,14 +158,8 @@ position."""
         self.current.size[ContainedComponent.HORIZONTAL] = horizontal
         self.current.size[ContainedComponent.VERTICAL] = vertical
 
-        field = self.__size_field()
-        if field is None:
-            field = ","
-        self.set_changed_header(Message.SIZE, field)
-
     def set_events(self, field):
         self.current.events = field
-        self.set_changed_header(Message.EVENTS, field)
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
@@ -193,22 +171,19 @@ position."""
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
         if self.sent.parent_id != self.current.parent_id:
-            print('changed_header_list', self.changed_header_list.get(Message.PARENT, '-'))  # debug
-            print('current Message.PARENT', self.current.parent_id)  # debug
-#            message.add_header(Message.PARENT, self.current.parent_id)
-# TODO
+            message.add_header(Message.PARENT, self.current.parent_id)
         if self.sent.position != self.current.position:
-            print('changed_header_list', self.changed_header_list.get(Message.POSITION, '-'))  # debug
-            print('current Message.POSITION', self.__position_field())  # debug
-#            message.add_header(Message.POSITION, self.__position_field())
+            field = self.__position_field()
+            if field is None:
+                field = ","
+            message.add_header(Message.POSITION, field)
         if self.sent.size != self.current.size:
-            print('changed_header_list', self.changed_header_list.get(Message.SIZE, '-'))  # debug
-            print('current Message.SIZE', self.__size_field())  # debug
-#            message.add_header(Message.SIZE, self.__size_field())
+            field = self.__size_field()
+            if field is None:
+                field = ","
+            message.add_header(Message.SIZE, field)
         if self.sent.events != self.current.events:
-            print('changed_header_list', self.changed_header_list.get(Message.EVENTS, '-'))  # debug
-            print('current Message.EVENTS', self.current.events)  # debug
-#            message.add_header(Message.EVENTS, self.current.events)
+            message.add_header(Message.EVENTS, self.current.events)
 
 
 class ComponentText():
@@ -241,7 +216,6 @@ class ComponentText():
         text_id_str = str(text_id)
         if text_id_str != self.current.text_id:
             self.current.text_id = text_id_str
-            self.control.set_changed_header(Message.TEXT, self.current.text_id)
 
     def set_text_get_id(self, text, hicp, group = None, subgroup = None):
         text_id = hicp.add_text_get_id(text, group, subgroup)
@@ -261,9 +235,7 @@ class ComponentText():
 
     def fill_headers_modify(self, message):
         if self.sent.text_id != self.current.text_id:
-            print('changed_header_list', self.control.changed_header_list.get(Message.TEXT, '-'))  # debug
-            print('current Message.TEXT', self.current.text_id)  # debug
-#            message.add_header(Message.TEXT, self.current.text_id)
+            message.add_header(Message.TEXT, self.current.text_id)
 
     def notify_sent(self):
         # Copy current values to sent.
@@ -455,13 +427,11 @@ class TextField(ContainedComponent):
         if content_invalid_match is not None:
             content = content[:content_invalid_match.start(0)]
         self.current.content = content
-        self.set_changed_header(Message.CONTENT, self.current.content)
 
         # Clear attributes if there are any.
         if 0 < len(self.current.attributes):
             self.current.attribute_map.clear()
             self.current.attributes = ""
-            self.set_changed_header(Message.ATTRIBUTES, self.current.attributes)
 
     def get_content(self):
         return self.current.content
@@ -758,7 +728,6 @@ class TextField(ContainedComponent):
         # strings.
         self.current.attributes = \
             '\r\n'.join( list(self.current.attribute_string_map.values()) )
-        self.set_changed_header(Message.ATTRIBUTES, self.current.attributes)
 
     def set_attribute_string(self, attribute_list_string):
         if attribute_list_string is None:
@@ -822,13 +791,9 @@ class TextField(ContainedComponent):
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
         if self.sent.content != self.current.content:
-            print('changed_header_list', self.control.changed_header_list.get(Message.CONTENT, '-'))  # debug
-            print('current Message.CONTENT', self.current.content)  # debug
-#            message.add_header(Message.CONTENT, self.current.text_id)
+            message.add_header(Message.CONTENT, self.current.content)
         if self.sent.attributes != self.current.attributes:
-            print('changed_header_list', self.control.changed_header_list.get(Message.ATTRIBUTES, '-'))  # debug
-            print('current Message.ATTRIBUTES', self.current.attributes)  # debug
-#            message.add_header(Message.ATTRIBUTES, self.current.attributes)
+            message.add_header(Message.ATTRIBUTES, self.current.attributes)
 
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
@@ -933,6 +898,8 @@ class Selection(ContainedComponent):
             super().__init__()
 
         def set_from(self, other):
+            super().set_from(other)
+
             self.item_dict = other.item_dict.copy()
             self.items = other.items
 
@@ -995,7 +962,6 @@ class Selection(ContainedComponent):
                          selection_item.text_id) )
 
         self.current.items = '\r\n'.join(item_str_list)
-        self.set_changed_header(Message.ITEMS, self.current.items)
 
         # Delete selection (it needs to be set with IDs for these items if you
         # want to keep the selections)
@@ -1003,14 +969,12 @@ class Selection(ContainedComponent):
 
     def set_selection_mode(self, mode):
         self.current.mode = mode
-        self.set_changed_header(Message.MODE, self.current.mode)
 
     def get_selection_mode(self):
         return self.current.mode
 
     def set_presentation(self, presentation):
         self.current.presentation = presentation
-        self.set_changed_header(Message.PRESENTATION, self.current.presentation)
 
     def set_selected_string(self, selected_list_str):
         # Split by ','.
@@ -1036,7 +1000,6 @@ class Selection(ContainedComponent):
 
         self.current.selected_list = valid_list
         self.current.selected = ", ".join(valid_str_list)
-        self.set_changed_header(Message.SELECTED, self.current.selected)
 
     def add_selected_item(self, item_id):
         if self.current.selected_list is None:
@@ -1060,7 +1023,6 @@ class Selection(ContainedComponent):
     def _update_selected(self):
         valid_str_list = [str(s) for s in self.current.selected_list]
         self.current.selected = ", ".join(valid_str_list)
-        self.set_changed_header(Message.SELECTED, self.current.selected)
 
     def copy_selected_list(self):
         """Returns a copy of the selected list."""
@@ -1100,24 +1062,16 @@ class Selection(ContainedComponent):
         # Assume items string is always a canonical representation (always the
         # same if items are the same).
         if self.sent.items != self.current.items:
-            print('changed_header_list', self.changed_header_list.get(Message.ITEMS, '-'))  # debug
-            print('current Message.ITEMS', self.current.items)  # debug
-#            message.add_header(Message.ITEMS, self.current.items)
+            message.add_header(Message.ITEMS, self.current.items)
 
         if self.sent.mode != self.current.mode:
-            print('changed_header_list', self.changed_header_list.get(Message.MODE, '-'))  # debug
-            print('current Message.MODE', self.current.mode)  # debug
-#            message.add_header(Message.MODE, self.current.mode)
+            message.add_header(Message.MODE, self.current.mode)
 
         if self.sent.presentation != self.current.presentation:
-            print('changed_header_list', self.changed_header_list.get(Message.PRESENTATION, '-'))  # debug
-            print('current Message.PRESENTATION', self.current.presentation)  # debug
-#            message.add_header(Message.PRESENTATION, self.current.presentation)
+            message.add_header(Message.PRESENTATION, self.current.presentation)
 
         if self.sent.selected != self.current.selected:
-            print('changed_header_list', self.changed_header_list.get(Message.SELECTED, '-'))  # debug
-            print('current Message.SELECTED', self.current.selected)  # debug
-#            message.add_header(Message.SELECTED, self.current.selected)
+            message.add_header(Message.SELECTED, self.current.selected)
 
     def set_handler(self, event_type, handler):
         if EventType.CHANGED == event_type:
@@ -1238,10 +1192,6 @@ class Window(Container):
 
     def set_visible(self, visible):
         self.current.visible = visible
-        if visible:
-            self.set_changed_header(Message.VISIBLE, "true")
-        else:
-            self.set_changed_header(Message.VISIBLE, "false")
 
     def set_handler(self, event_type, handler):
         if EventType.CLOSE == event_type:
@@ -1281,9 +1231,8 @@ class Window(Container):
         super().fill_headers_modify(message)
 
         if self.sent.visible != self.current.visible:
-            print('changed_header_list', self.changed_header_list.get(Message.VISIBLE, '-'))  # debug
-            print('current Message.VISIBLE', self.current.visible)  # debug
-#            message.add_header(Message.VISIBLE, self.current.visible)
+            visible_value = "true" if self.current.visible else "false"
+            message.add_header(Message.VISIBLE, visible_value)
 
         self.component_text.fill_headers_modify(message)
 

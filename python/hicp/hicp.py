@@ -1036,7 +1036,7 @@ class HICP(multiprocessing.Process):
              self.__default_app = next(iter(new_app_list))
 
     def run(self):
-        self.find_apps()  # debug
+        self.find_apps()
 
         f = self.io_socket.makefile(mode='rw', encoding='utf-8', newline='\n')
         # TODO: consolidate these into one stream field,
@@ -1245,7 +1245,6 @@ class HICP(multiprocessing.Process):
         message.set_type(Message.COMMAND, Message.ADD)
 
         component.fill_headers_add(message)
-        component.changed_header_list.clear()
 
         self.__write_thread.write(message)
 
@@ -1266,25 +1265,14 @@ class HICP(multiprocessing.Process):
                 self.logger.debug("Component has different hicp value.") # debug
                 return
 
-        header_list = component.changed_header_list
-
-        if 0 == len(header_list):
-            # There are no modified fields.
-            return
-
         message = Message()
         message.set_type(Message.COMMAND, Message.MODIFY)
 
         component.fill_headers_modify(message)
 
-        # Add all changed headers.
-        for header_key in list(header_list.keys()):
-            message.add_header(header_key, header_list[header_key])
-
         self.__write_thread.write(message)
 
         component.notify_sent()
-        component.changed_header_list.clear()
 
     def remove(self, component):
         if component.added_to_hicp is None:
@@ -1304,9 +1292,6 @@ class HICP(multiprocessing.Process):
         message.add_header(Message.ID, str(component.component_id))
 
         self.__write_thread.write(message)
-
-        # If there were changed headers, they don't matter now.
-        component.changed_header_list.clear()
 
         # Remove from component list.
         del self.__component_list[str(component.component_id)]
