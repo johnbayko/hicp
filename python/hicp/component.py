@@ -4,6 +4,32 @@ from hicp.logger import newLogger
 from hicp.message import Message
 from hicp.hicp import EventType
 
+def extend_super(orig_method):
+  def decorated(*args, **kwargs):
+    if not decorated.checked_super_method:
+      decorated.checked_super_method = True
+      if len(args) >= 1:
+        selfarg = args[0]
+        selfarg_qualname = selfarg.__class__.__qualname__
+        expect_qualname = f"{selfarg_qualname}.{orig_method.__name__}"
+        if expect_qualname == orig_method.__qualname__:
+          super_class = super(type(selfarg), selfarg)
+          try:
+            decorated.super_method = getattr(super_class, orig_method.__name__)
+          except AttributeError:
+            pass
+
+    if decorated.super_method is not None:
+      decorated.super_method.__func__(*args, **kwargs)
+
+    return orig_method(*args, **kwargs)
+
+  decorated.checked_super_method = False
+  decorated.super_method = None
+
+  return decorated
+
+
 class Component:
     """Components use getters and setters functions, because they need to
 keep track of which items have been changed so they can be sent in
