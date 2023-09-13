@@ -35,6 +35,8 @@ public class GUITextFieldInfo {
     }
 
     public String content = null;
+    public int width = 7;  // Arbitrary default
+    public boolean hasWidth = false;
     public TextAttributes attributes = null;
     public EventsEnum events = null;
 
@@ -43,6 +45,12 @@ public class GUITextFieldInfo {
 
     public GUITextFieldInfo(final HeaderMap headerMap) {
         content = headerMap.getString(HeaderEnum.CONTENT);
+        {
+            final boolean hasWidth = headerMap.has(HeaderEnum.WIDTH);
+            if (hasWidth) {
+                width = headerMap.getInt(HeaderEnum.WIDTH, width);
+            }
+        }
         {
             final String attributesStr =
                 headerMap.getString(HeaderEnum.ATTRIBUTES);
@@ -60,6 +68,7 @@ public class GUITextFieldInfo {
         final HeaderMap headerMap
     ) {
         headerMap.putString(HeaderEnum.CONTENT, content);
+        headerMap.putInt(HeaderEnum.WIDTH, width);
 
         // Warning: It's the caller's responsibility to ensure the attribute
         // object matches the content string.

@@ -327,8 +327,11 @@ class TextEnum(IntEnum):
     SELECTION_RANDOM_ID = auto()
     TEXT_LABEL_ID = auto()
     TEXT_LENGTH_ID = auto()
+    LABEL_TEXT_POSITION_ID = auto()
+    LABEL_DELETE_ID = auto()
     TEXT_DEL_BEFORE_ID = auto()
     TEXT_DEL_AFTER_ID = auto()
+    LABEL_DEL_LENGTH_ID = auto()
     TEXT_ADD_ID = auto()
 
 class TestApp(App):
@@ -370,9 +373,12 @@ class TestApp(App):
             TextEnum.SELECTION_RANDOM_ID : 'Select random',
             TextEnum.TEXT_LABEL_ID : 'Text field',
             TextEnum.TEXT_LENGTH_ID : 'Length',
-            TextEnum.TEXT_DEL_BEFORE_ID : '- Before',
-            TextEnum.TEXT_DEL_AFTER_ID : '- After',
-            TextEnum.TEXT_ADD_ID : '+'
+            TextEnum.LABEL_TEXT_POSITION_ID : 'Position',
+            TextEnum.LABEL_DELETE_ID : 'Delete',
+            TextEnum.TEXT_DEL_BEFORE_ID : 'Before',
+            TextEnum.TEXT_DEL_AFTER_ID : 'After',
+            TextEnum.LABEL_DEL_LENGTH_ID : 'Length',
+            TextEnum.TEXT_ADD_ID : 'Add'
         })
         self.__logger.debug("TestApp done add text")
 
@@ -434,40 +440,54 @@ class TestApp(App):
         text_field_changer = TextFieldChanger(text_field)
 
         # Position
+        text_position_label = Label()
+        text_position_label.set_text_id(TextEnum.LABEL_TEXT_POSITION_ID)
+        text_panel.add(text_position_label, 0, 2)
+
         text_position_field = TextField()
         text_position_field.set_content('0')
         text_position_field.set_handler(
             EventType.CHANGED,
             TextPositionHandler(text_field_changer, text_position_field)
         )
-        text_panel.add(text_position_field, 0, 2)
+        text_panel.add(text_position_field, 1, 2)
+
+        # Del
+        text_delete_label = Label()
+        text_delete_label.set_text_id(TextEnum.LABEL_DELETE_ID)
+        text_panel.add(text_delete_label, 0, 3)
 
         # Del before
         text_del_before_button = Button()
         text_del_before_button.set_text_id(TextEnum.TEXT_DEL_BEFORE_ID)
         # TODO: Add handler
-        text_panel.add(text_del_before_button, 1, 2)
+        text_panel.add(text_del_before_button, 1, 3)
 
         # Del after
         text_del_after_button = Button()
         text_del_after_button.set_text_id(TextEnum.TEXT_DEL_AFTER_ID)
         # TODO: Add handler
-        text_panel.add(text_del_after_button, 2, 2)
+        text_panel.add(text_del_after_button, 2, 3)
 
         # Del count
+        text_length_label = Label()
+        text_length_label.set_text_id(TextEnum.LABEL_DEL_LENGTH_ID)
+        text_panel.add(text_length_label, 3, 3)
+
         text_del_cnt_field = TextField()
         text_del_cnt_field.set_content('0')
+        text_del_cnt_field.set_width(3)
         text_del_cnt_field.set_handler(
             EventType.CHANGED,
             TextDelCntHandler(text_field_changer, text_del_cnt_field)
         )
-        text_panel.add(text_del_cnt_field, 3, 2)
+        text_panel.add(text_del_cnt_field, 4, 3)
 
         # Add
         text_add_button = Button()
         text_add_button.set_text_id(TextEnum.TEXT_ADD_ID)
         # TODO: Add handler
-        text_panel.add(text_add_button, 4, 2)
+        text_panel.add(text_add_button, 0, 4)
 
         # Add text
         text_add_text_field = TextField()
@@ -477,7 +497,7 @@ class TestApp(App):
             EventType.CHANGED,
             TextAddTextHandler(text_field_changer, text_add_text_field)
         )
-        text_panel.add(text_add_text_field, 5, 2)
+        text_panel.add(text_add_text_field, 1, 4)
 
         component_panel.add(text_panel, 0, 1)
 

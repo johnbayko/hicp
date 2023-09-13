@@ -389,6 +389,7 @@ class TextField(ContainedComponent):
     class HeaderValues(ContainedComponent.HeaderValues):
         def __init__(self):
             self.content = ""
+            self.width = None
 
             # Maps attribute name to a list of TextFieldAttribute objects.
             # When content is set, all attributes are cleared.
@@ -409,6 +410,7 @@ class TextField(ContainedComponent):
         def set_from(self, other):
             super().set_from(other)
             self.content = other.content
+            self.width = other.width
             self.attribute_map = other.attribute_map.copy()
             self.attribute_string_map = other.attribute_string_map.copy()
             self.attributes = other.attributes
@@ -447,6 +449,9 @@ class TextField(ContainedComponent):
 #    def content_del_after(self, del_len, del_pos=None):
 #
 #    def content_add(self, add_content, add_pos=None):
+
+    def set_width(self, width):
+        self.current.width = str(width)
 
     def set_attribute(
         self,
@@ -787,6 +792,8 @@ class TextField(ContainedComponent):
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
         message.add_header(Message.CONTENT, self.current.content)
+        if self.current.width is not None:
+            message.add_header(Message.WIDTH, self.current.width)
         if self.current.attributes is not None and self.current.attributes != "":
             message.add_header(Message.ATTRIBUTES, self.current.attributes)
 
@@ -794,6 +801,8 @@ class TextField(ContainedComponent):
         super().fill_headers_modify(message)
         if self.sent.content != self.current.content:
             message.add_header(Message.CONTENT, self.current.content)
+        if self.sent.width != self.current.width:
+            message.add_header(Message.WIDTH, self.current.width)
         if self.sent.attributes != self.current.attributes:
             message.add_header(Message.ATTRIBUTES, self.current.attributes)
 

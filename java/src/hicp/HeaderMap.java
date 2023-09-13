@@ -34,8 +34,16 @@ public class HeaderMap {
         return put(e, new HICPHeader(e, new HICPHeaderValue(vs) ));
     }
 
+    public HeaderMap putInt(final HeaderEnum e, final int putInt) {
+        return putString(e, Integer.toString(putInt));
+    }
+
     public HICPHeader getHeader(final HeaderEnum e) {
         return _headerMap.get(e);
+    }
+
+    public boolean has(final HeaderEnum e) {
+        return (null != getHeader(e));
     }
 
     public String getString(final HeaderEnum e) {
@@ -51,6 +59,18 @@ public class HeaderMap {
             return false;
         }
         return compareStr.equals(getString(e));
+    }
+
+    public int getInt(final HeaderEnum e, final int defInt) {
+        final String retIntString = getString(e);
+        if (null == retIntString) {
+            return defInt;
+        }
+        try {
+            return Integer.parseInt(retIntString);
+        } catch (NumberFormatException ex) {
+            return defInt;
+        }
     }
 
     public HICPHeader remove(final HeaderEnum e) {

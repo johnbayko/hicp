@@ -52,7 +52,8 @@ public class TextFieldItem
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
 
-        _component = new JTextField();
+        // TODO: If no width specified, use contents for default width.
+        _component = new JTextField(guiTextFieldInfo.width);
         _document = new AttributeTrackDocument();
         _component.setDocument(_document);
 
@@ -204,6 +205,12 @@ public class TextFieldItem
 
             if (!modifyContent.equals(_component.getText())) {
                 setContentInvoked(modifyContent, guiTextFieldInfo.attributes);
+            }
+        }
+        if (guiTextFieldInfo.hasWidth) {
+            if (guiTextFieldInfo.width != _component.getColumns()) {
+                _component.setColumns(guiTextFieldInfo.width);
+                // Resize?
             }
         }
         if (null != guiTextFieldInfo.attributes ) {
