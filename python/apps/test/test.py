@@ -2,9 +2,10 @@ import os
 import random
 
 from datetime import datetime
+from dataclasses import dataclass
 from enum import IntEnum, auto
 
-from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Panel, Window, Label, Button, TextField, Selection, SelectionItem
+from hicp import HICP, newLogger, EventType, TimeHandler, TimeHandlerInfo, Message, Component, Panel, Window, Label, Button, TextField, Selection, SelectionItem
 from hicp import App, AppInfo
 
 class DisconnectHandler:
@@ -252,37 +253,35 @@ class SelectionRandomHandler:
         hicp.fake_event(event)
 
 
+@dataclass
+class AbleVal:
+    component: Component
+    enable: str = Message.ENABLED
+    disable: str = Message.DISABLED
+
 class AbleButtonHandler:
-    def __init__(self, other_button, text_field, selection, enabled_text_id, disabled_text_id):
-        self.__other_button = other_button
-        self.__text_field = text_field
-        self.__selection = selection
+    def __init__(self, able_list: list[AbleVal], enabled_text_id, disabled_text_id):
+        self.__able_vals: list[AbleVal] = able_list
+
         self.__enabled_text_id = enabled_text_id
         self.__disabled_text_id = disabled_text_id
 
         self.__events = Button.ENABLED
 
     def update(self, hicp, event, button):
-        selection_events = Message.ENABLED  # debug
-        if Message.ENABLED == self.__events:
-            self.__events = Message.DISABLED
-#            selection_events = Message.DISABLED  # debug
-            selection_events = Message.UNSELECT  # debug
-            new_text_id = self.__enabled_text_id
-        else:
-            self.__events = Message.ENABLED
-            new_text_id = self.__disabled_text_id
+        is_enabling = (Message.DISABLED == self.__events)
 
-        self.__other_button.set_events(self.__events)
-        self.__other_button.update()
+        self.__events = Message.ENABLED if is_enabling else Message.DISABLED
 
-        self.__text_field.set_events(self.__events)
-        self.__text_field.update()
+        for able_val in self.__able_vals:
+            able_val.component.set_events(
+                able_val.enable if is_enabling else able_val.disable
+            )
+            able_val.component.update()
 
-        self.__selection.set_events(selection_events)  # debug
-        self.__selection.update()
-
-        button.set_text_id(new_text_id)
+        button.set_text_id(
+            self.__disabled_text_id if is_enabling else self.__enabled_text_id
+        )
         button.update()
 
 
@@ -586,7 +585,53 @@ class TestApp(App):
         able_button.set_handler(
             EventType.CLICK,
             AbleButtonHandler(
-                button, text_field, selection, TextEnum.ENABLE_BUTTON_ID, TextEnum.DISABLE_BUTTON_ID
+                [
+                    AbleVal(button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+
+                    AbleVal(text_field,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_position_field,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_del_before_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_del_after_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_del_cnt_field,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_add_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(text_add_text_field,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+
+                    AbleVal(selection,
+                        enable=Message.ENABLED,
+                        disable=Message.UNSELECT),
+                    AbleVal(selection_add_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(selection_remove_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(selection_disable_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(selection_enable_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                    AbleVal(selection_random_button,
+                        enable=Message.ENABLED,
+                        disable=Message.DISABLED),
+                ],
+                TextEnum.ENABLE_BUTTON_ID, TextEnum.DISABLE_BUTTON_ID
             )
         )
         window.add(able_button, 0, 1)
