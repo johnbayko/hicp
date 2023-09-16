@@ -254,14 +254,14 @@ class SelectionRandomHandler:
 
 
 @dataclass
-class AbleVal:
+class AbleHandlerComponent:
     component: Component
     enable: str = Message.ENABLED
     disable: str = Message.DISABLED
 
 class AbleButtonHandler:
-    def __init__(self, able_list: list[AbleVal], enabled_text_id, disabled_text_id):
-        self.__able_vals: list[AbleVal] = able_list
+    def __init__(self, able_list: list[AbleHandlerComponent], enabled_text_id, disabled_text_id):
+        self.__able_vals: list[AbleHandlerComponent] = able_list
 
         self.__enabled_text_id = enabled_text_id
         self.__disabled_text_id = disabled_text_id
@@ -586,48 +586,48 @@ class TestApp(App):
             EventType.CLICK,
             AbleButtonHandler(
                 [
-                    AbleVal(button,
+                    AbleHandlerComponent(button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
 
-                    AbleVal(text_field,
+                    AbleHandlerComponent(text_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_position_field,
+                    AbleHandlerComponent(text_position_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_del_before_button,
+                    AbleHandlerComponent(text_del_before_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_del_after_button,
+                    AbleHandlerComponent(text_del_after_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_del_cnt_field,
+                    AbleHandlerComponent(text_del_cnt_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_add_button,
+                    AbleHandlerComponent(text_add_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(text_add_text_field,
+                    AbleHandlerComponent(text_add_text_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
 
-                    AbleVal(selection,
+                    AbleHandlerComponent(selection,
                         enable=Message.ENABLED,
                         disable=Message.UNSELECT),
-                    AbleVal(selection_add_button,
+                    AbleHandlerComponent(selection_add_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(selection_remove_button,
+                    AbleHandlerComponent(selection_remove_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(selection_disable_button,
+                    AbleHandlerComponent(selection_disable_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(selection_enable_button,
+                    AbleHandlerComponent(selection_enable_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    AbleVal(selection_random_button,
+                    AbleHandlerComponent(selection_random_button,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
                 ],
