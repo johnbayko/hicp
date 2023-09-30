@@ -800,8 +800,8 @@ content: <text>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Specifies the text to be edited by the
-    component, in UTF-8 encoding. The text consists only of printable
+    Specifies the text to be contained by the component, in UTF-8 encoding. Any
+    existing content is replaced. The text consists only of printable
     characters, no control characters such as CR, LF, TAB, ESC, etc.
     Line breaks are specified for "textpanel" components in the
     "attributes" header.
@@ -830,7 +830,7 @@ attributes: <attribute specifiers>
 
   "textfield", "textpanel":
     Specifies display attributes the text to be
-    edited by the component.
+    contained by the component. Any existing attributes are replaced.
 
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for all attributes of a "textfield" or "textpanel" component.
@@ -1186,90 +1186,78 @@ parent: [ <integer> | "none" ]
   This field is ignored for windows, all windows implicitly have the GUI
   root as a parent.
 
-change-list: <content/attribute changes>
+content-add: <new content info>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Specifies changes to make to the component's content or attributes. The
-    changes are of the form::
+    Specifies the position and text to be added to that already contained by
+    the component. New content info is specified as::
 
-      <change> ": "
-               <value> "(" [<integer> | <string>] ")" [ "=" <integer> ]
-        [ ","  <value> "(" [<integer> | <string>] ")" [ "=" <integer> ] ]*
-        <end-of-line>
+      <position> ":" <text>
 
-    The value of <change> is either "content" or an attribute (defined
-    for the "attributes" header). The <value> is either "add", "del" or
-    "del-prior" for "content",  "on" or "off" for binary attributes, or
-    the attribute value for multivalue attributes.
-    
-    Within the "(" and ")" characters the integer indicates the number
-    of characters affected.  The one exception is the "add" change for
-    "content" which requires a string. If a string is specified where an
-    integer is expected, that change must be discarded. And it's a good
-    idea to discard all following changes, as they may depend on the
-    success of the discarded change.
+    <position> is an integer from 0 to the length of the existing text,
+    indicating where <text> is to be inserted. Any position outside the valid
+    range above may be be ignored, and no text will be added.
 
-    For content changes, "add" specifies a string and "del" and
-    "del-prior" specify a character count. The "add" value inserts the
-    specified text at that positon, "del" deletes the number of
-    characters starting at that position, and "del-prior" deletes the
-    number of characters prior to the given position (normally used
-    when the position is not given, as described below).
-    
-    The "add" string is terminated by the ")" character, with internal
-    occurrences escaped using the same method for "boundary=" terminated
-    data. The string does not begin or end with special characters (to
-    add "there" to the content text "Hi ." the change would be specified
-    "add(there)=3").
+    If the new text would exceed the comp[onent's capacity, then text must be
+    deleted to make room based on the value of <position>::
 
-    The final integer is the index of the character (starting at 0)
-    which the change is applied to. If it is omitted, changes occur at
-    the component cursor position (sometimes called the caret). If the position
-    is beyond the beginning or end of the content, the position is taken to be
-    the beginning or end. If the
-    character count is 0, then attribute changes are applied to the next
-    text inserted (for example "bold: on(0)" would affect the next
-    character typed, or the text added by
-    "content: add(Hi)"). Once text has been inserted with that
-    attribute, text changes follow the normal rules.
+      0: Delete characters at the end of the text.
 
-    The changes are interpreted sequentially, so text can be added, then
-    modified. As an example::
+      Any other value: Delete characters at the start of the text. This may
+      include the text being added. For example, if the text starting with "The
+      experience ..."" has space for 2 new characters, and the text "amazing"
+      is added to position 3, then the new text will start with "ing experience
+      ..."".
 
-      content: add(there)=3
-      bold: on(5)=3
-      content: del(1)=8, add(!)=8
+    When text is added or deleted from the content, the corresponding attribute
+    segments are incremented or decremented. If the segment length reaches 0,
+    then it is removed, and if the value for the segments on either side are
+    the same (always the case for binary attributes), then they are merged.
 
-    Would first change "Hi ." to "Hi there.", make "there" bold, then
-    change the content to "Hi there!".
+    The user agent can decide what to do when inserting text at the beginning
+    of an attribute segment, but users will generally expect the previous
+    segment to extended. For example, if the content is "I said n!", with the
+    "n" italicized, then adding an "o" immediately after the "n" (producing the
+    text "I said no!") should expand the italic segment so that the entire word
+    "no" is italicized.
 
-    When text is added or deleted from the content, the corresponding
-    attribute segments are incremented or decremented. If the segment
-    length reaches 0, then it is removed, and if the value for the
-    segments on either side are the same (always the case for binary
-    attributes), then they are merged.
-    
-    The user agent can decide what to do when inserting text at the
-    beginning of an attribute segment, but users will generally expect
-    the previous segment to extended. For example, if the content is "I
-    said n!", with the "n" italicized, then adding an "o" immediately
-    after the "n" (producing the text "I said no!") should expand the
-    italic segment so that the entire word "no" is italicized.
+    <text> is the same as for the "content" command.
 
-      Q: Should there be a "replace" change?
-
-      A: Maybe, but it would require two parameters and be inconsistent.
-
-change: <single content/attribute change>
+content-del: <delete content info>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Like "change-list", but Specifies a single change for smaller messages. The
-    change is the same format as for "change-list", but on a single line. For
-    example, to add the letter "a" at the current cursor position:
+    Specifies the position and length of characters to be deleted from the
+    existing text. Delete content info is specified as:
 
-    change: content: add(a)
+      <position> ":" <length>
+
+    <position> is an integer from 0 to length-1 of the existing text
+    <length> is any positive integer (1 or larger). Up to <length> characters
+    are deleted following <position>, until the end of the existing text is
+    reached.
+
+    Any position or length outside the valid range above may be be ignored, and
+    no text will be deleted.
+
+attribute-change: <attribute specifier>
+  Big caution - same as for "attributes" command.
+
+  If specified, this is used by these components:
+
+  "textfield", "textpanel":
+    Specifies a single display attribute of the text to be changed. The
+    attribute specifier is similar to the "attributes" command, except that
+    there is a position value at the start::
+
+      <attribute> ":" <position> ":" <attribute ranges>
+
+    The position indicates the first position the attribute changes apply to.
+    Attributes for any characters not included in the attribute range are
+    unchanged (this differs from the interpretation for the "attribute"
+    command). Attributes past the end of the content are discarded (and
+    internal counts adjusted to exactly reach the content end).
 
 "gui" optional headers
 ''''''''''''''''''''''
