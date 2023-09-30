@@ -1200,7 +1200,7 @@ content-add: <new content info>
     range above may be be ignored, and no text will be added.
 
     If the new text would exceed the comp[onent's capacity, then text must be
-    deleted to make room based on the value of <position>::
+    deleted to make room based on the value of <position>:
 
       0: Delete characters at the end of the text.
 
