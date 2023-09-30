@@ -1202,14 +1202,14 @@ content-add: <new content info>
     If the new text would exceed the comp[onent's capacity, then text must be
     deleted to make room based on the value of <position>.
 
-      0:
-        Delete characters at the end of the text.
+    0:
+      Delete characters at the end of the text.
 
-      Any other value:
-        Delete characters at the start of the text. This may include the text
-        being added. For example, if the text starting with "The experience
-        ..."" has space for 2 new characters, and the text "amazing" is added
-        to position 3, then the new text will start with "ing experience ..."".
+    Any other value:
+      Delete characters at the start of the text. This may include the text
+      being added. For example, if the text starting with "The experience ...""
+      has space for 2 new characters, and the text "amazing" is added to
+      position 3, then the new text will start with "ing experience ..."".
 
     When text is added or deleted from the content, the corresponding attribute
     segments are incremented or decremented. If the segment length reaches 0,
