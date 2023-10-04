@@ -40,7 +40,10 @@ keep track of which items have been changed so they can be sent in
         self.sent = self.HeaderValues()
 
         self.component_id = None
-        self.added_to_hicp = None
+        self.hicp = None
+
+    def is_added(self):
+        return self.hicp is not None
 
     def set_handler(self, event_type, handler):
         # Maybe in the future, this will be a map, but for now handlers are
@@ -67,11 +70,12 @@ keep track of which items have been changed so they can be sent in
         self.sent.set_from(self.current)
 
     def update(self):
-        if self.added_to_hicp is None:
+#        if self.hicp is None:
+        if not self.is_added():
             # No hicp to handle update call.
             return
 
-        self.added_to_hicp.update(self)
+        self.hicp.update(self)
 
 class ContainedComponent(Component):
     """Contained within a container, needs to keep track of parent and
@@ -437,6 +441,20 @@ class TextField(ContainedComponent):
             self.current.attribute_map.clear()
             self.current.attributes = ""
 
+    def add_content(self, position: int, content: str):
+        # If user editable, don't bother.
+        # Add to content.
+        # Modify each attribute by extending at position by length of content.
+        ...
+
+    def del_content(self, position: int, length: int):
+        # If user editable, don't bother.
+        # Delete from content from position forward if length is positive,
+        # backward if negative.
+        # Modify each attribute by shortening at position by length (forward or
+        # backward).
+        ...
+
     def get_content(self):
         return self.current.content
 
@@ -461,6 +479,7 @@ class TextField(ContainedComponent):
         value=None
     ):
         # TODO: support MODIFY attributes
+        # If component has been added, only allow if not editable.
 
         # Attribute and value (if specified) must be strings.
         attribute = str(attribute)
@@ -1126,11 +1145,12 @@ class Container(ContainedComponent):
         self.__component_list.append(component)
 
     def add_to_hicp(self, component):
-        if self.added_to_hicp is None:
+#        if self.hicp is None:
+        if not self.is_added():
             return
-        self.added_to_hicp.add(component)
+        self.hicp.add(component)
         # If that's a Container, add its components too (it wouldn't have
-        # self.added_to_hicp set, so would have skipped the above step).
+        # self.hicp set, so would have skipped the above step).
         if isinstance(component, Container):
             component.add_component_list_to_hicp()
 

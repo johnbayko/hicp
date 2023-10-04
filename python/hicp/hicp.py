@@ -1221,19 +1221,20 @@ class HICP(multiprocessing.Process):
         return gui_id
 
     def add(self, component):
-        """Make a message to add the component."""
+        """Make a message to add the component, and send it to the write thread."""
 
-        if component.added_to_hicp is not None:
+#        if component.added_to_hicp is not None:
+        if component.is_added():
             # Already added. Maybe update instead.
             self.logger.debug("Alread added component") # debug
-            if self == component.added_to_hicp:
+            if self == component.hicp:
                 # Component was added to this HICP object, it can be
                 # updated.
                 self.logger.debug("about to update instead") # debug
                 self.update(component)
             return
 
-        component.added_to_hicp = self
+        component.hicp = self
         component.component_id = self.get_gui_id()
 
         # Add component to list first - when the other end gets it, it
@@ -1253,13 +1254,14 @@ class HICP(multiprocessing.Process):
     def update(self, component):
         """Normally, the component's update method is called, then it calls this method."""
 
-        if component.added_to_hicp is None:
-            # Not added yet. Only happens if added_to_hicp.update(component) is
+#        if component.added_to_hicp is None:
+        if not component.is_added():
+            # Not added yet. Only happens if hicp.update(component) is
             # called, component.update() can't call this because it has
             # no hicp component to pass that call to.
             self.add(component)
         else:
-            if self != component.added_to_hicp:
+            if self != component.hicp:
                 # Component was added to different HICP object, it
                 # cannot be updated.
                 self.logger.debug("Component has different hicp value.") # debug
@@ -1275,12 +1277,13 @@ class HICP(multiprocessing.Process):
         component.notify_sent()
 
     def remove(self, component):
-        if component.added_to_hicp is None:
+#        if component.added_to_hicp is None:
+        if not component.is_added():
             # Not added yet, so can't remove.
             self.logger.debug("Can't remove component, has not been added.") # debug
             return
 
-        if self != component.added_to_hicp:
+        if self != component.hicp:
             # Component was added to different HICP object, it
             # cannot be updated.
             self.logger.debug("Component has different hicp value.") # debug
