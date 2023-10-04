@@ -32,6 +32,8 @@ class TextFieldHandler:
         self.__next_text_id = next_text_id
 
     def update(self, hicp, event, text_field):
+        print(f"text_field.get_attribute_string() {text_field.get_attribute_string()}")  # debug
+
         new_text = event.message.get_header(Message.CONTENT)
         new_text_len = len(new_text)
         new_text_len_str = str(new_text_len)
@@ -407,13 +409,13 @@ class TestApp(App):
         text_panel.set_text_id(TextEnum.TEXT_LABEL_ID)
 
         text_field = TextField()
-        text_field.set_content("This is text.")
+        text_field.set_content("This _is ^text.")
         # debug - test binary attribute - underline "is"
         # Should be: 5 2 6
-        text_field.set_attribute(TextField.UNDERLINE, 5, 2)
+        text_field.set_attribute(TextField.UNDERLINE, 6, 2)
         # debug - test value attribute - size of "text"
         # Should be: 8 2=4 1
-        text_field.set_attribute(TextField.SIZE, 8, 4, "2")
+        text_field.set_attribute(TextField.SIZE, 10, 4, "2")
         text_panel.add(text_field, 0, 0)
 
         # Text length label
@@ -443,7 +445,10 @@ class TestApp(App):
         text_position_label.set_text_id(TextEnum.LABEL_TEXT_POSITION_ID)
         text_panel.add(text_position_label, 0, 2)
 
+        # Text manipulation only works when text field is disabled, so these
+        # start out disabled.
         text_position_field = TextField()
+        text_position_field.set_events(TextField.DISABLED)
         text_position_field.set_content('0')
         text_position_field.set_handler(
             EventType.CHANGED,
@@ -458,12 +463,14 @@ class TestApp(App):
 
         # Del before
         text_del_before_button = Button()
+        text_del_before_button.set_events(TextField.DISABLED)
         text_del_before_button.set_text_id(TextEnum.TEXT_DEL_BEFORE_ID)
         # TODO: Add handler
         text_panel.add(text_del_before_button, 1, 3)
 
         # Del after
         text_del_after_button = Button()
+        text_del_after_button.set_events(TextField.DISABLED)
         text_del_after_button.set_text_id(TextEnum.TEXT_DEL_AFTER_ID)
         # TODO: Add handler
         text_panel.add(text_del_after_button, 2, 3)
@@ -474,6 +481,7 @@ class TestApp(App):
         text_panel.add(text_length_label, 3, 3)
 
         text_del_cnt_field = TextField()
+        text_del_cnt_field.set_events(TextField.DISABLED)
         text_del_cnt_field.set_content('0')
         text_del_cnt_field.set_width(3)
         text_del_cnt_field.set_handler(
@@ -484,12 +492,14 @@ class TestApp(App):
 
         # Add
         text_add_button = Button()
+        text_add_button.set_events(TextField.DISABLED)
         text_add_button.set_text_id(TextEnum.TEXT_ADD_ID)
         # TODO: Add handler
         text_panel.add(text_add_button, 0, 4)
 
         # Add text
         text_add_text_field = TextField()
+        text_add_text_field.set_events(TextField.DISABLED)
         # Placeholder content to set size
         text_add_text_field.set_content('text to add')
         text_add_text_field.set_handler(
@@ -593,24 +603,26 @@ class TestApp(App):
                     AbleHandlerComponent(text_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
+                    # Text manipulation only works when text field is disabled,
+                    # so these have enable/disable values reversed.
                     AbleHandlerComponent(text_position_field,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
                     AbleHandlerComponent(text_del_before_button,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
                     AbleHandlerComponent(text_del_after_button,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
                     AbleHandlerComponent(text_del_cnt_field,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
                     AbleHandlerComponent(text_add_button,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
                     AbleHandlerComponent(text_add_text_field,
-                        enable=Message.ENABLED,
-                        disable=Message.DISABLED),
+                        enable=Message.DISABLED,
+                        disable=Message.ENABLED),
 
                     AbleHandlerComponent(selection,
                         enable=Message.ENABLED,
