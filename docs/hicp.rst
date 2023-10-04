@@ -819,18 +819,19 @@ content: <text>
   content.
 
 attributes: <attribute specifiers>
-  Big caution - if the component is editable, then the text contents may
-  be different from what is expected, and the attributes will be applied
-  incorrectly. This should only be part of a "modify" message if the
-  complete text contents are also being replaced, or the "events"
-  attribute is "disabled". The user agent is allowed to
-  discard the attribute information otherwise.
-
   If specified, this is used by these components:
 
   "textfield", "textpanel":
     Specifies display attributes the text to be
     contained by the component. Any existing attributes are replaced.
+
+    If the component is editable, then the text contents may be different from
+    what is expected, and there is no way for the application to know what the
+    editing has occurred, so this should only be part of a "modify" message if
+    the complete text contents are also being replaced, or the "events"
+    attribute is "disabled". Algorithms exist for resolving this, but the user
+    agent is allowed to ignore attribute information without content for
+    editable components.
 
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for all attributes of a "textfield" or "textpanel" component.
@@ -1191,7 +1192,11 @@ content-add: <new content info>
 
   "textfield", "textpanel":
     Specifies the position and text to be added to that already contained by
-    the component. New content info is specified as::
+    the component. This has the same limitations regarding editable components
+    as the attributes field in a "modify" message, and can be ignored in that
+    case.
+
+    New content info is specified as::
 
       <position> ":" <text>
 
@@ -1230,7 +1235,11 @@ content-del: <delete content info>
 
   "textfield", "textpanel":
     Specifies the position and length of characters to be deleted from the
-    existing text. Delete content info is specified as::
+    existing text. This has the same limitations regarding editable components
+    as the attributes field in a "modify" message, and can be ignored in that
+    case.
+
+    Delete content info is specified as::
 
       <position> ":" <length>
 
@@ -1248,8 +1257,11 @@ attribute-change: <attribute specifier>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Specifies a single display attribute of the text to be changed. The
-    attribute specifier is similar to the "attributes" command, except that
+    Specifies a single display attribute of the text to be changed. This has
+    the same limitations regarding editable components as the attributes field
+    in a "modify" message, and can be ignored in that case.
+
+    The attribute specifier is similar to the "attributes" command, except that
     there is a position value at the start::
 
       <attribute> ":" <position> ":" <attribute ranges>
