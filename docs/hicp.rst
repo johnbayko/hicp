@@ -796,27 +796,90 @@ id: <integer>
 "gui" "add" or "modify" optional headers
 ''''''''''''''''''''''''''''''''''''''''
 
-content: <text>
+content: <content change> ":" <content_info>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Specifies the text to be contained by the component, in UTF-8 encoding. Any
-    existing content is replaced. The text consists only of printable
-    characters, no control characters such as CR, LF, TAB, ESC, etc.
-    Line breaks are specified for "textpanel" components in the
-    "attributes" header.
+    Specifies changes to the text contained by the component.
+    For an "add" command, <content change> can be:
 
-    The user agent must support at lest 32,768 (32K) characters (not
-    bytes) for content of a "textfield" or "textpanel" component.
+      - "set"
 
-  Q: What should I do if there are control characters?
+    For a "modify" command, <content change> can be one of:
 
-  A: If the rules aren't followed, there's no guarantee of anything. You
-  could filter out the invalid characters, truncate the string, or refuse
-  to do anything with them and treate it as an empty string. You must
-  still handle the rest of the headers correctly - that means a text
-  component must still be added, whatever you decide to do with the
-  content.
+      - "set"
+      - "add"
+      - "delete"
+
+    "set":
+      Replace any existing content. <content_info> is::
+
+        <text>
+
+      The text is in UTF-8 encoding, and consists only of printable characters,
+      no control characters such as CR, LF, TAB, ESC, etc.  Line breaks are
+      specified for "textpanel" components in the "attributes" header.
+
+      The user agent must support at lest 32,768 (32K) characters (not bytes)
+      for content of a "textfield" or "textpanel" component.
+
+      Q: What should I do if there are control characters?
+
+      A: If the rules aren't followed, there's no guarantee of anything. You
+      could filter out the invalid characters, truncate the string, or refuse
+      to do anything with them and treate it as an empty string. You must still
+      handle the rest of the headers correctly - that means a text component
+      must still be added, whatever you decide to do with the content.
+
+    "add":
+      Add text to any existing text. <content_info> is::
+
+        <position> ":" <text>
+
+      <position> is an integer from 0 to the length of the existing text,
+      indicating where <text> is to be inserted. Any position outside the valid
+      range above may be be ignored, and no text will be added.
+
+      If the new text would exceed the comp[onent's capacity, then text must be
+      deleted to make room based on the value of <position>.
+
+      0:
+        Delete characters at the end of the text.
+
+      Any other value:
+        Delete characters at the start of the text. This may include the text
+        being added. For example, if the text starting with "The experience
+        ..."" has space for 2 new characters, and the text "amazing" is added
+        to position 3, then the new text will start with "ing experience ..."".
+
+
+      When text is added to the content, the corresponding attribute segment is
+      incremented. The user agent can decide what to do when inserting text at
+      the beginning of an attribute segment, but users will generally expect
+      the previous segment to extended. For example, if the content is "I said
+      n!", with the "n" italicized, then adding an "o" immediately after the
+      "n" (producing the text "I said no!") should expand the italic segment so
+      that the entire word "no" is italicized.
+
+      <text> is the same as for "set".
+
+    "delete":
+      Delete text from any existing text. <content_info> is::
+
+        <position> ":" <length>
+
+      <position> is an integer from 0 to length-1 of the existing text <length>
+      is any positive integer (1 or larger). Up to <length> characters are
+      deleted following <position>, until the end of the existing text is
+      reached.
+
+      When text is deleted from the content, the corresponding attribute
+      segment is decremented. If the segment length reaches 0, then it is
+      removed, and if the value for the segments on either side are the same
+      (always the case for binary attributes), then they are merged.
+
+      Any position or length outside the valid range above may be be ignored,
+      and no text will be deleted.
 
 attributes: <attribute specifiers>
   If specified, this is used by these components:
@@ -1187,18 +1250,20 @@ parent: [ <integer> | "none" ]
   This field is ignored for windows, all windows implicitly have the GUI
   root as a parent.
 
-content-add: <new content info>
+content-change: <content info>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
     Specifies the position and text to be added to that already contained by
-    the component. This has the same limitations regarding editable components
-    as the attributes field in a "modify" message, and can be ignored in that
-    case.
+    the component.
+
+    This has the same limitations regarding editable components as the
+    attributes field in a "modify" message, and can be ignored in that case.
+    This is ignored if there is also a content field.
 
     New content info is specified as::
 
-      <position> ":" <text>
+      "add" ":" <position> ":" <text>
 
     <position> is an integer from 0 to the length of the existing text,
     indicating where <text> is to be inserted. Any position outside the valid
@@ -1230,18 +1295,9 @@ content-add: <new content info>
 
     <text> is the same as for the "content" command.
 
-content-del: <delete content info>
-  If specified, this is used by these components:
-
-  "textfield", "textpanel":
-    Specifies the position and length of characters to be deleted from the
-    existing text. This has the same limitations regarding editable components
-    as the attributes field in a "modify" message, and can be ignored in that
-    case.
-
     Delete content info is specified as::
 
-      <position> ":" <length>
+      "delete" ":" <position> ":" <length>
 
     <position> is an integer from 0 to length-1 of the existing text
     <length> is any positive integer (1 or larger). Up to <length> characters
