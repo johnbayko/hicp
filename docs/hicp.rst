@@ -816,9 +816,10 @@ content: <content change> ":" <content_info>
 
         <text>
 
-      The text is in UTF-8 encoding, and consists only of printable characters,
-      no control characters such as CR, LF, TAB, ESC, etc.  Line breaks are
-      specified for "textpanel" components in the "attributes" header.
+      The <text> is in UTF-8 encoding, and consists only of printable
+      characters, no control characters such as CR, LF, TAB, ESC, etc.  Line
+      breaks are specified for "textpanel" components in the "attributes"
+      header.
 
       The user agent must support at lest 32,768 (32K) characters (not bytes)
       for content of a "textfield" or "textpanel" component.
@@ -852,7 +853,6 @@ content: <content change> ":" <content_info>
         ..."" has space for 2 new characters, and the text "amazing" is added
         to position 3, then the new text will start with "ing experience ..."".
 
-
       When text is added to the content, the corresponding attribute segment is
       incremented. The user agent can decide what to do when inserting text at
       the beginning of an attribute segment, but users will generally expect
@@ -868,9 +868,9 @@ content: <content change> ":" <content_info>
 
         <position> ":" <length>
 
-      <position> is an integer from 0 to length-1 of the existing text <length>
-      is any positive integer (1 or larger). Up to <length> characters are
-      deleted following <position>, until the end of the existing text is
+      <position> is an integer from 0 to length-1 of the existing text.
+      <length> is any positive integer (1 or larger). Up to <length> characters
+      are deleted following <position>, until the end of the existing text is
       reached.
 
       When text is deleted from the content, the corresponding attribute
@@ -885,16 +885,16 @@ attributes: <attribute specifiers>
   If specified, this is used by these components:
 
   "textfield", "textpanel":
-    Specifies display attributes the text to be
-    contained by the component. Any existing attributes are replaced.
+    Specifies display attributes for the text contained by the component.
+    Existing attributes (specifically the user agent defaults when the content
+    is first set) not covered by the new attributes are unchanged.
 
     If the component is editable, then the text contents may be different from
-    what is expected, and there is no way for the application to know what the
-    editing has occurred, so this should only be part of a "modify" message if
-    the complete text contents are also being replaced, or the "events"
-    attribute is "disabled". Algorithms exist for resolving this, but the user
-    agent is allowed to ignore attribute information without content for
-    editable components.
+    what is expected, so this should only be part of a "modify" message with a
+    content "set" header, or the "events" attribute is "disabled". The user
+    agent can ignore an attribute header when the content is not included, or
+    the content may have changed by the user. If there is a content "add" or
+    "delete" header, the content change is applied before the attributes.
 
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for all attributes of a "textfield" or "textpanel" component.
@@ -919,61 +919,53 @@ attributes: <attribute specifiers>
 
       attributes:: boundary=
       --
-      underline: ...attribute ranges...
-      font: ...attribute ranges...
+      underline: 0: ...attribute ranges...
+      font: 19: ...attribute ranges...
       --
 
     Attributes can be binary (on/off) or multivalued. Binary attributes
     are specified in this form::
 
-      <attribute> ": " [ <integer> [ "," <integer> ]* ]
+      <attribute> ":" <position> ":" [ <integer> [ "," <integer> ]* ]
 
-    Where the integers are counts of number of characters affected -
-    first off (more common), then on, alternating to the end.
-    Spaces are ignored. For example, in the string "It's not that far.",
-    to indicate the word "that" (9th character) is underlined, the
-    attribute would be specified as::
+    Where <position> is the first character affected, the integers are number
+    of characters affected by each change - first on, then off, alternating to
+    the last change or the end of the text.  Spaces are ignored.  For example,
+    in the string "It's not that far.", to indicate the word "that" (9th
+    character) is underlined, the attribute would be specified as::
 
-      underline: 9, 4, 5
+      underline: 9: 4
 
-    To underline the letter "I", the initial off count would be 0::
+    To set attributes for the whole string ::
 
-      underline: 0, 1, 8, 4, 5
+      underline: 0: 0, 9, 4, 5
+
+    To underline the letter "I" as well as "that"::
+
+      underline: 0: 1, 8, 4, 5
 
     Multivalued attributes are specified in this form::
 
-      <attribute> ": " [ [<value> "="] <integer> [ "," <value> "=" <integer> ]* ]
+      <attribute> ":" <position> ":" <value> "=" <integer> [ "," <value> "=" <integer> ]*
 
-    Where <value> is a string which depends on the particular attribute.
-    For example, in the string "Press enter to continue.", to indicate
-    that the font should be sans-serif except for "enter" which should be
-    fixed width serif, the font would be specified as::
+    Where <position> is the first character affected, <value> is the name of
+    the particular attribute.  For example, in the string "Press enter to
+    continue.", to indicate that "enter" should be fixed width serif, the
+    change would be specified as::
 
-      font: sans-serif=6, serif-fixed=5, sans-serif=13
+      font: 6: serif-fixed=5
 
-    The user agent default value can be specified by using an empty
-    string for the "value", which just leaves the equal sign. For
-    example::
+    To specify the font style for the whole string as sans-serif except for
+    "enter", the font would be specified as::
 
-      font: =6, serif-fixed=5, =13
+      font: 0: sans-serif=6, serif-fixed=5, sans-serif=13
 
-    This looks funny, so the default value can also be specified by
-    omitting both the value and "=". For example::
+    Attributes past the last specified interval are not changed. An attribute
+    interval that extends past the end of the content is truncated at the end
+    of the content, any intervals that start past the end are ignored.
 
-      font: 6, serif-fixed=5, 13
-
-    This might not end up being visible to the user because the user agent
-    may use serif-fixed as a default. Actual values should always be
-    supplied.
-
-    If there are more content characters than covered by the sum of the
-    attribute counts, the last characters can be treated as either a
-    continuation of the last value, or a toggle to the new value, because
-    there's no way to tell for sure what's wanted in that case. In practice,
-    this means all characters should be included or you can't tell what the
-    result will be. If there are fewer content characters than attribute
-    counts, attributes past the end of the content are discarded (and internal
-    counts adjusted to exactly reach the content end).
+    Default values are up to the user agent, so all attributes should be
+    specified to ensure actual attributes match what the app expects.
 
     An attribute may have any UTF-8 encoded name. Attributes include
     those defined here, but may also include any valid string that is
@@ -996,7 +988,7 @@ attributes: <attribute specifiers>
       the content, so don't count on it. 
       Wait for a "changed" event and set the attributes then.
 
-    The application should send all attributes which it supports, even
+    The application may send all attributes which it supports, even
     if none of them are applied to the content, in order to allow the
     user agent to identify which attributes the application will accept,
     and provide mechanisms for changing those which are supported
@@ -1155,7 +1147,7 @@ items: <item list>
 
     Items are specified in this form::
 
-      <integer> ": " <id type> "=" <value> [ "," <id type> "=" <value> ]*
+      <integer> ":" <id type> "=" <value> [ "," <id type> "=" <value> ]*
 
     The first integer is the item id, which is included in the event message.
 
@@ -1249,84 +1241,6 @@ parent: [ <integer> | "none" ]
 
   This field is ignored for windows, all windows implicitly have the GUI
   root as a parent.
-
-content-change: <content info>
-  If specified, this is used by these components:
-
-  "textfield", "textpanel":
-    Specifies the position and text to be added to that already contained by
-    the component.
-
-    This has the same limitations regarding editable components as the
-    attributes field in a "modify" message, and can be ignored in that case.
-    This is ignored if there is also a content field.
-
-    New content info is specified as::
-
-      "add" ":" <position> ":" <text>
-
-    <position> is an integer from 0 to the length of the existing text,
-    indicating where <text> is to be inserted. Any position outside the valid
-    range above may be be ignored, and no text will be added.
-
-    If the new text would exceed the comp[onent's capacity, then text must be
-    deleted to make room based on the value of <position>.
-
-    0:
-      Delete characters at the end of the text.
-
-    Any other value:
-      Delete characters at the start of the text. This may include the text
-      being added. For example, if the text starting with "The experience ...""
-      has space for 2 new characters, and the text "amazing" is added to
-      position 3, then the new text will start with "ing experience ..."".
-
-    When text is added or deleted from the content, the corresponding attribute
-    segments are incremented or decremented. If the segment length reaches 0,
-    then it is removed, and if the value for the segments on either side are
-    the same (always the case for binary attributes), then they are merged.
-
-    The user agent can decide what to do when inserting text at the beginning
-    of an attribute segment, but users will generally expect the previous
-    segment to extended. For example, if the content is "I said n!", with the
-    "n" italicized, then adding an "o" immediately after the "n" (producing the
-    text "I said no!") should expand the italic segment so that the entire word
-    "no" is italicized.
-
-    <text> is the same as for the "content" command.
-
-    Delete content info is specified as::
-
-      "delete" ":" <position> ":" <length>
-
-    <position> is an integer from 0 to length-1 of the existing text
-    <length> is any positive integer (1 or larger). Up to <length> characters
-    are deleted following <position>, until the end of the existing text is
-    reached.
-
-    Any position or length outside the valid range above may be be ignored, and
-    no text will be deleted.
-
-attribute-change: <attribute specifier>
-  Big caution - same as for "attributes" command.
-
-  If specified, this is used by these components:
-
-  "textfield", "textpanel":
-    Specifies a single display attribute of the text to be changed. This has
-    the same limitations regarding editable components as the attributes field
-    in a "modify" message, and can be ignored in that case.
-
-    The attribute specifier is similar to the "attributes" command, except that
-    there is a position value at the start::
-
-      <attribute> ":" <position> ":" <attribute ranges>
-
-    The position indicates the first position the attribute changes apply to.
-    Attributes for any characters not included in the attribute range are
-    unchanged (this differs from the interpretation for the "attribute"
-    command). Attributes past the end of the content are discarded (and
-    internal counts adjusted to exactly reach the content end).
 
 "gui" optional headers
 ''''''''''''''''''''''
