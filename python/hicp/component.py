@@ -43,6 +43,8 @@ keep track of which items have been changed so they can be sent in
         self.hicp = None
 
     def is_added(self):
+        # self.hicp is only set when an "add" command is sent out, so also
+        # indicates that any future message will be "modify".
         return self.hicp is not None
 
     def set_handler(self, event_type, handler):
@@ -348,8 +350,12 @@ class TextFieldAttribute:
         self.value = value
 
 class TextField(ContainedComponent):
+    # CONTENT actions
+    SET = Message.SET
+    ADD = Message.ADD
+    DELETE = Message.DELETE
+
     # ATTRIBUTES attributes
-    # CONTENT - already defined.
     BOLD = Message.BOLD
     FONT = Message.FONT
     ITALIC = Message.ITALIC
@@ -419,6 +425,17 @@ class TextField(ContainedComponent):
             self.attribute_string_map = other.attribute_string_map.copy()
             self.attributes = other.attributes
 
+        # TODO add add_content() and del_content() methods.
+        # If called once, store the change and send as "content: add:" or
+        # "content: del:" actions.  If called more than
+        # once before update(), they replace the existing content.
+        # This has no practical purpose, it's just for testing the add and del
+        # protocol.
+
+        def get_content_value(self):
+            return TextField.SET + ": " + self.content
+            
+
     def __init__(self):
         ContainedComponent.__init__(self)
 
@@ -442,13 +459,11 @@ class TextField(ContainedComponent):
             self.current.attributes = ""
 
     def add_content(self, position: int, content: str):
-        # If user editable, don't bother.
         # Add to content.
         # Modify each attribute by extending at position by length of content.
         ...
 
     def del_content(self, position: int, length: int):
-        # If user editable, don't bother.
         # Delete from content from position forward if length is positive,
         # backward if negative.
         # Modify each attribute by shortening at position by length (forward or
@@ -456,7 +471,7 @@ class TextField(ContainedComponent):
         ...
 
     def get_content(self):
-        return self.current.content
+        return self.current.get_content_value()
 
 #    def content_del_before(self, del_len, del_pos=None):
 #        # If this has not been sent (message will be ADD command), then
@@ -479,7 +494,6 @@ class TextField(ContainedComponent):
         value=None
     ):
         # TODO: support MODIFY attributes
-        # If component has been added, only allow if not editable.
 
         # Attribute and value (if specified) must be strings.
         attribute = str(attribute)
@@ -810,7 +824,7 @@ class TextField(ContainedComponent):
 
     def fill_headers_add(self, message):
         super().fill_headers_add(message)
-        message.add_header(Message.CONTENT, self.current.content)
+        message.add_header(Message.CONTENT, self.current.get_content_value())
         if self.current.width is not None:
             message.add_header(Message.WIDTH, self.current.width)
         if self.current.attributes is not None and self.current.attributes != "":
@@ -818,8 +832,13 @@ class TextField(ContainedComponent):
 
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
-        if self.sent.content != self.current.content:
-            message.add_header(Message.CONTENT, self.current.content)
+
+        sent_content = self.sent.get_content_value()
+        content = self.current.get_content_value()
+
+        if sent_content != content:
+            message.add_header(Message.CONTENT, content)
+
         if self.sent.width != self.current.width:
             message.add_header(Message.WIDTH, self.current.width)
         if self.sent.attributes != self.current.attributes:

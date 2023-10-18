@@ -27,8 +27,6 @@ class Message:
     ATTRIBUTES = "attributes"
     APPLICATION = "application"
     CATEGORY = "category"
-#    CHANGE = "change"
-#    CHANGE_LIST = "change-list"
     CONTENT = "content"
     EVENTS = "events"
     GUI = "gui"
@@ -52,6 +50,11 @@ class Message:
 
 # These should be user visible. Move to Component or TextField (or parent,
 # when TextPanel is added).
+    # CONTENT actions
+    SET = "set"
+    # ADD - already defined
+    DELETE = "delete"
+
     # ATTRIBUTES attributes
     # CONTENT - already defined.
     BOLD = "bold"

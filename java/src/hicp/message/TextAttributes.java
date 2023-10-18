@@ -150,8 +150,7 @@ public class TextAttributes {
         public boolean hasValues = false;
 
         public AttributeTypeInfo(
-            final String attributeTypeStr,
-            final int contentLength
+            final String attributeTypeStr
         )
             throws TextAttributesException
         {
@@ -202,16 +201,6 @@ public class TextAttributes {
                     // messed up, hopefully the user will complain
                     // and it'll get fixed.
                 }
-            }
-            if (!hasValues && !hasRanges()) {
-                // Binary attribute, but none specified. Must have at least
-                // "off" attribute for entire string.
-                // TODO: hasValues will be false even for non-binary, if
-                // hasRanges() is false (none specified, can't tell if binary
-                // or not). Need to encode this based on name at some point.
-                attributeRangeList.add(
-                    new AttributeRange("", contentLength)
-                );
             }
         }
 
@@ -504,7 +493,7 @@ public class TextAttributes {
             font: sans-serif=5, serif-fixed=10, sans-serif=10\r\n
             size: 1=10, 1.1=5, 1=9, 1/2=1\r\n
     */
-    public TextAttributes(final String attributesStr, final int contentLength) {
+    public TextAttributes(final String attributesStr) {
         if (null == attributesStr) {
             // No attributes.
             return;
@@ -519,7 +508,7 @@ public class TextAttributes {
         for (var attributeTypeStr : attributeTypeStrList) {
             try {
                 final var attributeTypeInfo =
-                    new AttributeTypeInfo(attributeTypeStr, contentLength);
+                    new AttributeTypeInfo(attributeTypeStr);
 
                 attributeTypesMap
                     .put(attributeTypeInfo.name, attributeTypeInfo);

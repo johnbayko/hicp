@@ -1,5 +1,6 @@
 package hicp.message.command;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,17 +35,27 @@ public class GUITextFieldInfo {
         }
     }
 
-    public String content = null;
+    public ContentInfo contentInfo = null;
     public int width = 7;  // Arbitrary default
     public boolean hasWidth = false;
     public TextAttributes attributes = null;
     public EventsEnum events = null;
 
+
     public GUITextFieldInfo() {
     }
 
     public GUITextFieldInfo(final HeaderMap headerMap) {
-        content = headerMap.getString(HeaderEnum.CONTENT);
+        {
+            final boolean hasContent = headerMap.has(HeaderEnum.CONTENT);
+            if (hasContent) {
+                try {
+                    contentInfo = new ContentInfo(headerMap);
+                } catch (ParseException pe) {
+                    // Leave it as null, no valid content action.
+                }
+            }
+        }
         {
             final boolean hasWidth = headerMap.has(HeaderEnum.WIDTH);
             if (hasWidth) {
@@ -55,7 +66,7 @@ public class GUITextFieldInfo {
             final String attributesStr =
                 headerMap.getString(HeaderEnum.ATTRIBUTES);
             if (null != attributesStr) {
-                attributes = new TextAttributes(attributesStr, content.length());
+                attributes = new TextAttributes(attributesStr);
             }
         }
         events =
@@ -67,7 +78,9 @@ public class GUITextFieldInfo {
     public GUITextFieldInfo updateHeaderMap(
         final HeaderMap headerMap
     ) {
-        headerMap.putString(HeaderEnum.CONTENT, content);
+        if (null != contentInfo) {
+            contentInfo.updateHeaderMap(headerMap);
+        }
         headerMap.putInt(HeaderEnum.WIDTH, width);
 
         // Warning: It's the caller's responsibility to ensure the attribute

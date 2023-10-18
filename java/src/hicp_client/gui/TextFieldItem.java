@@ -57,10 +57,14 @@ public class TextFieldItem
         _document = new AttributeTrackDocument();
         _component.setDocument(_document);
 
-        setContentInvoked(
-            guiTextFieldInfo.content,
-            guiTextFieldInfo.attributes
-        );
+        // Add can only send set action with full content.
+        {
+            final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
+            setContentInvoked(
+                setInfo.text,
+                guiTextFieldInfo.attributes
+            );
+        }
 
 // Is this needed if there's a focus listener?
         _component.addActionListener(
@@ -200,10 +204,37 @@ public class TextFieldItem
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
 
         // See what's changed.
-        if (null != guiTextFieldInfo.content) {
-            final String modifyContent = guiTextFieldInfo.content;
+        if (null != guiTextFieldInfo.contentInfo) {
+            final String modifyContent;
 
-            if (!modifyContent.equals(_component.getText())) {
+            switch (guiTextFieldInfo.contentInfo.action) {
+              case SET:
+                {
+                    final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
+                    modifyContent = setInfo.text;
+                }
+                break;
+              case ADD:
+                {
+                    modifyContent = _component.getText();
+                    // TODO Apply add. Also update attributes.
+                }
+                break;
+              case DELETE:
+                {
+                    modifyContent = _component.getText();
+                    // TODO Apply delete. Also update attributes.
+                }
+                break;
+              // Could be null, I guess.
+              default:
+                modifyContent = null;
+                break;
+            }
+
+            if ( (null != modifyContent)
+              && !modifyContent.equals(_component.getText())
+            ) {
                 setContentInvoked(modifyContent, guiTextFieldInfo.attributes);
             }
         }

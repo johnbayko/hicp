@@ -24,7 +24,7 @@ public class TextFieldInfo {
             final String attributesStr =
                 headerMap.getString(HeaderEnum.ATTRIBUTES);
             if (null != attributesStr) {
-                attributes = new TextAttributes(attributesStr, content.length());
+                attributes = new TextAttributes(attributesStr);
             }
         }
     }
