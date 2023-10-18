@@ -999,11 +999,6 @@ attributes: <attribute specifiers>
 
     Defined attributes are:
 
-    "content"
-      Reserved, so as not to interfere with content updates specified in
-      the "change-list" header. Any attribute with this name should be
-      received and ignored.
-
     "underline" (binary)
       Text to be displayed with an underline.
 
