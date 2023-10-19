@@ -1,6 +1,6 @@
 package hicp_client.gui;
 
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 
 public class PositionInfo {
     public final int horizontalPosition;
@@ -8,8 +8,7 @@ public class PositionInfo {
     public final int horizontalSize;
     public final int verticalSize;
 
-    public PositionInfo(Message m) {
-        final var commandInfo = m.getCommandInfo();
+    public PositionInfo(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var containedGUIInfo = guiInfo.getContainedGUIInfo();

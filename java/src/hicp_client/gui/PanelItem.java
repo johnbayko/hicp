@@ -12,7 +12,7 @@ import javax.swing.border.TitledBorder;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
 
@@ -30,9 +30,9 @@ public class PanelItem
     protected JPanel _component;
     protected TitledBorder _border;
 
-    public PanelItem(final Message m) {
-        super(m);
-        _positionInfo = new PositionInfo(m);
+    public PanelItem(final CommandInfo commandInfo) {
+        super(commandInfo);
+        _positionInfo = new PositionInfo(commandInfo);
     }
 
     public void setAdapter(TextItemAdapter tia) {
@@ -43,8 +43,7 @@ public class PanelItem
     /**
         GUI thread.
      */
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiPanelInfo = guiInfo.getGUIPanelInfo();
@@ -60,7 +59,7 @@ public class PanelItem
 
             _textItemAdapter.setTextIdInvoked(guiPanelInfo.text);
         }
-        return super.addInvoked(addCmd);
+        return super.addInvoked(commandInfo);
     }
 
     protected Item remove(Item guiItem) {
@@ -170,10 +169,9 @@ public class PanelItem
         }
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        super.modifyInvoked(modifyCmd);
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
+        super.modifyInvoked(commandInfo);
 
-        final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiPanelInfo = guiInfo.getGUIPanelInfo();

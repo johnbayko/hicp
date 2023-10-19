@@ -3,7 +3,7 @@ package hicp_client.gui;
 import java.awt.Component;
 import javax.swing.SwingUtilities;
 
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 
 public abstract class Item {
     public final String idString;
@@ -15,8 +15,7 @@ public abstract class Item {
     /**
         Non-GUI thread.
      */
-    public Item(Message m) {
-        final var commandInfo = m.getCommandInfo();
+    public Item(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
 
@@ -30,7 +29,7 @@ public abstract class Item {
         component = null;
     }
 
-    public final Item add(Message addCmd) {
+    public final Item add(final CommandInfo addCmd) {
         SwingUtilities.invokeLater(
             new RunAdd(addCmd)
         );
@@ -40,9 +39,9 @@ public abstract class Item {
     class RunAdd
         implements Runnable
     {
-        protected final Message _addCmd;
+        protected final CommandInfo _addCmd;
 
-        public RunAdd(Message addCmd) {
+        public RunAdd(final CommandInfo addCmd) {
             _addCmd = addCmd;
         }
 
@@ -54,9 +53,9 @@ public abstract class Item {
     /**
         GUI thread.
      */
-    protected abstract Item addInvoked(Message addCmd);
+    protected abstract Item addInvoked(CommandInfo commandInfo);
 
-    public final Item modify(Message modifyCmd) {
+    public final Item modify(final CommandInfo modifyCmd) {
         SwingUtilities.invokeLater(
             new RunModify(modifyCmd)
         );
@@ -66,9 +65,9 @@ public abstract class Item {
     class RunModify
         implements Runnable
     {
-        protected final Message _modifyCmd;
+        protected final CommandInfo _modifyCmd;
 
-        public RunModify(Message modifyCmd) {
+        public RunModify(final CommandInfo modifyCmd) {
             _modifyCmd = modifyCmd;
         }
 
@@ -80,7 +79,7 @@ public abstract class Item {
     /**
         GUI thread.
      */
-    protected abstract Item modifyInvoked(Message modifyCmd);
+    protected abstract Item modifyInvoked(CommandInfo commandInfo);
 
     /**
         GUI thread.

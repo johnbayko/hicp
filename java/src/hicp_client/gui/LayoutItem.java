@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.TextDirection;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 
 public abstract class LayoutItem
     extends ContainerItem
@@ -38,15 +38,14 @@ public abstract class LayoutItem
 
     protected List<SizeInfo> _itemSizeList = new LinkedList<>();
 
-    protected LayoutItem(final Message m) {
-        super(m);
+    protected LayoutItem(final CommandInfo commandInfo) {
+        super(commandInfo);
     }
 
     /**
         GUI thread.
      */
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();

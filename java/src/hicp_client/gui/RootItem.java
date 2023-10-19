@@ -3,7 +3,7 @@ package hicp_client.gui;
 import java.awt.Component;
 
 import hicp.TextDirection;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 
 public class RootItem
     extends ContainerItem
@@ -17,12 +17,12 @@ public class RootItem
         _secondTextDirection = TextDirection.DOWN;
     }
 
-    protected Item addInvoked(final Message m) {
+    protected Item addInvoked(final CommandInfo commandInfo) {
         return this;
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        super.modifyInvoked(modifyCmd);
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
+        super.modifyInvoked(commandInfo);
         return this;
     }
 }

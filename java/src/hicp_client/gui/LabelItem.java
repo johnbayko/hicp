@@ -8,7 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
 
@@ -24,9 +24,9 @@ public class LabelItem
 
     protected JLabel _component;
 
-    public LabelItem(final Message m) {
-        super(m);
-        _positionInfo = new PositionInfo(m);
+    public LabelItem(final CommandInfo commandInfo) {
+        super(commandInfo);
+        _positionInfo = new PositionInfo(commandInfo);
     }
 
     public void setAdapter(TextItemAdapter tia) {
@@ -37,8 +37,7 @@ public class LabelItem
     /**
         GUI thread.
      */
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiLabelInfo = guiInfo.getGUILabelInfo();
@@ -88,8 +87,7 @@ public class LabelItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        final var commandInfo = modifyCmd.getCommandInfo();
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiLabelInfo = guiInfo.getGUILabelInfo();

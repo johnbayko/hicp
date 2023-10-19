@@ -180,7 +180,7 @@ public class Controller
                             log("Add text missing id");
                             break;
                         }
-                        _textLibrary.update(m);
+                        _textLibrary.update(commandInfo);
                     }
                     break;
                   case GUI:
@@ -204,7 +204,7 @@ public class Controller
                         {
                             final Item guiItem =
                                 ItemSource.newItem(
-                                    m, _textLibrary, _messageExchange
+                                    commandInfo, _textLibrary, _messageExchange
                                 );
 
                             if (null != guiItem) {
@@ -260,7 +260,7 @@ public class Controller
                             log("Modify text missing id");
                             break;
                         }
-                        _textLibrary.update(m);
+                        _textLibrary.update(commandInfo);
                     }
                     break;
                   case GUI:
@@ -278,7 +278,7 @@ public class Controller
                             // No item to modify.
                             break;
                         }
-                        guiItem.modify(m);
+                        guiItem.modify(commandInfo);
                     }
                     break;
                   default:

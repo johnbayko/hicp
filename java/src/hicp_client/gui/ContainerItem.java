@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.TextDirection;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 
 public abstract class ContainerItem
     extends Item
@@ -24,8 +24,8 @@ public abstract class ContainerItem
     /**
         Non-GUI thread.
      */
-    public ContainerItem(final Message m) {
-        super(m);
+    public ContainerItem(final CommandInfo commandInfo) {
+        super(commandInfo);
     }
 
     public ContainerItem() {
@@ -50,8 +50,7 @@ public abstract class ContainerItem
     /**
         GUI thread.
      */
-    protected Item modifyInvoked(final Message modifyCmd) {
-        final var commandInfo = modifyCmd.getCommandInfo();
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();

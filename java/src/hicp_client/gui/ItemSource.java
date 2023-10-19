@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hicp.MessageExchange;
-import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp_client.gui.*;
 import hicp_client.gui.selection.SelectionSource;
 import hicp_client.text.TextItemAdapter;
@@ -16,15 +16,14 @@ public class ItemSource {
         Logger.getLogger( ItemSource.class.getName() );
 
     public static Item newItem(
-        final Message addCmd,
+        final CommandInfo commandInfo,
         final TextLibrary textLibrary,
         final MessageExchange messageExchange
     ) {
-        final var commandInfo = addCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
 
-        // Make sure it's a real integer - not used.
+        // Make sure it's a real integer - integer value not used.
         try {
             Integer.parseInt(itemInfo.id);
         } catch (NumberFormatException ex) {
@@ -40,23 +39,23 @@ public class ItemSource {
             guiItem = null;
         } else switch (guiInfo.component) {
           case BUTTON:
-            guiItem = new ButtonItem(addCmd, messageExchange);
+            guiItem = new ButtonItem(commandInfo, messageExchange);
             break;
           case LABEL:
-            guiItem = new LabelItem(addCmd);
-        break;
+            guiItem = new LabelItem(commandInfo);
+            break;
           case PANEL:
-            guiItem = new PanelItem(addCmd);
+            guiItem = new PanelItem(commandInfo);
             break;
           case SELECTION:
             guiItem =
-                SelectionSource.newItem(addCmd, textLibrary, messageExchange);
+                SelectionSource.newItem(commandInfo, textLibrary, messageExchange);
             break;
           case TEXTFIELD:
-            guiItem = new TextFieldItem(addCmd, messageExchange);
+            guiItem = new TextFieldItem(commandInfo, messageExchange);
             break;
           case WINDOW:
-            guiItem = new WindowItem(addCmd, messageExchange);
+            guiItem = new WindowItem(commandInfo, messageExchange);
             break;
           default:
             // Unrecognized category.
@@ -74,7 +73,7 @@ public class ItemSource {
             ((TextItemAdapterListener)guiItem)
                 .setAdapter(new TextItemAdapter(textLibrary));
         }
-        guiItem.add(addCmd);
+        guiItem.add(commandInfo);
 
         return guiItem;
     }

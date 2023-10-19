@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp.message.command.GUIButtonInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.text.TextItemAdapterListener;
@@ -31,11 +32,11 @@ public class ButtonItem
     protected JButton _component;
 
     public ButtonItem(
-        final Message m,
+        final CommandInfo commandInfo,
         final MessageExchange messageExchange
     ) {
-        super(m);
-        _positionInfo = new PositionInfo(m);
+        super(commandInfo);
+        _positionInfo = new PositionInfo(commandInfo);
 
         _messageExchange = messageExchange;
     }
@@ -45,8 +46,7 @@ public class ButtonItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected Item addInvoked(Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiButtonInfo = guiInfo.getGUIButtonInfo();
@@ -121,8 +121,7 @@ public class ButtonItem
         return this;
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        final var commandInfo = modifyCmd.getCommandInfo();
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiButtonInfo = guiInfo.getGUIButtonInfo();

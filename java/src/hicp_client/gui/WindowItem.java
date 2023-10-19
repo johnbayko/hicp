@@ -21,6 +21,7 @@ import javax.swing.WindowConstants;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.text.TextItemAdapterListener;
 import hicp_client.text.TextItemAdapter;
@@ -41,10 +42,10 @@ public class WindowItem
     protected JPanel _panel;
 
     public WindowItem(
-        final Message m,
+        final CommandInfo commandInfo,
         final MessageExchange messageExchange
     ) {
-        super(m);
+        super(commandInfo);
         _messageExchange = messageExchange;
     }
 
@@ -53,8 +54,7 @@ public class WindowItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiWindowInfo = guiInfo.getGUIWindowInfo();
@@ -126,7 +126,7 @@ public class WindowItem
             _component.setVisible(true);
         }
 
-        return super.addInvoked(addCmd);
+        return super.addInvoked(commandInfo);
     }
 
     protected Item remove(Item guiItem) {
@@ -247,13 +247,12 @@ public class WindowItem
         }
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        final var commandInfo = modifyCmd.getCommandInfo();
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiWindowInfo = guiInfo.getGUIWindowInfo();
 
-        super.modifyInvoked(modifyCmd);
+        super.modifyInvoked(commandInfo);
         // See what's changed.
 
         // New text item?

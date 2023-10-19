@@ -18,6 +18,7 @@ import javax.swing.ListCellRenderer;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.Item;
@@ -123,19 +124,18 @@ public class DropdownItem
     }
 
     public DropdownItem(
-        Message m,
+        CommandInfo commandInfo,
         TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
-        super(m);
-        _positionInfo = new PositionInfo(m);
+        super(commandInfo);
+        _positionInfo = new PositionInfo(commandInfo);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -271,8 +271,7 @@ public class DropdownItem
         return this;
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
-        final var commandInfo = modifyCmd.getCommandInfo();
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();

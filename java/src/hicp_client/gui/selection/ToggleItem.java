@@ -21,6 +21,7 @@ import javax.swing.JToggleButton;
 import hicp.MessageExchange;
 import hicp.TextDirection;
 import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp.message.command.GUISelectionInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.ContainerItem;
@@ -189,12 +190,12 @@ public class ToggleItem
     }
 
     public ToggleItem(
-        Message m,
+        CommandInfo commandInfo,
         TextLibrary textLibrary,
         MessageExchange messageExchange
     ) {
-        super(m);
-        _positionInfo = new PositionInfo(m);
+        super(commandInfo);
+        _positionInfo = new PositionInfo(commandInfo);
 
         _textLibrary = textLibrary;
         _messageExchange = messageExchange;
@@ -308,8 +309,7 @@ public class ToggleItem
         return this;
     }
 
-    protected Item addInvoked(final Message addCmd) {
-        final var commandInfo = addCmd.getCommandInfo();
+    protected Item addInvoked(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -375,9 +375,8 @@ public class ToggleItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final Message modifyCmd) {
+    protected Item modifyInvoked(final CommandInfo commandInfo) {
         // See what's changed.
-        final var commandInfo = modifyCmd.getCommandInfo();
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
