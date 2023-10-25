@@ -435,6 +435,9 @@ class TextField(ContainedComponent):
         def get_content_value(self):
             return TextField.SET + ": " + self.content
             
+        def get_content(self):
+            return self.content
+            
 
     def __init__(self):
         ContainedComponent.__init__(self)
@@ -471,7 +474,7 @@ class TextField(ContainedComponent):
         ...
 
     def get_content(self):
-        return self.current.get_content_value()
+        return self.current.get_content()
 
 #    def content_del_before(self, del_len, del_pos=None):
 #        # If this has not been sent (message will be ADD command), then
