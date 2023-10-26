@@ -40,10 +40,7 @@ public class PanelItem
         _textItemAdapter.setAdapter(this);
     }
 
-    /**
-        GUI thread.
-     */
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiPanelInfo = guiInfo.getGUIPanelInfo();
@@ -57,9 +54,9 @@ public class PanelItem
             _border = javax.swing.BorderFactory.createTitledBorder("");
             _component.setBorder(_border);
 
-            _textItemAdapter.setTextIdInvoked(guiPanelInfo.text);
+            _textItemAdapter.setTextId(guiPanelInfo.text);
         }
-        return super.addInvoked(commandInfo);
+        return super.add(commandInfo);
     }
 
     protected Item remove(Item guiItem) {
@@ -68,30 +65,16 @@ public class PanelItem
         if (guiItem instanceof Positionable) {
             // Run an event to remove guiItem's component from this item's
             // component.
-            SwingUtilities.invokeLater(new RunRemove((Positionable)guiItem));
+            super.removePositionable((Positionable)guiItem);
         }
         return this;
     }
 
-    class RunRemove
-        extends LayoutItem.RunRemove
-    {
-        public RunRemove(Positionable guiItem)
-        {
-            super(guiItem);
-        }
-
-        public void run()
-        {
-            super.run();
-        }
-    }
-
-    protected void removeComponentInvoked(Component component) {
+    protected void removeComponent(Component component) {
         _component.remove(component);
     }
 
-    protected void addComponentInvoked(
+    protected void addComponent(
         Component component, GridBagConstraints gridBagConstraints
     ) {
         _component.add(component, gridBagConstraints);
@@ -113,10 +96,7 @@ public class PanelItem
         return java.awt.GridBagConstraints.BOTH;
     }
 
-    /**
-        Called in GUI thread.
-     */
-    public void setTextInvoked(String text) {
+    public void setText(String text) {
         _border.setTitle(text);
         // Known bug, repaint after changing border text.
         _component.repaint();
@@ -136,7 +116,6 @@ public class PanelItem
 
         // Remove this from its parent.
 //        if (null != _parent) {
-//LOGGER.log(Level.FINE, "PanelItem.dispose() about to _parent.remove()");  // debug
 //            _parent.remove(this);
 //        }
 
@@ -150,27 +129,13 @@ public class PanelItem
         if (guiItem instanceof Positionable) {
             // Run an event to add guiItem's component to this item's
             // component.
-            SwingUtilities.invokeLater(new RunAdd((Positionable)guiItem));
+            super.addPositionable((Positionable)guiItem);
         }
         return this;
     }
 
-    class RunAdd
-        extends LayoutItem.RunAdd
-    {
-        public RunAdd(Positionable guiItem)
-        {
-            super(guiItem);
-        }
-
-        public void run()
-        {
-            super.run();
-        }
-    }
-
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
-        super.modifyInvoked(commandInfo);
+    protected Item modify(final CommandInfo commandInfo) {
+        super.modify(commandInfo);
 
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -180,12 +145,12 @@ public class PanelItem
 
         // New text item?
         if (null != guiPanelInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiPanelInfo.text);
+            _textItemAdapter.setTextId(guiPanelInfo.text);
         }
         return this;
     }
 
-    protected Item applyTextDirectionInvoked() {
+    protected Item applyTextDirection() {
         // Set component orientation for component.
         // Only need horizontal orientation - vertial orientation
         // only applies to text/labels.

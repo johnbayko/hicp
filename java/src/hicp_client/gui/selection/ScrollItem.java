@@ -56,14 +56,12 @@ public class ScrollItem
         // Also need to map by item ID.
         private Map<String, ItemText> _selectionItemMap = new HashMap<>();
 
-        // GUI thread (addInvoked()).
         public SelectionListModel(
             final List<GUISelectionInfo.Item> items
         ) {
             updateItems(items);
         }
 
-        // GUI thread (addInvoked(), modifyInvoked()).
         public void updateItems(final List<GUISelectionInfo.Item> items) {
             // When items change, selection no longer applies so must be
             // cleared.
@@ -104,9 +102,8 @@ public class ScrollItem
             return _selectionItemMap.get(itemId);
         }
 
-        // GUI thread.
         // Inform JList that this item changed.
-        public void itemChangedInvoked(final ItemText si) {
+        public void itemChanged(final ItemText si) {
             final int idx = si.idx;
 
             fireContentsChanged(this, idx, idx);
@@ -374,7 +371,7 @@ public class ScrollItem
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -494,7 +491,7 @@ public class ScrollItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final GUISelectionInfo.EventsEnum events) {
+    protected Item setEvents(final GUISelectionInfo.EventsEnum events) {
         if (events != _listSelectionModel.getEvents()) {
             _listSelectionModel.setEvents(events);
             // Make JList redisplay items as enabled/disabled.
@@ -503,7 +500,7 @@ public class ScrollItem
         return this;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -516,7 +513,7 @@ public class ScrollItem
             _listSelectionModel.updateSelected(guiSelectionInfo.selected);
         }
         if (null != guiSelectionInfo.events) {
-            setEventsInvoked(guiSelectionInfo.events);
+            setEvents(guiSelectionInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

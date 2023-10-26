@@ -32,7 +32,6 @@ import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
 import hicp_client.text.TextLibrary;
 import hicp_client.text.TextListener;
-import hicp_client.text.TextListenerInvoker;
 
 public class ToggleItem
     extends Item
@@ -142,7 +141,7 @@ public class ToggleItem
             {
                 final TextItem textItem = _textLibrary.get(itemInfo.textId);
                 component.setText(textItem.getText());
-                textItem.addTextListener(new TextListenerInvoker(this));
+                textItem.addTextListener(this);
             }
             {
                 final boolean checkIsEnabled = isEnabled();
@@ -201,7 +200,6 @@ public class ToggleItem
         _messageExchange = messageExchange;
     }
 
-    // GUI thread (addInvoked(), modifyInvoked()).
     public ToggleItem updateItems(
         final GUISelectionInfo guiSelectionInfo
     ) {
@@ -276,13 +274,12 @@ public class ToggleItem
                 c.gridx++;
             }
         }
-        _component.revalidate();  // debug
-        _component.repaint();  // debug
+        _component.revalidate();
+        _component.repaint();
 
         return this;
     }
 
-    // GUI thread (modifyInvoked()).
     public ToggleItem updateSelected(
         final List<String> selected
     ) {
@@ -299,7 +296,6 @@ public class ToggleItem
         return this;
     }
 
-    // GUI thread (addInvoked(), modifyInvoked()).
     protected Item updateEvents(final GUISelectionInfo.EventsEnum events) {
         _selectionEvents = events;
 
@@ -309,7 +305,7 @@ public class ToggleItem
         return this;
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -375,7 +371,7 @@ public class ToggleItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         // See what's changed.
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();

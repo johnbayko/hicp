@@ -21,7 +21,7 @@ public class TextItemAdapter
         return this;
     }
 
-    public TextItemAdapter setTextIdInvoked(String textId) {
+    public TextItemAdapter setTextId(String textId) {
         if (null != _textItem) {
             _textItem.removeTextListener(this);
         }
@@ -29,7 +29,7 @@ public class TextItemAdapter
 
         if (null != _textItem) {
             _textItem.addTextListener(this);
-            _listener.setTextInvoked(_textItem.getText());
+            _listener.setText(_textItem.getText());
         }
         return this;
     }
@@ -44,19 +44,12 @@ public class TextItemAdapter
         return this;
     }
 
-
-    private Runnable _textInvoker = new Runnable() {
-        public void run() {
-            _listener.setTextInvoked(_textItem.getText());
-        }
-    };
-
     public void textChanged(TextEvent e) {
         TextItem ti = (TextItem)e.getSource();
         if (ti != _textItem) {
             // No idea how this could happen. Ignore it.
             return;
         }
-        SwingUtilities.invokeLater(_textInvoker);
+        _listener.setText(_textItem.getText());
     }
 }

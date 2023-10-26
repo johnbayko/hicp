@@ -47,7 +47,7 @@ public class TextFieldItem
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
@@ -60,7 +60,7 @@ public class TextFieldItem
         // Add can only send set action with full content.
         {
             final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
-            setContentInvoked(
+            setContent(
                 setInfo.text,
                 guiTextFieldInfo.attributes
             );
@@ -86,7 +86,7 @@ public class TextFieldItem
             }
         );
 
-        setEventsInvoked(guiTextFieldInfo.events);
+        setEvents(guiTextFieldInfo.events);
         return this;
     }
 
@@ -146,12 +146,9 @@ public class TextFieldItem
         return java.awt.GridBagConstraints.HORIZONTAL;
     }
 
-    /**
-        Called in GUI thread.
-     */
     final static Pattern nonPrintablePattern = Pattern.compile("\\p{Cntrl}");
 
-    protected void setContentInvoked(
+    protected void setContent(
         String content,
         final TextAttributes textAttributes
     ) {
@@ -185,7 +182,7 @@ public class TextFieldItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final GUITextFieldInfo.EventsEnum events) {
+    protected Item setEvents(final GUITextFieldInfo.EventsEnum events) {
         final boolean enabled =
             (null != events)
                 ? (events == GUITextFieldInfo.EventsEnum.ENABLED)
@@ -197,7 +194,7 @@ public class TextFieldItem
         return this;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
@@ -234,7 +231,7 @@ public class TextFieldItem
             if ( (null != modifyContent)
               && !modifyContent.equals(_component.getText())
             ) {
-                setContentInvoked(modifyContent, guiTextFieldInfo.attributes);
+                setContent(modifyContent, guiTextFieldInfo.attributes);
             }
         }
         if (guiTextFieldInfo.hasWidth) {
@@ -250,7 +247,7 @@ public class TextFieldItem
                 guiTextFieldInfo.attributes.toString();
         }
         if (null != guiTextFieldInfo.events) {
-            setEventsInvoked(guiTextFieldInfo.events);
+            setEvents(guiTextFieldInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

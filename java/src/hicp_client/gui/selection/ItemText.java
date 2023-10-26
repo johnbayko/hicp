@@ -5,14 +5,13 @@ import hicp_client.text.TextEvent;
 import hicp_client.text.TextItem;
 import hicp_client.text.TextLibrary;
 import hicp_client.text.TextListener;
-import hicp_client.text.TextListenerInvoker;
 
 public class ItemText
     implements TextListener
 {
     static interface ChangeListener {
         // GUI thread.
-        public void itemChangedInvoked(ItemText itemText);
+        public void itemChanged(ItemText itemText);
     }
 
     // Model and index in model are needed for fireContentsChanged().
@@ -40,9 +39,8 @@ public class ItemText
             final TextItem textItem = textLibrary.get(itemInfo.textId);
             text = textItem.getText();
 
-            // Adds this as a listener to the text item, but through
-            // SwingUtilities.invokeLater().
-            textItem.addTextListener(new TextListenerInvoker(this));
+            // Adds this as a listener to the text item.
+            textItem.addTextListener(this);
         }
         enabled = (itemInfo.events != GUISelectionInfo.EventsEnum.DISABLED);
     }
@@ -61,7 +59,7 @@ public class ItemText
         text = ti.getText();
 
         if (null != changeListener) {
-            changeListener.itemChangedInvoked(this);
+            changeListener.itemChanged(this);
         }
     }
 }

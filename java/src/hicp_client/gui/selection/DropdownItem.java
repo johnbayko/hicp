@@ -82,14 +82,12 @@ public class DropdownItem
         // Also need to map by item ID.
         private Map<String, ItemText> _selectionItemMap = new HashMap<>();
 
-        // GUI thread (addInvoked()).
         public DropdownModel(
             final List<GUISelectionInfo.Item> items
         ) {
             updateItems(items);
         }
 
-        // GUI thread (addInvoked(), modifyInvoked()).
         public void updateItems(final List<GUISelectionInfo.Item> items) {
             removeAllElements();
             _selectionItemMap = new HashMap<>();
@@ -135,7 +133,7 @@ public class DropdownItem
         _messageExchange = messageExchange;
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -172,7 +170,7 @@ public class DropdownItem
 
         // Update selection, or send changed event for default selection.
         if (null != guiSelectionInfo.selected) {
-            updateSelectedInvoked(guiSelectionInfo.selected);
+            updateSelected(guiSelectionInfo.selected);
         } else {
             // Nothing specified, inform app what the default selection is.
             final ItemText i = (ItemText)_component.getSelectedItem();
@@ -192,8 +190,7 @@ public class DropdownItem
         return this;
     }
 
-    // GUI Thread (addInvoked(), modifyInvoked())
-    protected Item updateSelectedInvoked(
+    protected Item updateSelected(
         final List<String> selected
     ) {
         if ((null == selected) || (0 == selected.size())) {
@@ -261,7 +258,7 @@ public class DropdownItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final GUISelectionInfo.EventsEnum events) {
+    protected Item setEvents(final GUISelectionInfo.EventsEnum events) {
         final boolean isEnabled =
             (GUISelectionInfo.EventsEnum.ENABLED == events);
         if (isEnabled != _component.isEnabled()) {
@@ -271,7 +268,7 @@ public class DropdownItem
         return this;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiSelectionInfo = guiInfo.getGUISelectionInfo();
@@ -281,10 +278,10 @@ public class DropdownItem
             _dropdownModel.updateItems(guiSelectionInfo.items);
         }
         if (null != guiSelectionInfo.selected) {
-            updateSelectedInvoked(guiSelectionInfo.selected);
+            updateSelected(guiSelectionInfo.selected);
         }
         if (null != guiSelectionInfo.events) {
-            setEventsInvoked(guiSelectionInfo.events);
+            setEvents(guiSelectionInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

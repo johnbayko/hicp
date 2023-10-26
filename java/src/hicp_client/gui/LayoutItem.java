@@ -26,26 +26,13 @@ public abstract class LayoutItem
             [POSITION_LIMIT]
             [POSITION_LIMIT];
 
-    // This has no parameters, so can keep single instance and use that
-    // as many times as needed.
-    protected final Runnable _runApplyTextDirection =
-        new Runnable() {
-            public void run()
-            {
-                applyTextDirectionInvoked();
-            }
-        };
-
     protected List<SizeInfo> _itemSizeList = new LinkedList<>();
 
     protected LayoutItem(final CommandInfo commandInfo) {
         super(commandInfo);
     }
 
-    /**
-        GUI thread.
-     */
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();
@@ -54,94 +41,69 @@ public abstract class LayoutItem
         if ( (null != layoutGUIInfo.textDirection.first)
           || (null != layoutGUIInfo.textDirection.second)
         ) {
-            setTextDirectionInvoked(
+            setTextDirection(
                 layoutGUIInfo.textDirection.first,
                 layoutGUIInfo.textDirection.second
             );
         } else {
             // Default text direction.
-            applyTextDirectionInvoked();
+            applyTextDirection();
         }
         return this;
     }
 
-    class RunAdd
-        implements Runnable
-    {
-        protected final Positionable _guiItem;
-        protected boolean _addSuccessful = false;
+    protected void addPositionable(final Positionable guiItem) {
+        final PositionInfo positionInfo = guiItem.getPositionInfo();
 
-        public RunAdd(Positionable guiItem)
+        if ( (POSITION_LIMIT <= positionInfo.horizontalPosition)
+          || (POSITION_LIMIT <= positionInfo.verticalPosition)
+          || (0 > positionInfo.horizontalPosition)
+          || (0 > positionInfo.verticalPosition) )
         {
-            _guiItem = guiItem;
+            // Exceeds max horizontal or vertical.
+            return;
         }
 
-        public void run()
-        {
-            final PositionInfo positionInfo = _guiItem.getPositionInfo();
+        // Add to item size list.
+        final SizeInfo sizeInfo = new SizeInfo(guiItem);
 
-            if ( (POSITION_LIMIT <= positionInfo.horizontalPosition)
-              || (POSITION_LIMIT <= positionInfo.verticalPosition)
-              || (0 > positionInfo.horizontalPosition)
-              || (0 > positionInfo.verticalPosition) )
-            {
-                // Exceeds max horizontal or vertical.
-                return;
-            }
+        // Add to position grid.
+        _positionGrid
+            [positionInfo.horizontalPosition]
+            [positionInfo.verticalPosition] = sizeInfo;
 
-            // Add to item size list.
-            final SizeInfo sizeInfo = new SizeInfo(_guiItem);
+        _itemSizeList.add(sizeInfo);
 
-            // Add to position grid.
-            _positionGrid
-                [positionInfo.horizontalPosition]
-                [positionInfo.verticalPosition] = sizeInfo;
-
-            _itemSizeList.add(sizeInfo);
-
-            // Adjust all sizes. This will perform actual component add.
-            adjustSizesInvoked();
-        }
+        // Adjust all sizes. This will perform actual component add.
+        adjustSizes();
     }
 
-    class RunRemove
-        implements Runnable
-    {
-        protected final Positionable _guiItem;
+    protected void removePositionable(final Positionable guiItem) {
+        // Remove guiItem's component from this item's component.
+        removeComponent(guiItem.getComponent());
 
-        public RunRemove(Positionable guiItem)
-        {
-            _guiItem = guiItem;
-        }
+        final var positionInfo = guiItem.getPositionInfo();
 
-        public void run()
-        {
-            // Remove guiItem's component from this item's component.
-            removeComponentInvoked(_guiItem.getComponent());
+        final int horizontalPosition = positionInfo.horizontalPosition;
+        final int verticalPosition = positionInfo.verticalPosition;
 
-            final var positionInfo = _guiItem.getPositionInfo();
+        final SizeInfo sizeInfo =
+            _positionGrid[horizontalPosition][verticalPosition];
 
-            final int horizontalPosition = positionInfo.horizontalPosition;
-            final int verticalPosition = positionInfo.verticalPosition;
+        _positionGrid[horizontalPosition][verticalPosition] = null;
 
-            final SizeInfo sizeInfo =
-                _positionGrid[horizontalPosition][verticalPosition];
+        _itemSizeList.remove(sizeInfo);
 
-            _positionGrid[horizontalPosition][verticalPosition] = null;
-
-            _itemSizeList.remove(sizeInfo);
-
-            adjustSizesInvoked();
-        }
+        adjustSizes();
     }
 
-    protected abstract void removeComponentInvoked(Component component);
+    protected abstract void removeComponent(Component component);
 
-    protected abstract void addComponentInvoked(
+    protected abstract void addComponent(
             Component component, GridBagConstraints gridBagConstraints
         );
 
-    protected Item adjustSizesInvoked() {
+    protected Item adjustSizes() {
         final SizeInfo[][] sizeGrid =
             new SizeInfo[POSITION_LIMIT][POSITION_LIMIT];
 
@@ -448,7 +410,7 @@ adjustZeroSizeLoop:
                 final var guiItem = sizeInfo.guiItem;
                 final var positionInfo = guiItem.getPositionInfo();
 
-                removeComponentInvoked(guiItem.getComponent());
+                removeComponent(guiItem.getComponent());
 
                 // Set layout parameters.
                 final GridBagConstraints gridBagConstraints =
@@ -464,7 +426,7 @@ adjustZeroSizeLoop:
                         0, 0
                     );
 
-                addComponentInvoked(
+                addComponent(
                     guiItem.getComponent(), gridBagConstraints
                 );
             }
@@ -497,23 +459,23 @@ adjustZeroSizeLoop:
     public Item setParent(ContainerItem parent) {
         super.setParent(parent);
 
-        SwingUtilities.invokeLater(_runApplyTextDirection);
+        applyTextDirection();
 
         return this;
     }
 
-    public Item setTextDirectionInvoked(
+    public Item setTextDirection(
         TextDirection firstTextDirection,
         TextDirection secondTextDirection
     ) {
-        super.setTextDirectionInvoked(firstTextDirection, secondTextDirection);
+        super.setTextDirection(firstTextDirection, secondTextDirection);
 
-        applyTextDirectionInvoked();
+        applyTextDirection();
 
         return this;
     }
 
-    protected abstract Item applyTextDirectionInvoked();
+    protected abstract Item applyTextDirection();
 }
 
 class SizeInfo {

@@ -46,7 +46,7 @@ public class ButtonItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiButtonInfo = guiInfo.getGUIButtonInfo();
@@ -70,10 +70,10 @@ public class ButtonItem
 
         // Button text.
         if (null != guiButtonInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiButtonInfo.text);
+            _textItemAdapter.setTextId(guiButtonInfo.text);
         }
         // Button enable/disable.
-        setEventsInvoked(guiButtonInfo.events);
+        setEvents(guiButtonInfo.events);
         return this;
     }
 
@@ -93,10 +93,7 @@ public class ButtonItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-    /**
-        Called in GUI thread.
-     */
-    public void setTextInvoked(String text) {
+    public void setText(String text) {
         _component.setText(text);
     }
 
@@ -109,7 +106,7 @@ public class ButtonItem
         _component = null;
     }
 
-    protected Item setEventsInvoked(final GUIButtonInfo.EventsEnum events) {
+    protected Item setEvents(final GUIButtonInfo.EventsEnum events) {
         final boolean enabled =
             (null != events)
                 ? (events == GUIButtonInfo.EventsEnum.ENABLED)
@@ -121,7 +118,7 @@ public class ButtonItem
         return this;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiButtonInfo = guiInfo.getGUIButtonInfo();
@@ -130,10 +127,10 @@ public class ButtonItem
 
         // New text item?
         if (null != guiButtonInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiButtonInfo.text);
+            _textItemAdapter.setTextId(guiButtonInfo.text);
         }
         if (null != guiButtonInfo.events) {
-            setEventsInvoked(guiButtonInfo.events);
+            setEvents(guiButtonInfo.events);
         }
         // Changed parent ID is handled by Controller.
         return this;

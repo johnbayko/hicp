@@ -9,9 +9,8 @@ public interface TextItemAdapterListener {
 
     /**
         Implementer apply text to the displayed component.
-        Called in GUI thread.
      */
-    public void setTextInvoked(String text);
+    public void setText(String text);
 
     /**
         Implementer call removeAdapter() on the saved text item adapter.

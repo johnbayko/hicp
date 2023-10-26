@@ -3,9 +3,11 @@ package hicp_client;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
 import hicp.message.Message;
+import hicp.message.command.CommandInfo;
 import hicp.message.event.EventInfo;
 import hicp_client.gui.GUIController;
 
@@ -23,6 +25,39 @@ public class Controller
     protected boolean _isConnected = false;
 
     protected GUIController guiController;
+
+    protected class RunReceivedCommand
+        implements Runnable
+    {
+        final protected CommandInfo commandInfo;
+        final protected GUIController guiController;
+
+        public RunReceivedCommand(
+            final CommandInfo commandInfo,
+            final GUIController guiController
+        ) {
+            this.commandInfo = commandInfo;
+            this.guiController = guiController;
+        }
+        public void run() {
+            guiController.receivedCommand(commandInfo);
+        }
+    }
+
+    protected class RunDispose
+        implements Runnable
+    {
+        final protected GUIController guiController;
+
+        public RunDispose(
+            final GUIController guiController
+        ) {
+            this.guiController = guiController;
+        }
+        public void run() {
+            guiController.dispose();
+        }
+    }
 
     public Controller(Session session, Monitor monitor)
         throws UnsupportedEncodingException
@@ -99,7 +134,9 @@ public class Controller
         }
 
         // Dispose of any opened GUI objects.
-        guiController.dispose();
+        SwingUtilities.invokeLater(
+            new RunDispose(guiController)
+        );
         guiController = null;
 
         // Dispose of message exchange.
@@ -157,7 +194,9 @@ public class Controller
           case ADD:
           case MODIFY:
           case REMOVE:
-            guiController.receivedCommand(commandInfo);
+            SwingUtilities.invokeLater(
+                new RunReceivedCommand(commandInfo, guiController)
+            );
             break;
           case DISCONNECT:
             {

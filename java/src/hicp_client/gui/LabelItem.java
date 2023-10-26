@@ -34,10 +34,7 @@ public class LabelItem
         _textItemAdapter.setAdapter(this);
     }
 
-    /**
-        GUI thread.
-     */
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiLabelInfo = guiInfo.getGUILabelInfo();
@@ -46,7 +43,7 @@ public class LabelItem
 
         // Label string.
         if (null != guiLabelInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiLabelInfo.text);
+            _textItemAdapter.setTextId(guiLabelInfo.text);
         }
         return this;
     }
@@ -71,10 +68,7 @@ public class LabelItem
         return java.awt.GridBagConstraints.NONE;
     }
 
-    /**
-        Called in GUI thread.
-     */
-    public void setTextInvoked(String text) {
+    public void setText(String text) {
         _component.setText(text);
     }
 
@@ -87,7 +81,7 @@ public class LabelItem
         _component = null;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiLabelInfo = guiInfo.getGUILabelInfo();
@@ -96,7 +90,7 @@ public class LabelItem
 
         // New text item?
         if (null != guiLabelInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiLabelInfo.text);
+            _textItemAdapter.setTextId(guiLabelInfo.text);
         }
         // Changed parent ID is handled by Controller.
         return this;

@@ -37,7 +37,6 @@ public class WindowItem
 
     protected TextItemAdapter _textItemAdapter;
 
-    // Should be used only from GUI thread.
     protected JFrame _component;
     protected JPanel _panel;
 
@@ -54,7 +53,7 @@ public class WindowItem
         _textItemAdapter.setAdapter(this);
     }
 
-    protected Item addInvoked(final CommandInfo commandInfo) {
+    protected Item add(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiWindowInfo = guiInfo.getGUIWindowInfo();
@@ -114,7 +113,7 @@ public class WindowItem
 
         // Frame title.
         if (null != guiWindowInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiWindowInfo.text);
+            _textItemAdapter.setTextId(guiWindowInfo.text);
         } else {
             // No text for title bar, make up something.
             _component.setTitle("Window " + itemInfo.id); 
@@ -126,7 +125,7 @@ public class WindowItem
             _component.setVisible(true);
         }
 
-        return super.addInvoked(commandInfo);
+        return super.add(commandInfo);
     }
 
     protected Item remove(Item guiItem) {
@@ -135,22 +134,7 @@ public class WindowItem
         if (guiItem instanceof Positionable) {
             // Run an event to remove guiItem's component from this item's
             // component.
-            SwingUtilities.invokeLater(new RunRemove((Positionable)guiItem));
-        }
-        return this;
-    }
-
-    class RunRemove
-        extends LayoutItem.RunRemove
-    {
-        public RunRemove(Positionable guiItem)
-        {
-            super(guiItem);
-        }
-
-        public void run()
-        {
-            super.run();
+            super.removePositionable((Positionable)guiItem);
 
             // If visible, resize.
             if (_component.isVisible()) {
@@ -158,22 +142,20 @@ public class WindowItem
                 _component.setSize(_component.getPreferredSize());
             }
         }
+        return this;
     }
 
-    protected void removeComponentInvoked(Component component) {
+    protected void removeComponent(Component component) {
         _panel.remove(component);
     }
 
-    protected void addComponentInvoked(
+    protected void addComponent(
         Component component, GridBagConstraints gridBagConstraints
     ) {
         _panel.add(component, gridBagConstraints);
     }
 
-    /**
-        Called in GUI thread.
-     */
-    public void setTextInvoked(String text) {
+    public void setText(String text) {
         _component.setTitle(text);
     }
 
@@ -191,29 +173,12 @@ public class WindowItem
 
         // Remove this from its parent.
 //        if (null != _parent) {
-//log("WindowItem.dispose() about to _parent.remove()");  // debug
 //            _parent.remove(this);
 //        }
 
         // Dispose of this object.
-        SwingUtilities.invokeLater(
-            new RunDispose(_component)
-        );
+        _component.dispose();
         _component = null;
-    }
-
-    class RunDispose
-        implements Runnable
-    {
-        protected JFrame _component;
-
-        public RunDispose(JFrame component) {
-            _component = component;
-        }
-
-        public void run() {
-            _component.dispose();
-        }
     }
 
     public Item add(Item guiItem) {
@@ -222,22 +187,7 @@ public class WindowItem
         if (guiItem instanceof Positionable) {
             // Run an event to add guiItem's component to this item's
             // component.
-            SwingUtilities.invokeLater(new RunAdd((Positionable)guiItem));
-        }
-        return this;
-    }
-
-    class RunAdd
-        extends LayoutItem.RunAdd
-    {
-        public RunAdd(Positionable guiItem)
-        {
-            super(guiItem);
-        }
-
-        public void run()
-        {
-            super.run();
+            super.addPositionable((Positionable)guiItem);
 
             // If visible, resize.
             if (_component.isVisible()) {
@@ -245,19 +195,20 @@ public class WindowItem
                 _component.setSize(_component.getPreferredSize());
             }
         }
+        return this;
     }
 
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiWindowInfo = guiInfo.getGUIWindowInfo();
 
-        super.modifyInvoked(commandInfo);
+        super.modify(commandInfo);
         // See what's changed.
 
         // New text item?
         if (null != guiWindowInfo.text) {
-            _textItemAdapter.setTextIdInvoked(guiWindowInfo.text);
+            _textItemAdapter.setTextId(guiWindowInfo.text);
         }
 
         // Visible?
@@ -271,7 +222,7 @@ public class WindowItem
         return this;
     }
 
-    protected Item applyTextDirectionInvoked() {
+    protected Item applyTextDirection() {
         // Set component orientation for component.
         // Only need horizontal orientation - vertial orientation
         // only applies to text/labels.

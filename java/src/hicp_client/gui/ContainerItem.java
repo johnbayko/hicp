@@ -21,9 +21,6 @@ public abstract class ContainerItem
     /** List of items this contains, if it's able to contain items. */
     protected List<Item> _itemList = new LinkedList<>();
 
-    /**
-        Non-GUI thread.
-     */
     public ContainerItem(final CommandInfo commandInfo) {
         super(commandInfo);
     }
@@ -47,10 +44,7 @@ public abstract class ContainerItem
         return this;
     }
 
-    /**
-        GUI thread.
-     */
-    protected Item modifyInvoked(final CommandInfo commandInfo) {
+    protected Item modify(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var layoutGUIInfo = guiInfo.getLayoutGUIInfo();
@@ -58,7 +52,7 @@ public abstract class ContainerItem
         if ( (null != layoutGUIInfo.textDirection.first)
           || (null != layoutGUIInfo.textDirection.second)
         ) {
-            setTextDirectionInvoked(
+            setTextDirection(
                 layoutGUIInfo.textDirection.first,
                 layoutGUIInfo.textDirection.second
             );
@@ -70,7 +64,7 @@ public abstract class ContainerItem
         Text direction can't be set to null, so don't change if
         parameter is null.
      */
-    public Item setTextDirectionInvoked(
+    public Item setTextDirection(
         TextDirection firstTextDirection,
         TextDirection secondTextDirection
     ) {

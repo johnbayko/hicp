@@ -4,26 +4,20 @@ import javax.swing.SwingUtilities;
 
 /**
     Shift call to textChanged() to GUI event dispatch thread.
+    TODO All in GUI event thread, remove.
  */
 public class TextListenerInvoker
-    implements TextListener, Runnable
+    implements TextListener//, Runnable
 {
     private final TextListener _textListener;
-
-    private TextEvent _textEvent = null;
 
     public TextListenerInvoker(TextListener l) {
         _textListener = l;
     }
 
     public void textChanged(TextEvent e) {
-        _textEvent = e;
-        SwingUtilities.invokeLater(this);
-    }
-
-    public void run() {
-        if (null != _textEvent) {
-            _textListener.textChanged(_textEvent);
+        if (null != e) {
+            _textListener.textChanged(e);
         }
     }
 }

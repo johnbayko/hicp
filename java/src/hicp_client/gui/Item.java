@@ -12,9 +12,6 @@ public abstract class Item {
     /** What this is contained by. */
     protected ContainerItem _parent = null;
 
-    /**
-        Non-GUI thread.
-     */
     public Item(final CommandInfo commandInfo) {
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
@@ -29,61 +26,10 @@ public abstract class Item {
         component = null;
     }
 
-    public final Item add(final CommandInfo addCmd) {
-        SwingUtilities.invokeLater(
-            new RunAdd(addCmd)
-        );
-        return this;
-    }
+    protected abstract Item add(CommandInfo commandInfo);
 
-    class RunAdd
-        implements Runnable
-    {
-        protected final CommandInfo _addCmd;
+    protected abstract Item modify(CommandInfo commandInfo);
 
-        public RunAdd(final CommandInfo addCmd) {
-            _addCmd = addCmd;
-        }
-
-        public void run() {
-            addInvoked(_addCmd);
-        }
-    }
-
-    /**
-        GUI thread.
-     */
-    protected abstract Item addInvoked(CommandInfo commandInfo);
-
-    public final Item modify(final CommandInfo modifyCmd) {
-        SwingUtilities.invokeLater(
-            new RunModify(modifyCmd)
-        );
-        return this;
-    }
-
-    class RunModify
-        implements Runnable
-    {
-        protected final CommandInfo _modifyCmd;
-
-        public RunModify(final CommandInfo modifyCmd) {
-            _modifyCmd = modifyCmd;
-        }
-
-        public void run() {
-            modifyInvoked(_modifyCmd);
-        }
-    }
-
-    /**
-        GUI thread.
-     */
-    protected abstract Item modifyInvoked(CommandInfo commandInfo);
-
-    /**
-        GUI thread.
-     */
     public Item setParent(ContainerItem parent) {
         _parent = parent;
         if (null == _parent) {
