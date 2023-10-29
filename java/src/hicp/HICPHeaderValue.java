@@ -54,8 +54,10 @@ public class HICPHeaderValue {
 
         // Should always be a binary representation for string.
         try {
-            final CharBuffer charBuffer = CharBuffer.wrap(_string);
-            _byteBuffer = _encoder.encode(charBuffer);
+            synchronized(_encoder) {
+                final CharBuffer charBuffer = CharBuffer.wrap(_string);
+                _byteBuffer = _encoder.encode(charBuffer);
+            }
         } catch (CharacterCodingException ex) {
             // No valid byte representation, it stays null.
         }
@@ -66,7 +68,7 @@ public class HICPHeaderValue {
             return null;
         }
         // get() only works once without resetting, so only do it once.
-        if (null == _bytes) synchronized(this) {
+        if (null == _bytes) {
             _bytes = new byte[_byteBuffer.remaining()];
             _byteBuffer.get(_bytes);
         }
@@ -74,14 +76,16 @@ public class HICPHeaderValue {
     }
 
     public String getString() {
-        if (null == _string) synchronized(this) {
+        if (null == _string) {
             if (null == _byteBuffer) {
                 // No binary representation to try to convert.
                 return null;
             }
             try {
-                final CharBuffer charBuffer = _decoder.decode(_byteBuffer);
-                _string = charBuffer.toString();
+                synchronized(_decoder) {
+                    final CharBuffer charBuffer = _decoder.decode(_byteBuffer);
+                    _string = charBuffer.toString();
+                }
             } catch (CharacterCodingException ex) {
                 // No string representation of this binary value, let _string
                 // remain null, don't need to do anything else.
