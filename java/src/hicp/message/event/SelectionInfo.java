@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import hicp.HeaderMap;
 import hicp.message.HeaderEnum;
 import hicp.message.Message;
-import hicp.message.TextAttributes;
 
 public class SelectionInfo {
     private static final Logger LOGGER =

@@ -6,8 +6,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import hicp.HeaderMap;
+import hicp.message.AttributeListInfo;
 import hicp.message.HeaderEnum;
-import hicp.message.TextAttributes;
+import hicp.message.Message;
 
 public class GUITextFieldInfo {
     public static enum EventsEnum {
@@ -38,14 +39,16 @@ public class GUITextFieldInfo {
     public ContentInfo contentInfo = null;
     public int width = 7;  // Arbitrary default
     public boolean hasWidth = false;
-    public TextAttributes attributes = null;
+    private AttributeListInfo attributeListInfo = null;
     public EventsEnum events = null;
 
+    private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
 
     public GUITextFieldInfo() {
     }
 
     public GUITextFieldInfo(final HeaderMap headerMap) {
+        _headerMap = headerMap;
         {
             final boolean hasContent = headerMap.has(HeaderEnum.CONTENT);
             if (hasContent) {
@@ -63,10 +66,9 @@ public class GUITextFieldInfo {
             }
         }
         {
-            final String attributesStr =
-                headerMap.getString(HeaderEnum.ATTRIBUTES);
-            if (null != attributesStr) {
-                attributes = new TextAttributes(attributesStr);
+            final boolean hasAttributes = headerMap.has(HeaderEnum.ATTRIBUTES);
+            if (hasAttributes) {
+                attributeListInfo = new AttributeListInfo(_headerMap);
             }
         }
         events =
@@ -83,14 +85,19 @@ public class GUITextFieldInfo {
         }
         headerMap.putInt(HeaderEnum.WIDTH, width);
 
-        // Warning: It's the caller's responsibility to ensure the attribute
-        // object matches the content string.
-        if (null != attributes) {
-            headerMap.putString(HeaderEnum.ATTRIBUTES, attributes.toString());
+        if (null != attributeListInfo) {
+            attributeListInfo.updateHeaderMap(headerMap);
         }
         headerMap.putString(HeaderEnum.EVENTS, events.name);
 
         return this;
+    }
+
+    public AttributeListInfo getAttributeListInfo() {
+        if (null == attributeListInfo) {
+            attributeListInfo = new AttributeListInfo(_headerMap);
+        }
+        return attributeListInfo;
     }
 }
 

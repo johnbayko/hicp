@@ -886,15 +886,19 @@ attributes: <attribute specifiers>
 
   "textfield", "textpanel":
     Specifies display attributes for the text contained by the component.
-    Existing attributes (specifically the user agent defaults when the content
-    is first set) not covered by the new attributes are unchanged.
 
-    If the component is editable, then the text contents may be different from
-    what is expected, so this should only be part of a "modify" message with a
-    content "set" header, or the "events" attribute is "disabled". The user
-    agent can ignore an attribute header when the content is not included, or
-    the content may have changed by the user. If there is a content "add" or
-    "delete" header, the content change is applied before the attributes.
+    When specified with a "content" header, the attributes apply to the "set"
+    or "add" content (e.g if the word "street" is appended to "Walter "
+    resulting in "Walter street", and the attribute specifies bold from 0 to 5,
+    this applies to "street", not "Walter"). Any attributes specified with a
+    "delete" content changed have no content to apply to so must be ignored.
+
+    If there is no content, attributes apply to the component's existing
+    cntent.  If the component is editable, there is no guarantee the actual
+    content matches the expected content, so the user agent should discard the
+    attribute information.  Existing attributes (specifically the user agent
+    defaults when the content is first set) not covered by the new attributes
+    are unchanged.
 
     The user agent must support at lest 32,768 (32K) characters (not
     bytes) for all attributes of a "textfield" or "textpanel" component.
@@ -926,11 +930,14 @@ attributes: <attribute specifiers>
     Attributes can be binary (on/off) or multivalued. Binary attributes
     are specified in this form::
 
-      <attribute> ":" <position> ":" [ <integer> [ "," <integer> ]* ]
+      <attribute> ":" <position> ":" [ <length> [ "," <length> ]* ]
 
-    Where <position> is the first character affected, the integers are number
+    Where <position> is the first character with the attribute, the <length>
+    is the number
     of characters affected by each change - first on, then off, alternating to
-    the last change or the end of the text.  Spaces are ignored.  For example,
+    the last change or the end of the text. Spaces are ignored.
+    [Should there be a set/add action like for content?]
+    For example,
     in the string "It's not that far.", to indicate the word "that" (9th
     character) is underlined, the attribute would be specified as::
 
@@ -940,25 +947,30 @@ attributes: <attribute specifiers>
 
       underline: 0: 0, 9, 4, 5
 
+    In this case, position is 0 because attribute definitions start at the
+    first character, but the first attribute length is 0 because the first
+    range is "on", but the first range of characters is actually "off". This is
+    not a practical thing to do, it's just given as an example.
+
     To underline the letter "I" as well as "that"::
 
       underline: 0: 1, 8, 4, 5
 
     Multivalued attributes are specified in this form::
 
-      <attribute> ":" <position> ":" <value> "=" <integer> [ "," <value> "=" <integer> ]*
+      <attribute> ":" <position> ":" <length> [ "=" <value> ] [ "," <length> [ "=" <value> ] ]*
 
     Where <position> is the first character affected, <value> is the name of
     the particular attribute.  For example, in the string "Press enter to
     continue.", to indicate that "enter" should be fixed width serif, the
     change would be specified as::
 
-      font: 6: serif-fixed=5
+      font: 6: 5=serif-fixed
 
     To specify the font style for the whole string as sans-serif except for
     "enter", the font would be specified as::
 
-      font: 0: sans-serif=6, serif-fixed=5, sans-serif=13
+      font: 0: 6=sans-serif, 5=serif-fixed, 13=sans-serif
 
     Attributes past the last specified interval are not changed. An attribute
     interval that extends past the end of the content is truncated at the end
@@ -966,6 +978,15 @@ attributes: <attribute specifiers>
 
     Default values are up to the user agent, so all attributes should be
     specified to ensure actual attributes match what the app expects.
+    If needed, the user agent default value can be specified by omitting the
+    value and equal sign. Using detault values instead of sans-serif would
+    look like::
+
+      font: 0: 6, 5=serif-fixed, 13
+
+    Or the end can be omitted as in the original example::
+
+      font: 0: 6, 5=serif-fixed
 
     An attribute may have any UTF-8 encoded name. Attributes include
     those defined here, but may also include any valid string that is
@@ -1051,7 +1072,8 @@ attributes: <attribute specifiers>
       another integer or decimal. For example, a font half the default
       size can be specified as "1/2" or "0.5", and two thirds the size
       can be "2/3" or "1/1.5". The displayed size does not need to match the
-      result exactly.
+      result exactly, and the format may be adjusted internally before it is
+      output again.
 
     "layout"
       This only applies to "textpanel" components, which wrap text at the
@@ -1607,7 +1629,8 @@ content: <text>
   Generated by these components:
 
   "textpanel", "textfield":
-    Format is the same as the "content" header of an "add" or "modify" command.
+    Unlike the "add" or "modify" commands, there is no <content change> field
+    or content modifiers, only the complete text content of the component.
     Text is considered changed when it is no longer being actively edited, such
     as if the cursor is moved to another text field (or focus moves away from
     this component), not only from a terminating action such as hitting the
@@ -1620,6 +1643,7 @@ attributes: <attribute specifiers>
   "textpanel", "textfield":
     Format is the same as the "attributes" header of an "add" or "modify"
     command.
+    [If add/set action is added to command, omit it here]
 
 selected: <integer> "," <integer>
   Generated by these components:

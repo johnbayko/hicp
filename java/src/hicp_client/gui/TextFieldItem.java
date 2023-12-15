@@ -10,11 +10,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.SwingUtilities;
 
 import hicp.MessageExchange;
+import hicp.message.AttributeListInfo;
 import hicp.message.Message;
-import hicp.message.TextAttributes;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.GUITextFieldInfo;
 import hicp.message.event.EventInfo;
@@ -35,7 +34,7 @@ public class TextFieldItem
 
     protected String _content = "";
     protected AttributeTrackDocument _document;
-    protected TextAttributes _attributes;
+    protected AttributeListInfo _attributeListInfo;
 
     public TextFieldItem(
         CommandInfo commandInfo,
@@ -51,6 +50,7 @@ public class TextFieldItem
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
+        final var attributeListInfo = guiTextFieldInfo.getAttributeListInfo();
 
         // TODO: If no width specified, use contents for default width.
         _component = new JTextField(guiTextFieldInfo.width);
@@ -62,7 +62,7 @@ public class TextFieldItem
             final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
             setContent(
                 setInfo.text,
-                guiTextFieldInfo.attributes
+                attributeListInfo
             );
         }
 
@@ -101,10 +101,11 @@ public class TextFieldItem
         final boolean hasContentChanged =
             !content.equals(_content);
 
-        final TextAttributes attributes =
-            _document.getTextAttributes();
+        final var attributeListInfo =
+            _document.getAttributeListInfo();
         final boolean hasAttributesChanged =
-            (null != attributes) && !attributes.equals(_attributes);
+            ( (null != attributeListInfo)
+           && !attributeListInfo.equals(_attributeListInfo) );
 
         if (hasContentChanged || hasAttributesChanged) {
             // Content has changed.
@@ -120,13 +121,13 @@ public class TextFieldItem
                 textFieldInfo.content = content;
             }
             if (hasAttributesChanged) {
-                textFieldInfo.attributes = attributes;
+                textFieldInfo.setAttributeListInfo(attributeListInfo);
             }
             _messageExchange.send(changedEvent);
 
             // Save for next event.
             _content = content;
-            _attributes = attributes;  // Is a copy, document can't change this.
+            _attributeListInfo = attributeListInfo;
         }
     }
 
@@ -150,7 +151,7 @@ public class TextFieldItem
 
     protected void setContent(
         String content,
-        final TextAttributes textAttributes
+        final AttributeListInfo attributeListInfo
     ) {
         // Make sure content is valid.
         if (null == content) {
@@ -162,19 +163,19 @@ public class TextFieldItem
         content = nonPrintableMatcher.replaceAll("");
 
         // Replacement text doesn't need old text attributes.
-        _document.setTextAttributes((TextAttributes)null);
+        _document.setAttributeListInfo((AttributeListInfo)null);
         _component.setText(content);
         _content = content;
 
         // This keeps track of attributes associated with content string, but
         // document could have text changed events fired, so set the text
         // attributes after the text has been set.
-        // TextAttributes is mutable, so make copies (one tor the document, one
-        // original to check later if any have changed.
-        if (null != textAttributes) {
-            _document.setTextAttributes(new TextAttributes(textAttributes));
+        if (null != attributeListInfo) {
+            _document.setAttributeListInfo(attributeListInfo);
         }
-        _attributes = new TextAttributes(textAttributes);
+        // Save copy nobody else can access for checking if attributes changed
+        // later.
+        _attributeListInfo = new AttributeListInfo(attributeListInfo);
     }
 
     public void dispose() {
@@ -198,6 +199,7 @@ public class TextFieldItem
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
+        final var attributeListInfo = guiTextFieldInfo.getAttributeListInfo();
 
         // See what's changed.
         if (null != guiTextFieldInfo.contentInfo) {
@@ -228,10 +230,19 @@ public class TextFieldItem
                 break;
             }
 
-            if ( (null != modifyContent)
-              && !modifyContent.equals(_component.getText())
-            ) {
-                setContent(modifyContent, guiTextFieldInfo.attributes);
+            if (null != modifyContent) {
+                if (!modifyContent.equals(_component.getText())) {
+                    setContent(modifyContent, attributeListInfo);
+                }
+            } else {
+                // Content not changed, but maybe attributes are.
+                if (attributeListInfo.hasAttributes()) {
+                    // Attributes can only be updated if component is not
+                    // editable.
+                    if (_component.isEditable()) {
+                        _document.modifyAttributeListInfo(attributeListInfo);
+                    }
+                }
             }
         }
         if (guiTextFieldInfo.hasWidth) {
@@ -239,12 +250,6 @@ public class TextFieldItem
                 _component.setColumns(guiTextFieldInfo.width);
                 // Resize?
             }
-        }
-        if (null != guiTextFieldInfo.attributes ) {
-// handle attributes.
-// To start, just log the string.
-            final String modifyAttributes =
-                guiTextFieldInfo.attributes.toString();
         }
         if (null != guiTextFieldInfo.events) {
             setEvents(guiTextFieldInfo.events);
