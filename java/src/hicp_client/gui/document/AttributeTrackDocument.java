@@ -124,6 +124,32 @@ public class AttributeTrackDocument
         }
     }
 
+    public interface RangeType<T extends Range> {
+        public T newRange(final int length);
+        public T newRange(final AttributeRange range);
+    }
+
+    public static class RangeTypes {
+        public static final RangeType<ValueRange> VALUE =
+            new RangeType<ValueRange>() {
+                public ValueRange newRange(final int length) {
+                    return new ValueRange(length);
+                }
+                public ValueRange newRange(final AttributeRange range) {
+                    return new ValueRange(range);
+                }
+            };
+        public static final RangeType<BooleanRange> BOOLEAN =
+            new RangeType<BooleanRange>() {
+                public BooleanRange newRange(final int length) {
+                    return new BooleanRange(length);
+                }
+                public BooleanRange newRange(final AttributeRange range) {
+                    return new BooleanRange(range);
+                }
+            };
+    }
+
     // Just tracks HICP attributes, because JTextField does not actually
     // support any, but HICP wants them tracked and returned based on edits
     // anyway.
@@ -184,7 +210,7 @@ public class AttributeTrackDocument
         // need to insert an off range for boolean range
         // if position > 0.
         if (0 < attribute.position) {
-            final var firstRange = new BooleanRange(attribute.position, false);
+            final var firstRange = new BooleanRange(attribute.position);
             rangeList.add(firstRange);
         }
         for (final var range : attribute.getBooleanRangeList()) {
@@ -210,32 +236,9 @@ public class AttributeTrackDocument
                     // This is a new attribute.
                     setValueAttribute(newAttribute);
                 } else {
-                    // There is a lot of code duplication here and elsewhere,
-                    // mainly because Java generics aren't dynamic enough to
-                    // construct new objects generically, so any code that
-                    // creates an object (new ValuesRange()) must be explicit.
-                    final var changeRangeListReturn =
-                        changeRangeList(newAttribute, rangeList);
-
-                    int rangeIdx = changeRangeListReturn.rangeIdx;
-
-                    // If there is a gap between the last exiting range and
-                    // first new range, insert a default range.
-                    if (changeRangeListReturn.nextRangeStart < newAttribute.position) {
-                        final int newLength =
-                            newAttribute.position
-                                - changeRangeListReturn.nextRangeStart;
-                        final var newRange = new ValueRange(newLength);
-                        rangeList.add(rangeIdx, newRange);
-                        rangeIdx++;
-                    }
-                    // Insert new ranges.
-                    for (final var newAttributeRange : newAttribute.getRangeList()) {
-                        final var newRange =
-                            new ValueRange(newAttributeRange);
-                        rangeList.add(rangeIdx, newRange);
-                        rangeIdx++;
-                    }
+                    changeRangeList(
+                        newAttribute, RangeTypes.VALUE, rangeList
+                    );
                 }
             } else {
                 final var rangeList =
@@ -244,53 +247,23 @@ public class AttributeTrackDocument
                     // This is a new attribute.
                     setBooleanAttribute(newAttribute);
                 } else {
-                    final var changeRangeListReturn =
-                        changeRangeList(newAttribute, rangeList);
-
-                    int rangeIdx = changeRangeListReturn.rangeIdx;
-
-                    // If there is a gap between the last exiting range and
-                    // first new range, insert a default range.
-                    if (changeRangeListReturn.nextRangeStart < newAttribute.position) {
-                        final int newLength =
-                            newAttribute.position
-                                - changeRangeListReturn.nextRangeStart;
-                        final var newRange = new BooleanRange(newLength);
-                        rangeList.add(rangeIdx, newRange);
-                        rangeIdx++;
-                    }
-                    // Insert new ranges.
-                    for (final var newAttributeRange : newAttribute.getRangeList()) {
-                        final var newRange =
-                            new BooleanRange(newAttributeRange);
-                        rangeList.add(rangeIdx, newRange);
-                        rangeIdx++;
-                    }
+                    changeRangeList(
+                        newAttribute, RangeTypes.BOOLEAN, rangeList
+                    );
                 }
             }
         }
         return this;
     }
 
-    // Need two return values from changeRangeList(), Java doesn't have
-    // multiple return values.
-    private static class ChangeRangeListReturn {
-        final int rangeIdx;
-        final int nextRangeStart;
-
-        public ChangeRangeListReturn(
-            final int newRangeIdx,
-            final int newNextRangeStart
-        ) {
-            rangeIdx = newRangeIdx;
-            nextRangeStart = newNextRangeStart;
-        }
-    }
-
-    private ChangeRangeListReturn changeRangeList(
+    private <T extends Range> AttributeTrackDocument changeRangeList(
         final AttributeInfo newAttribute,
-        final List<? extends Range> rangeList
+        final RangeType<T> rangeType,
+        final List<T> rangeList
     ) {
+        // Would it be simpler to just copy ranges to new list, rather than
+        // modify the existing list?
+
         // How long is the span for the new list?
         int newRangeListLim = newAttribute.position;
         for (final var newAttributeRange : newAttribute.getRangeList()) {
@@ -346,8 +319,22 @@ public class AttributeTrackDocument
                 // Next range shifted to this index, don't move
                 // index to next.
             }
-            return new ChangeRangeListReturn(rangeIdx, nextRangeStart);
+            // If there is a gap between the last exiting range and
+            // first new range, insert a default range.
+            if (nextRangeStart < newAttribute.position) {
+                final int newLength = newAttribute.position - nextRangeStart;
+                final var newRange = rangeType.newRange(newLength);
+                rangeList.add(rangeIdx, newRange);
+                rangeIdx++;
+            }
         }
+        // Insert new ranges.
+        for (final var newAttributeRange : newAttribute.getRangeList()) {
+            final var newRange = rangeType.newRange(newAttributeRange);
+            rangeList.add(rangeIdx, newRange);
+            rangeIdx++;
+        }
+        return this;
     }
 
     public AttributeListInfo getAttributeListInfo() {
