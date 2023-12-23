@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import hicp.MessageExchange;
 import hicp.message.AttributeListInfo;
 import hicp.message.Message;
+import hicp.message.command.ContentInfo;
 import hicp.message.command.CommandInfo;
 import hicp.message.command.GUITextFieldInfo;
 import hicp.message.event.EventInfo;
@@ -61,7 +62,7 @@ public class TextFieldItem
         {
             final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
             setContent(
-                setInfo.text,
+                setInfo,
                 attributeListInfo
             );
         }
@@ -150,10 +151,11 @@ public class TextFieldItem
     final static Pattern nonPrintablePattern = Pattern.compile("\\p{Cntrl}");
 
     protected void setContent(
-        String content,
+        final ContentInfo.SetInfo setInfo,
         final AttributeListInfo attributeListInfo
     ) {
         // Make sure content is valid.
+        String content = setInfo.text;
         if (null == content) {
             content = "";
         }
@@ -164,6 +166,7 @@ public class TextFieldItem
 
         // Replacement text doesn't need old text attributes.
         _document.setAttributeListInfo((AttributeListInfo)null);
+
         _component.setText(content);
         _content = content;
 
@@ -176,6 +179,79 @@ public class TextFieldItem
         // Save copy nobody else can access for checking if attributes changed
         // later.
         _attributeListInfo = new AttributeListInfo(attributeListInfo);
+    }
+
+    protected void addContent(
+        final ContentInfo.AddInfo addInfo,
+        final AttributeListInfo attributeListInfo
+    ) {
+        // Make sure content is valid.
+        String addText = addInfo.text;
+        if (null == addText) {
+            addText = "";
+        }
+        // Remove all non-printable (control) characters.
+        final Matcher nonPrintableMatcher =
+            nonPrintablePattern.matcher(addText);
+        addText = nonPrintableMatcher.replaceAll("");
+
+        // JTextComponent doesn't have a way to insert text, so have to take
+        // existing text, edit, and replace it.
+        // This shows up in the document as a delete all, then add new. This
+        // will erase existing attributes, so disable attribute updates, set
+        // the new text, and then expand attribute ranges where text was
+        // inserted.
+        _document.setUpdateAttributes(false);
+
+        final String oldText = _component.getText();
+        final StringBuilder changeText = new StringBuilder(oldText);
+        changeText.insert(addInfo.position, addText);
+        final String newText = changeText.toString();
+        _component.setText(newText);
+
+        _document.insertForAttributes(addInfo.position, addText);
+
+        _document.setUpdateAttributes(true);
+        _content = newText;
+
+        if (null != attributeListInfo) {
+            // Text is now changed, and attributes at the insertion point have
+            // been expanded. Apply any attributes to the inserted text.
+            // Attribute positions need to be shifted by the text insertion
+            // position to apply to the inserted text.
+            _document.modifyAttributeListInfo(
+                addInfo.position, attributeListInfo
+            );
+        }
+        // Save copy nobody else can access for checking if attributes changed
+        // later.
+        _attributeListInfo = _document.getAttributeListInfo();
+    }
+
+    protected void deleteContent(
+        final ContentInfo.DeleteInfo deleteInfo
+    ) {
+        // JTextComponent doesn't have a way to delete text, so have to take
+        // existing text, edit, and replace it.
+        // This shows up in the document as a delete all, then add new. This
+        // will erase existing attributes, so disable attribute updates, set
+        // the new text, and then expand attribute ranges where text was
+        // inserted.
+        _document.setUpdateAttributes(false);
+
+        final String oldText = _component.getText();
+        final StringBuilder changeText = new StringBuilder(oldText);
+        changeText.delete(
+            deleteInfo.position,
+            deleteInfo.position + deleteInfo.length
+        );
+        final String newText = changeText.toString();
+        _component.setText(newText);
+
+        _document.removeForAttributes(deleteInfo);
+
+        _document.setUpdateAttributes(true);
+        _content = newText;
     }
 
     public void dispose() {
@@ -203,44 +279,50 @@ public class TextFieldItem
 
         // See what's changed.
         if (null != guiTextFieldInfo.contentInfo) {
-            final String modifyContent;
+            boolean contentChanged = false;
+//            final String modifyContent;
 
             switch (guiTextFieldInfo.contentInfo.action) {
               case SET:
                 {
-                    final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
-                    modifyContent = setInfo.text;
+                    final var setInfo =
+                        guiTextFieldInfo.contentInfo.getSetInfo();
+                    setContent(setInfo, attributeListInfo);
+                    contentChanged = true;
                 }
                 break;
               case ADD:
                 {
-                    modifyContent = _component.getText();
-                    // TODO Apply add. Also update attributes.
+                    final var addInfo =
+                        guiTextFieldInfo.contentInfo.getAddInfo();
+                    if (null != addInfo) {
+                        addContent(addInfo, attributeListInfo);
+                        contentChanged = true;
+                    }
                 }
                 break;
               case DELETE:
                 {
-                    modifyContent = _component.getText();
-                    // TODO Apply delete. Also update attributes.
+                    final var deleteInfo =
+                        guiTextFieldInfo.contentInfo.getDeleteInfo();
+                    if (null != deleteInfo) {
+                       deleteContent(deleteInfo);
+                       contentChanged = true;
+                    }
                 }
                 break;
               // Could be null, I guess.
               default:
-                modifyContent = null;
                 break;
             }
 
-            if (null != modifyContent) {
-                if (!modifyContent.equals(_component.getText())) {
-                    setContent(modifyContent, attributeListInfo);
-                }
-            } else {
+            if (!contentChanged) {
                 // Content not changed, but maybe attributes are.
                 if (attributeListInfo.hasAttributes()) {
                     // Attributes can only be updated if component is not
                     // editable.
                     if (_component.isEditable()) {
-                        _document.modifyAttributeListInfo(attributeListInfo);
+                        _document.modifyAttributeListInfo(0, attributeListInfo);
                     }
                 }
             }

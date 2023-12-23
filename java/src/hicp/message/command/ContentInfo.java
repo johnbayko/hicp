@@ -146,7 +146,6 @@ public class ContentInfo {
 
     public Action action = null;
 
-//    private String[] contentSplit = null;
     private String contentInfoStr = "";
 
     private SetInfo setInfo = null;
@@ -198,20 +197,24 @@ public class ContentInfo {
         return setInfo;
     }
 
-    public AddInfo getAddInfo()
-        throws ParseException
-    {
-        if (null == addInfo) {
-            addInfo = new AddInfo(contentInfoStr);
+    public AddInfo getAddInfo() {
+        try {
+            if (null == addInfo) {
+                addInfo = new AddInfo(contentInfoStr);
+            }
+        } catch (ParseException pe) {
+            return null;
         }
         return addInfo;
     }
 
-    public DeleteInfo getDeleteInfo()
-        throws ParseException
-    {
-        if (null == deleteInfo) {
-            deleteInfo = new DeleteInfo(contentInfoStr);
+    public DeleteInfo getDeleteInfo() {
+        try {
+            if (null == deleteInfo) {
+                deleteInfo = new DeleteInfo(contentInfoStr);
+            }
+        } catch (ParseException pe) {
+            return null;
         }
         return deleteInfo;
     }

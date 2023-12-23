@@ -12,8 +12,9 @@ import javax.swing.text.BadLocationException;
 
 import hicp.message.AttributeInfo;
 import hicp.message.AttributeListInfo;
-import hicp.message.BooleanAttributeRange;
 import hicp.message.AttributeRange;
+import hicp.message.BooleanAttributeRange;
+import hicp.message.command.ContentInfo;
 
 public class AttributeTrackDocument
     extends javax.swing.text.PlainDocument
@@ -161,6 +162,8 @@ public class AttributeTrackDocument
     protected Map<String, List<ValueRange>> attributeValuesMap = null;
     protected Map<String, List<BooleanRange>> attributeBooleanMap = null;
 
+    protected boolean updateAttributes = true;
+
     public AttributeTrackDocument setAttributeListInfo(
         final AttributeListInfo newAttributeList
     ) {
@@ -174,22 +177,24 @@ public class AttributeTrackDocument
             // Convert attribute position + range list to all ranges to simplify
             // insert/remove.
             if (attribute.hasValues()) {
-                setValueAttribute(attribute);
+                setValueAttribute(0, attribute);
             } else {
-                setBooleanAttribute(attribute);
+                setBooleanAttribute(0, attribute);
             }
         }
         return this;
     }
 
-    public AttributeTrackDocument setValueAttribute(
+    protected AttributeTrackDocument setValueAttribute(
+        final int offset,
         final AttributeInfo attribute
     ) {
         final List<ValueRange> rangeList = new ArrayList<>();
 
         // Need to insert a default range if position > 0.
-        if (0 < attribute.position) {
-            final var firstRange = new ValueRange(attribute.position);
+        final int position = offset + attribute.position;
+        if (0 < position) {
+            final var firstRange = new ValueRange(position);
             rangeList.add(firstRange);
         }
         for (final var range : attribute.getRangeList()) {
@@ -201,7 +206,8 @@ public class AttributeTrackDocument
         return this;
     }
 
-    public AttributeTrackDocument setBooleanAttribute(
+    protected AttributeTrackDocument setBooleanAttribute(
+        final int offset,
         final AttributeInfo attribute
     ) {
         final List<BooleanRange> rangeList = new ArrayList<>();
@@ -209,8 +215,9 @@ public class AttributeTrackDocument
         // First boolean range from attribute command is always on, so
         // need to insert an off range for boolean range
         // if position > 0.
-        if (0 < attribute.position) {
-            final var firstRange = new BooleanRange(attribute.position);
+        final int position = offset + attribute.position;
+        if (0 < position) {
+            final var firstRange = new BooleanRange(position);
             rangeList.add(firstRange);
         }
         for (final var range : attribute.getBooleanRangeList()) {
@@ -223,6 +230,7 @@ public class AttributeTrackDocument
     }
 
     public AttributeTrackDocument modifyAttributeListInfo(
+        final int offset,
         final AttributeListInfo newAttributeList
     ) {
         if (null == newAttributeList) {
@@ -234,10 +242,10 @@ public class AttributeTrackDocument
                     attributeValuesMap.get(newAttribute.name);
                 if (null == rangeList) {
                     // This is a new attribute.
-                    setValueAttribute(newAttribute);
+                    setValueAttribute(offset, newAttribute);
                 } else {
                     changeRangeList(
-                        newAttribute, RangeTypes.VALUE, rangeList
+                        offset, newAttribute, RangeTypes.VALUE, rangeList
                     );
                 }
             } else {
@@ -245,10 +253,10 @@ public class AttributeTrackDocument
                     attributeBooleanMap.get(newAttribute.name);
                 if (null == rangeList) {
                     // This is a new attribute.
-                    setBooleanAttribute(newAttribute);
+                    setBooleanAttribute(offset, newAttribute);
                 } else {
                     changeRangeList(
-                        newAttribute, RangeTypes.BOOLEAN, rangeList
+                        offset, newAttribute, RangeTypes.BOOLEAN, rangeList
                     );
                 }
             }
@@ -257,6 +265,7 @@ public class AttributeTrackDocument
     }
 
     private <T extends Range> AttributeTrackDocument changeRangeList(
+        final int offset,
         final AttributeInfo newAttribute,
         final RangeType<T> rangeType,
         final List<T> rangeList
@@ -265,7 +274,8 @@ public class AttributeTrackDocument
         // modify the existing list?
 
         // How long is the span for the new list?
-        int newRangeListLim = newAttribute.position;
+        final int position = offset + newAttribute.position;
+        int newRangeListLim = position;
         for (final var newAttributeRange : newAttribute.getRangeList()) {
             newRangeListLim += newAttributeRange.length;
         }
@@ -283,7 +293,7 @@ public class AttributeTrackDocument
                 }
                 range = rangeList.get(rangeIdx);
                 nextRangeStart = rangeStart + range.length;
-                if (nextRangeStart >= newAttribute.position) {
+                if (nextRangeStart >= position) {
                     // Found it.
                     break;
                 }
@@ -291,8 +301,8 @@ public class AttributeTrackDocument
                 rangeStart = nextRangeStart;
             }
             // Truncate range if needed.
-            if (nextRangeStart > newAttribute.position) {
-                final int overlap = newAttribute.position - rangeStart;
+            if (nextRangeStart > position) {
+                final int overlap = position - rangeStart;
                 range.length -= overlap;
             }
         }
@@ -321,8 +331,8 @@ public class AttributeTrackDocument
             }
             // If there is a gap between the last exiting range and
             // first new range, insert a default range.
-            if (nextRangeStart < newAttribute.position) {
-                final int newLength = newAttribute.position - nextRangeStart;
+            if (nextRangeStart < position) {
+                final int newLength = position - nextRangeStart;
                 final var newRange = rangeType.newRange(newLength);
                 rangeList.add(rangeIdx, newRange);
                 rangeIdx++;
@@ -357,7 +367,7 @@ public class AttributeTrackDocument
         return newAttributeListInfo;
     }
 
-    public AttributeTrackDocument addAttributeInfo(
+    protected AttributeTrackDocument addAttributeInfo(
         final String attributeName,
         final List<? extends Range> rangeList,
         final AttributeListInfo attributeListInfo
@@ -440,9 +450,26 @@ public class AttributeTrackDocument
         return this;
     }
 
+    @Override
     public void insertString(int offset, String str, AttributeSet a)
         throws BadLocationException
     {
+        if (updateAttributes) {
+            insertForAttributes(offset, str);
+        }
+        super.insertString(offset, str, a);
+    }
+
+    public AttributeTrackDocument insertForAttributes(
+        final ContentInfo.AddInfo addInfo
+    ) {
+        return insertForAttributes(addInfo.position, addInfo.text);
+    }
+
+    public AttributeTrackDocument insertForAttributes(
+        final int offset,
+        final String str
+    ) {
         final int len = str.length();
         if (null != attributeValuesMap) {
             for (final var rangeList : attributeValuesMap.values()) {
@@ -456,7 +483,7 @@ public class AttributeTrackDocument
             }
             mergeBoolean();
         }
-        super.insertString(offset, str, a);
+        return this;
     }
 
     protected AttributeTrackDocument insertForRangeList(
@@ -492,9 +519,26 @@ public class AttributeTrackDocument
         return this;
     }
 
+    @Override
     public void remove(int offset, int len)
         throws BadLocationException
     {
+        if (updateAttributes) {
+            removeForAttributes(offset, len);
+        }
+        super.remove(offset, len);
+    }
+
+    public AttributeTrackDocument removeForAttributes(
+        final ContentInfo.DeleteInfo deleteInfo
+    ) {
+        return removeForAttributes(deleteInfo.position, deleteInfo.length);
+    }
+
+    public AttributeTrackDocument removeForAttributes(
+        final int offset,
+        final int len
+    ) {
         if (null != attributeValuesMap) {
             for (final var rangeList : attributeValuesMap.values()) {
                 removeForRangeList(offset, len, rangeList);
@@ -507,7 +551,7 @@ public class AttributeTrackDocument
             }
             mergeBoolean();
         }
-        super.remove(offset, len);
+        return this;
     }
 
     protected AttributeTrackDocument removeForRangeList(
@@ -599,6 +643,13 @@ rangeLoop:
             }
             rangeStart = nextRangeStart;
         }
+        return this;
+    }
+
+    public AttributeTrackDocument setUpdateAttributes(
+        final boolean newUpdateAttributes
+    ) {
+        updateAttributes = newUpdateAttributes;
         return this;
     }
 }
