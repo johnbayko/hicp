@@ -913,13 +913,6 @@ class TextField(ContainedComponent):
             attribute_range_str_list.pop(-1)
 
         attribute_string = \
-            attribute + ': '
-        attribute_string = \
-            attribute + ': ' + str(attribute_info.position) + ': '
-        attribute_string = \
-            attribute + ': ' + \
-            str(attribute_info.position) + ': '
-        attribute_string = \
             attribute + ': ' + \
             str(attribute_info.position) + ': ' + \
             ', '.join(attribute_range_str_list)
