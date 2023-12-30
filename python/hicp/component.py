@@ -343,11 +343,25 @@ class Button(ContainedComponent):
             # Hasn't been set.
             return None
 
-class TextFieldAttribute:
-    def __init__(self, length, is_multivalued, value=None):
+class TextFieldAttributeRange:
+    def __init__(self, length: int, value: str=None):
         self.length = length
-        self.is_multivalued = is_multivalued
         self.value = value
+
+class TextFieldAttribute:
+    def __init__(self, is_multivalued: bool, length: int = 0):
+        self.is_multivalued = is_multivalued
+
+        # Convenience value
+        self.default_value = "" if is_multivalued else False
+
+        self.position = 0
+
+        if length > 0:
+            self.attribute_range_list = [
+                TextFieldAttributeRange(length, self.default_value) ]
+        else:
+            self.attribute_range_list = []
 
 class TextField(ContainedComponent):
     # CONTENT actions
@@ -370,7 +384,7 @@ class TextField(ContainedComponent):
 #            LAYOUT,
             SIZE,
         }
-    NOT_MULTIVALUED_ATTRIBUTES = {
+    BOOLEAN_ATTRIBUTES = {
             BOLD,
             ITALIC,
             UNDERLINE,
@@ -394,14 +408,15 @@ class TextField(ContainedComponent):
 
     CONTENT_INVALID_RE = re.compile("[\\0-\\037]")
 
-    ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *")
+    # Format is <attribute name>: <position> : <range list>
+    ATTRIBUTE_SPLIT_RE = re.compile(" *(.*) *: *(.*) *: *(.*) *")
 
     class HeaderValues(ContainedComponent.HeaderValues):
         def __init__(self):
             self.content = ""
             self.width = None
 
-            # Maps attribute name to a list of TextFieldAttribute objects.
+            # Maps attribute name to TextFieldAttribute objects.
             # When content is set, all attributes are cleared.
             self.attribute_map = {}
 
@@ -421,6 +436,8 @@ class TextField(ContainedComponent):
             super().set_from(other)
             self.content = other.content
             self.width = other.width
+            # Map is copied, but what it contains is shared, be careful.
+            # TODO Fix this.
             self.attribute_map = other.attribute_map.copy()
             self.attribute_string_map = other.attribute_string_map.copy()
             self.attributes = other.attributes
@@ -432,11 +449,14 @@ class TextField(ContainedComponent):
         # This has no practical purpose, it's just for testing the add and del
         # protocol.
 
+        # The header value for the content.
         def get_content_value(self):
             return TextField.SET + ": " + self.content
             
         def get_content(self):
             return self.content
+
+        # Similar for attributes?
             
 
     def __init__(self):
@@ -444,7 +464,7 @@ class TextField(ContainedComponent):
 
         self.component = Component.TEXTFIELD
 
-    def set_content(self, content):
+    def sanitize_content(self, content: str):
         # Content must be a string.
         content = str(content)
 
@@ -454,17 +474,66 @@ class TextField(ContainedComponent):
         content_invalid_match = self.CONTENT_INVALID_RE.search(content)
         if content_invalid_match is not None:
             content = content[:content_invalid_match.start(0)]
-        self.current.content = content
+        return content
+
+    def set_content(self, content):
+        self.current.content = self.sanitize_content(content)
 
         # Clear attributes if there are any.
         if 0 < len(self.current.attributes):
             self.current.attribute_map.clear()
+            self.current.attribute_string_map.clear()
             self.current.attributes = ""
 
-    def add_content(self, position: int, content: str):
+    def add_content(self, position: int, new_content: str):
         # Add to content.
-        # Modify each attribute by extending at position by length of content.
-        ...
+        content = self.current.content
+
+        content_len = len(content)
+        # Position can be negative as a Python index, but HICP only allows
+        # positive from start, so convert that.
+        if position < 0:
+            position = content_len - position
+        # If position not in current content, don't do anything.
+        if position > content_len:
+            return
+
+        new_content = self.sanitize_content(new_content)
+
+        # Do the insert.
+        content = content[:position] + new_content + content[position:]
+        self.current.content = content
+
+        # Modify affected ranges in each TextFieldAttribute by extending at
+        # position by length of content.
+        new_content_len = len(new_content)
+        for attribute_info in self.current.attribute_map.values():
+
+            # Find an attribute range that includes the position just inserted,
+            # and extend it by the new content length.
+            attribute_pos = 0
+            for attribute_range in attribute_info.attribute_range_list:
+                attribute_lim = attribute_pos + attribute_range.length
+                # When inserting at the end of a range, you expect the range to
+                # extend, so do not include first position of this range, but
+                # do include first position of next range (attribute_lim).
+                # Exception: when inserting at position 0, there is no prior
+                # range, so extend current range.
+                first_pos = attribute_pos + 1 if attribute_pos > 0 else 0
+
+                if position >= first_pos and position <= attribute_lim:
+                    # The values in the attribute range list can be directly
+                    # modified.  Probably not the safe way to do it in general,
+                    # but this is the only code controlling this at the moment.
+                    # Keep an eye on it though.
+                    attribute_range.length += new_content_len
+
+                    # This attribute type has been taken care of, on to the
+                    # next one.
+                    break
+
+                # Update attribute position.
+                attribute_pos = attribute_lim
 
     def del_content(self, position: int, length: int):
         # Delete from content from position forward if length is positive,
@@ -472,6 +541,71 @@ class TextField(ContainedComponent):
         # Modify each attribute by shortening at position by length (forward or
         # backward).
         ...
+
+        # Delete from content.
+        content = self.current.content
+
+        content_len = len(content)
+        # Position can be negative as a Python index, but HICP only allows
+        # positive from start, so convert that.
+        if position < 0:
+            position = content_len - position
+        # If position not in current content, don't do anything.
+        if position > content_len:
+            return
+
+        # Do the delete.
+        content = content[:position] + content[position + length:]
+        self.current.content = content
+
+        # Modify affected ranges in each TextFieldAttribute by extending at
+        # position by length of content.
+        for attribute_info in self.current.attribute_map.values():
+            length_ramining = length
+
+            # Find an attribute range that includes the position just inserted,
+            # and extend it by the new content length.
+            attribute_pos = 0
+            for attribute_range in attribute_info.attribute_range_list:
+                attribute_lim = attribute_pos + attribute_range.length
+
+                # For the first attribute range, position should be past
+                # attribute_pos, but might be equal. For following ranges, it
+                # will be equal.
+                if position >= attribute_pos and position < attribute_lim:
+                    # The values in the attribute range list can be directly
+                    # modified.  Probably not the safe way to do it in general,
+                    # but this is the only code controlling this at the moment.
+                    # Keep an eye on it though.
+
+                    # Characters from attribute_pos to position are not
+                    # deleted, so the range cannot be reduced by more than
+                    # that. All other ranges can be reduced completely. In all
+                    # cases, if a range is reduced to 0, remove it (after the
+                    # loop, can't modify what's being iterated over).
+                    min_len = position - attribute_pos
+                    range_len = attribute_range.length
+
+                    attribute_range.length -= length_remaining
+                    if attribute_range.length < min_len:
+                        attribute_range.length = min_len
+
+                    length_deleted = range_len - attribute_range.length
+                    length_kept = range_len - length_deleted
+
+                    length_remaining -= length_deleted
+                    attribute_pos += length_kept
+                else:
+                    # Nothing deleted, update attribute position.
+                    attribute_pos = attribute_lim
+
+                if length_remaining <= 0:
+                    break;
+
+            # Remove 0 length ranges.
+            new_attribute_range_list = \
+                [r for r in attribute_info.attribute_range_list if r.length > 0]
+
 
     def get_content(self):
         return self.current.get_content()
@@ -489,22 +623,19 @@ class TextField(ContainedComponent):
     def set_width(self, width):
         self.current.width = str(width)
 
+    # Indicate binary attribute with value of True/False, multivalue as str
+    # (value can be "" for default, not None).
     def set_attribute(
         self,
-        attribute,
-        new_attribute_range_start=0,
-        new_attribute_range_length=1,
-        value=None
+        attribute: str,
+        new_attribute_range_start: int,
+        new_attribute_range_length: int,
+        value : bool | str
     ):
         # TODO: support MODIFY attributes
 
-        # Attribute and value (if specified) must be strings.
+        # Attribute (if specified) must be string.
         attribute = str(attribute)
-        if value is not None:
-            is_multivalued = True
-            value = str(value)
-        else:
-            is_multivalued = False
 
         # New attribute range can't start past end of content.
         if len(self.current.content) < new_attribute_range_start:
@@ -517,8 +648,9 @@ class TextField(ContainedComponent):
             new_attribute_range_start + new_attribute_range_length
 
         # New attribute range cannot go past end of content - truncate.
-        if len(self.current.content) < new_attribute_range_end:
-            new_attribute_range_end = len(self.current.content)
+        content_len = len(self.current.content)
+        if content_len < new_attribute_range_end:
+            new_attribute_range_end = content_len
             new_attribute_range_length = \
                 new_attribute_range_end - new_attribute_range_start
 
@@ -527,20 +659,17 @@ class TextField(ContainedComponent):
         # Should either strip them out or reject this action - deal with
         # that later.
 
-        attribute_list = self.current.attribute_map.get(attribute)
-        if attribute_list is None:
-            # This is a new attribute for this content.
-            if is_multivalued:
-                # Initial value of multivalued attributes is user agent
-                # default, indicated by "".
-                default_attribute_range = \
-                    TextFieldAttribute(len(self.current.content), is_multivalued, "")
-            else:
-                # Initial value of binary attributes is False ("0").
-                default_attribute_range = \
-                    TextFieldAttribute(len(self.current.content), is_multivalued, "0")
-            attribute_list = [default_attribute_range]
-            self.current.attribute_map[attribute] = attribute_list
+        attribute_info = self.current.attribute_map.get(attribute)
+        if attribute_info is None:
+            is_multivalued = (type(value) == str)
+
+            # Create and add new attribute info to attribute map.
+            attribute_info = \
+                TextFieldAttribute(
+                    is_multivalued,
+                    length = len(self.current.content))
+
+            self.current.attribute_map[attribute] = attribute_info
 
         # Construct new attribute list from old. Any attributes which
         # don't overlap the new attribute range are copied unchanged,
@@ -611,11 +740,12 @@ class TextField(ContainedComponent):
         # 10         :+--+
 
         # New empty attribute list.
-        new_attribute_list = []
+        new_attribute_range_list = []
 
         # Find point in attribute list where new attribute applies.
-        old_attribute_range_start = 0
-        for old_attribute_range in attribute_list:
+        old_attribute_range_start = attribute_info.position
+
+        for old_attribute_range in attribute_info.attribute_range_list:
             old_attribute_range_end = \
                 old_attribute_range_start + old_attribute_range.length
 
@@ -654,9 +784,8 @@ class TextField(ContainedComponent):
                 # Old attribute differs from new attribute.
                 if 3 == range_position or 4 == range_position:
                     # Truncate range, becomes same as 2
-                    old_attribute_range = TextFieldAttribute(
+                    old_attribute_range = TextFieldAttributeRange(
                             new_attribute_range_start - old_attribute_range_start,
-                            old_attribute_range.is_multivalued,
                             old_attribute_range.value
                         )
                     old_attribute_range_end = new_attribute_range_start
@@ -664,9 +793,8 @@ class TextField(ContainedComponent):
 
                 if 8 == range_position or 11 == range_position:
                     # Truncate range, becomes same as 2
-                    old_attribute_range = TextFieldAttribute(
+                    old_attribute_range = TextFieldAttributeRange(
                             old_attribute_range_end - new_attribute_range_end,
-                            old_attribute_range.is_multivalued,
                             old_attribute_range.value
                         )
                     old_attribute_range_start = new_attribute_range_end
@@ -674,47 +802,45 @@ class TextField(ContainedComponent):
 
                 if 1 == range_position or 2 == range_position or 13 == range_position:
                     # Copy unchanged.
-                    new_attribute_list.append(old_attribute_range)
+                    new_attribute_range_list.append(old_attribute_range)
 
                 if 5 == range_position:
                     # Add range truncated to start of new range.
-                    add_attribute_range = TextFieldAttribute(
+                    add_attribute_range = TextFieldAttributeRange(
                             new_attribute_range_start - old_attribute_range_start,
-                            old_attribute_range.is_multivalued,
                             old_attribute_range.value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                     # Add new range.
-                    add_attribute_range = TextFieldAttribute(
-                            new_attribute_range_length, is_multivalued, value
+                    add_attribute_range = TextFieldAttributeRange(
+                            new_attribute_range_length, value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                     # Add range truncated to end of new range.
-                    add_attribute_range = TextFieldAttribute(
+                    add_attribute_range = TextFieldAttributeRange(
                             old_attribute_range_end - new_attribute_range_end,
-                            old_attribute_range.is_multivalued,
                             old_attribute_range.value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                 if 7 == range_position or 10 == range_position:
                     # Add new range.
-                    add_attribute_range = TextFieldAttribute(
-                            new_attribute_range_length, is_multivalued, value
+                    add_attribute_range = TextFieldAttributeRange(
+                            new_attribute_range_length, value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                 if 12 == range_position:
                     # Add new range.
-                    add_attribute_range = TextFieldAttribute(
-                            new_attribute_range_length, is_multivalued, value
+                    add_attribute_range = TextFieldAttributeRange(
+                            new_attribute_range_length, value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                     # Copy old range unchanged.
-                    new_attribute_list.append(old_attribute_range)
+                    new_attribute_range_list.append(old_attribute_range)
 
             else:
                 # Old attribute is the same as new attribute.
@@ -725,46 +851,79 @@ class TextField(ContainedComponent):
                     or 13 == range_position:
 
                     # Copy unchanged.
-                    new_attribute_list.append(old_attribute_range)
+                    new_attribute_range_list.append(old_attribute_range)
 
                 if 2 == range_position or 3 == range_position:
                     # Extend new to start of old, discard old (do nothing).
                     new_attribute_range_start = old_attribute_range_start
 
                 if 11 == range_position or 12 == range_position:
-                    #   New is now
-                    # part of this range, doesn't need to be added.
+                    # New is now part of this range, doesn't need to be added.
                     add_attribute_range_length = \
                         new_attribute_range_start - old_attribute_range_start
-                    add_attribute_range = TextFieldAttribute(
+                    add_attribute_range = TextFieldAttributeRange(
                             new_attribute_range_length
                                 + add_attribute_range_length,
-                            is_multivalued,
                             value
                         )
-                    new_attribute_list.append(add_attribute_range)
+                    new_attribute_range_list.append(add_attribute_range)
 
                 # For 9, 7, 9, 10 do nothing (discard old).
 
-        self.current.attribute_map[attribute] = new_attribute_list
+        attribute_info.attribute_range_list = new_attribute_range_list
 
         # Generate new attributes string for this attribute.
-        # Separator string.
-        attribute_val_list = []
-        for attribute_range in new_attribute_list:
-            if is_multivalued:
-                if "" == attribute_range.value:
-                    # No value, omit "="
-                    attribute_val_list.append(str(attribute_range.length))
-                else:
-                    attribute_val_list.append(
-                        attribute_range.value +
-                            "=" +
-                            str(attribute_range.length) )
+        attribute_range_str_list = []
+        for attribute_range in attribute_info.attribute_range_list:
+            if attribute_info.is_multivalued:
+                attribute_range_str = \
+                    str(attribute_range.length) + \
+                        "=" + \
+                        str(attribute_range.value)
             else:
-                attribute_val_list.append(str(attribute_range.length))
+                attribute_range_str = \
+                    str(attribute_range.length)
+            attribute_range_str_list.append(attribute_range_str)
 
-        attribute_string = attribute + ': ' + ', '.join(attribute_val_list)
+        # If the first range is the default value, remove it, that length
+        # becomes the start position.
+        first_attribute_range = attribute_info.attribute_range_list[0]
+        is_first_range_default = False
+        if attribute_info.is_multivalued:
+            is_first_range_default = (first_attribute_range.value == "")
+        else:
+            is_first_range_default = (first_attribute_range.value == False)
+        if is_first_range_default:
+            # Range length becomes tbe start position of the first
+            # non-default attribute.
+            attribute_info.position = first_attribute_range.length
+            # Discard.
+            attribute_range_str_list.pop(0)
+
+        # If the last range is the default value, it can be removed as
+        # well.
+        last_attribute_range = attribute_info.attribute_range_list[-1]
+        is_last_range_default = False
+        if attribute_info.is_multivalued:
+            is_last_range_default = (last_attribute_range.value == "")
+        else:
+            is_last_range_default = (last_attribute_range.value == False)
+        if is_last_range_default:
+            # Discard.
+            attribute_range_str_list.pop(-1)
+
+        attribute_string = \
+            attribute + ': '
+        attribute_string = \
+            attribute + ': ' + str(attribute_info.position) + ': '
+        attribute_string = \
+            attribute + ': ' + \
+            str(attribute_info.position) + ': '
+        attribute_string = \
+            attribute + ': ' + \
+            str(attribute_info.position) + ': ' + \
+            ', '.join(attribute_range_str_list)
+
         self.current.attribute_string_map[attribute] = attribute_string
 
         # Generate new attributes string from all indiviaual attribute
@@ -783,40 +942,86 @@ class TextField(ContainedComponent):
             for attribute_string in attribute_list_string.split("\r\n"):
                 attribute_match = self.ATTRIBUTE_SPLIT_RE.search(attribute_string)
                 try:
-                    (attribute_name, attribute_values_string) = \
-                        attribute_match.group(1, 2)
+                    (attribute_name, position, attribute_ranges_string) = \
+                        attribute_match.group(1, 2, 3)
+
+                    is_multivalued = \
+                        (attribute_name in self.MULTIVALUED_ATTRIBUTES)
 
                     # If no values, skip attribute.
-                    # ''.split(',') will create a 1 element list of [''], not a 0
-                    # element list. Easy to forget.
-                    if 0 < len(attribute_values_string):
+                    if 0 < len(attribute_ranges_string):
+                        attribute_range_list = []
+                        length_total = 0
+
+                        # Length 0 means no default range - all comes from
+                        # attribute string.
+                        attribute_info = TextFieldAttribute(is_multivalued)
+
+                        # Specified ranges start with True, there will always
+                        # be an explicit (if position is specified) or implicit
+                        # False range first.
+                        prev_boolean = False
+
+                        # If first range position doesn't start at 0,
+                        # add placeholder range with default value.
+                        if position > 0:
+                            attribute_range_list.append(
+                                TextFieldAttributeRange(
+                                    position, attribute_info.default_value) )
+                            length_total += position
+
                         # split attribute value string into list of strings.
-                        attribute_values_list = attribute_values_string.split(",")
+                        attribute_range_str_list = \
+                            attribute_ranges_string.split(",")
 
-                        attribute_list = []
-                        for attribute_value_str in attribute_values_list:
+                        for attribute_range_str in attribute_range_str_list:
                             # Try splitting by "=".
-                            attribute_value_str_list = attribute_value_str.split("=")
-                            if 2 == len(attribute_value_str_list):
-                                value = attribute_value_str_list[0].strip()
-                                length = int(attribute_value_str_list[1])
+                            attribute_range_parts = \
+                                attribute_range_str.split("=")
+
+                            # Index and parse errors are caught below,
+                            # attribute is skipped.
+                            length = int(attribute_range_parts[0].strip())
+                            length_total += length
+
+                            if is_multivalued:
+                                if 2 <= len(attribute_range_parts):
+                                    value = attribute_range_parts[1].strip()
+                                else:
+                                    value = ""
                             else:
-                                value = ""
-                                length = int(attribute_value_str_list[0])
+                                value = not prev_boolean
+                                prev_boolean = value
 
-                            is_multivalued = attribute_name in self.MULTIVALUED_ATTRIBUTES
-                            attribute_list.append(
-                                TextFieldAttribute(length, is_multivalued, value) )
+                            attribute_range = \
+                                TextFieldAttributeRange(length, value)
 
-                        new_attribute_map[attribute_name] = attribute_list
+                            attribute_range_list.append(attribute_range)
+
+                        # There might be a gap between the last range and the
+                        # actual end of the content. Fill it with a default
+                        # range.
+                        if length_total < len(self.current.content):
+                            remaining_len = \
+                                len(self.current.content) - length_total
+                            last_attribute_range = \
+                                TextFieldAttributeRange(
+                                    remaining_len, attribute_info.default_value)
+                            attribute_range_list.append(last_attribute_range)
+
+                        attribute_info.attribute_range_list = \
+                            new_attribute_range_list
+                        new_attribute_map[attribute_name] = attribute_info
+
                         new_attribute_string_map[attribute_name] = attribute_string
 
                 except (IndexError, ValueError):
-                    # No valid attribute list, skip this one.
+                    # Not a valid attribute list, skip this one.
                     self.logger.debug("attribute list invalid: " + attribute_string)
                     pass
             
         self.current.attribute_map = new_attribute_map
+
         # Maybe should construct strings from attribute map because they
         # might have had errors?
         self.current.attribute_string_map = new_attribute_string_map
@@ -836,11 +1041,11 @@ class TextField(ContainedComponent):
     def fill_headers_modify(self, message):
         super().fill_headers_modify(message)
 
-        sent_content = self.sent.get_content_value()
-        content = self.current.get_content_value()
+        sent_content = self.sent.get_content()
+        content = self.current.get_content()
 
         if sent_content != content:
-            message.add_header(Message.CONTENT, content)
+            message.add_header(Message.CONTENT, self.current.get_content_value())
 
         if self.sent.width != self.current.width:
             message.add_header(Message.WIDTH, self.current.width)
