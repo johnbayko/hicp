@@ -605,6 +605,7 @@ class TextField(ContainedComponent):
             # Remove 0 length ranges.
             new_attribute_range_list = \
                 [r for r in attribute_info.attribute_range_list if r.length > 0]
+            attribute_info.attribute_range_list = new_attribute_range_list
 
 
     def get_content(self):
@@ -938,6 +939,9 @@ class TextField(ContainedComponent):
                     (attribute_name, position, attribute_ranges_string) = \
                         attribute_match.group(1, 2, 3)
 
+                    # Parse exception caught below.
+                    position = int(position)
+
                     is_multivalued = \
                         (attribute_name in self.MULTIVALUED_ATTRIBUTES)
 
@@ -1003,7 +1007,7 @@ class TextField(ContainedComponent):
                             attribute_range_list.append(last_attribute_range)
 
                         attribute_info.attribute_range_list = \
-                            new_attribute_range_list
+                            attribute_range_list
                         new_attribute_map[attribute_name] = attribute_info
 
                         new_attribute_string_map[attribute_name] = attribute_string

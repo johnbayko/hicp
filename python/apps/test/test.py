@@ -412,7 +412,7 @@ class TestApp(App):
         text_field.set_content("This _is ^text.")
         # debug - test binary attribute - underline "is"
         # Should be: 5 2 6
-        text_field.set_attribute(TextField.UNDERLINE, 6, 2)
+        text_field.set_attribute(TextField.UNDERLINE, 6, 2, True)
         # debug - test value attribute - size of "text"
         # Should be: 8 2=4 1
         text_field.set_attribute(TextField.SIZE, 10, 4, "2")
