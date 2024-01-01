@@ -605,6 +605,29 @@ class TextField(ContainedComponent):
             # Remove 0 length ranges.
             new_attribute_range_list = \
                 [r for r in attribute_info.attribute_range_list if r.length > 0]
+
+            # TODO Merge ranges with the same value.
+            # Set attribute will search for existing ranges, and extend if
+            # value is same.
+            # Add content will just extend existing attributes.
+            # So just need to do merges here.
+            range_lim = len(new_attribute_range_list) - 1
+            range_idx = 0
+            while range_idx < range_lim:
+                next_range_idx = range_idx + 1
+
+                current_range = new_attribute_range_list[range_idx]
+                next_range = new_attribute_range_list[next_range_idx]
+
+                if current_range.value == next_range.value:
+                    current_range.length += next_range.length
+                    new_attribute_range_list.pop(next_range_idx)
+                    range_lim -= 1
+
+                    # Don't advance to next range yet.
+                else:
+                    range_idx += 1
+
             attribute_info.attribute_range_list = new_attribute_range_list
 
 
