@@ -279,49 +279,50 @@ public class TextFieldItem
 
         // See what's changed.
         if (null != guiTextFieldInfo.contentInfo) {
-            boolean contentChanged = false;
-//            final String modifyContent;
+            // Content and attriutes can only be changed when component is not
+            // editable.
+            if (_component.isEditable()) {
+                boolean contentChanged = false;
 
-            switch (guiTextFieldInfo.contentInfo.action) {
-              case SET:
-                {
-                    final var setInfo =
-                        guiTextFieldInfo.contentInfo.getSetInfo();
-                    setContent(setInfo, attributeListInfo);
-                    contentChanged = true;
-                }
-                break;
-              case ADD:
-                {
-                    final var addInfo =
-                        guiTextFieldInfo.contentInfo.getAddInfo();
-                    if (null != addInfo) {
-                        addContent(addInfo, attributeListInfo);
-                        contentChanged = true;
+                switch (guiTextFieldInfo.contentInfo.action) {
+                  case SET:
+                    {
+                        final var setInfo =
+                            guiTextFieldInfo.contentInfo.getSetInfo();
+                        if (null != setInfo) {
+                            setContent(setInfo, attributeListInfo);
+                            contentChanged = true;
+                        }
                     }
-                }
-                break;
-              case DELETE:
-                {
-                    final var deleteInfo =
-                        guiTextFieldInfo.contentInfo.getDeleteInfo();
-                    if (null != deleteInfo) {
-                       deleteContent(deleteInfo);
-                       contentChanged = true;
+                    break;
+                  case ADD:
+                    {
+                        final var addInfo =
+                            guiTextFieldInfo.contentInfo.getAddInfo();
+                        if (null != addInfo) {
+                            addContent(addInfo, attributeListInfo);
+                            contentChanged = true;
+                        }
                     }
+                    break;
+                  case DELETE:
+                    {
+                        final var deleteInfo =
+                            guiTextFieldInfo.contentInfo.getDeleteInfo();
+                        if (null != deleteInfo) {
+                           deleteContent(deleteInfo);
+                           contentChanged = true;
+                        }
+                    }
+                    break;
+                  // Could be null, I guess.
+                  default:
+                    break;
                 }
-                break;
-              // Could be null, I guess.
-              default:
-                break;
-            }
 
-            if (!contentChanged) {
-                // Content not changed, but maybe attributes are.
-                if (attributeListInfo.hasAttributes()) {
-                    // Attributes can only be updated if component is not
-                    // editable.
-                    if (_component.isEditable()) {
+                if (!contentChanged) {
+                    // Content not changed, but maybe attributes are.
+                    if (attributeListInfo.hasAttributes()) {
                         _document.modifyAttributeListInfo(0, attributeListInfo);
                     }
                 }

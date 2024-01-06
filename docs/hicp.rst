@@ -811,6 +811,12 @@ content: <content change> ":" <content_info>
       - "add"
       - "delete"
 
+    When modifying content, if the component is editable there is no guarantee
+    the actual content matches the expected content, so the user agent should
+    discard "add" or "delete" actions. The user agent can decide how to handle
+    "set" actions but the user will likely not expect the content being edited
+    to change, so those changes can be discarded as well.
+
     "set":
       Replace any existing content. <content_info> is::
 
@@ -853,7 +859,8 @@ content: <content change> ":" <content_info>
         ..."" has space for 2 new characters, and the text "amazing" is added
         to position 3, then the new text will start with "ing experience ..."".
 
-      When text is added to the content, the corresponding attribute segment is
+      When text is added to the content, any corresponding attribute segments
+      are
       incremented. The user agent can decide what to do when inserting text at
       the beginning of an attribute segment, but users will generally expect
       the previous segment to extended. For example, if the content is "I said

@@ -477,6 +477,11 @@ class TextField(ContainedComponent):
         return content
 
     def set_content(self, content):
+        # Can only modify (after added) content and attributes if disabled.
+        if self.is_added():
+            if TextField.DISABLED != self.sent.events:
+                return
+
         self.current.content = self.sanitize_content(content)
 
         # Clear attributes if there are any.
@@ -486,6 +491,11 @@ class TextField(ContainedComponent):
             self.current.attributes = ""
 
     def add_content(self, position: int, new_content: str):
+        # Can only modify (after added) content and attributes if disabled.
+        if self.is_added():
+            if TextField.DISABLED != self.sent.events:
+                return
+
         # Add to content.
         content = self.current.content
 
@@ -536,6 +546,11 @@ class TextField(ContainedComponent):
                 attribute_pos = attribute_lim
 
     def del_content(self, position: int, length: int):
+        # Can only modify (after added) content and attributes if disabled.
+        if self.is_added():
+            if TextField.DISABLED != self.sent.events:
+                return
+
         # Delete from content from position forward if length is positive,
         # backward if negative.
         # Modify each attribute by shortening at position by length (forward or
@@ -656,7 +671,13 @@ class TextField(ContainedComponent):
         new_attribute_range_length: int,
         value : bool | str
     ):
+        # Can only modify (after added) content and attributes if disabled.
+        if self.is_added():
+            if TextField.DISABLED != self.sent.events:
+                return
+
         # TODO: support MODIFY attributes
+        # Check - done with command change?
 
         # Attribute (if specified) must be string.
         attribute = str(attribute)
