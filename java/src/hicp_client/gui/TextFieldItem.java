@@ -220,7 +220,7 @@ public class TextFieldItem
             // Attribute positions need to be shifted by the text insertion
             // position to apply to the inserted text.
             _document.modifyAttributeListInfo(
-                addInfo.position, attributeListInfo
+                attributeListInfo
             );
         }
         // Save copy nobody else can access for checking if attributes changed
@@ -323,7 +323,7 @@ public class TextFieldItem
                 if (!contentChanged) {
                     // Content not changed, but maybe attributes are.
                     if (attributeListInfo.hasAttributes()) {
-                        _document.modifyAttributeListInfo(0, attributeListInfo);
+                        _document.modifyAttributeListInfo(attributeListInfo);
                     }
                 }
             }

@@ -894,14 +894,16 @@ attributes: <attribute specifiers>
   "textfield", "textpanel":
     Specifies display attributes for the text contained by the component.
 
-    When specified with a "content" header, the attributes apply to the "set"
-    or "add" content (e.g if the word "street" is appended to "Walter "
-    resulting in "Walter street", and the attribute specifies bold from 0 to 5,
-    this applies to "street", not "Walter"). Any attributes specified with a
-    "delete" content changed have no content to apply to so must be ignored.
+    When specified with a "content" header, the attributes apply to the content
+    after the content change is applied.
 
-    If there is no content, attributes apply to the component's existing
-    content.  If the component is editable, there is no guarantee the actual
+      Q: Should the attributes only apply to the content that was sent?
+
+      A: Attributes can be changed for the entire content independently of
+      content updates. Limiting attribute change scope means an additional
+      modify command would be needed.
+
+    If the component is editable, there is no guarantee the actual
     content matches the expected content, so the user agent should discard the
     attribute information. Existing attributes (specifically the user agent
     defaults when the content is first set) not covered by the new attributes
@@ -1091,6 +1093,7 @@ attributes: <attribute specifiers>
       output again.
 
     "layout"
+      [Will probably change a lot when I get around to implementing]
       This only applies to "textpanel" components, which wrap text at the
       end of each line to continue on the next (as specified by the
       panel's text direction), and scrolling line-by-line. "textfield"

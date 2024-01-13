@@ -177,22 +177,21 @@ public class AttributeTrackDocument
             // Convert attribute position + range list to all ranges to simplify
             // insert/remove.
             if (attribute.hasValues()) {
-                setValueAttribute(0, attribute);
+                setValueAttribute(attribute);
             } else {
-                setBooleanAttribute(0, attribute);
+                setBooleanAttribute(attribute);
             }
         }
         return this;
     }
 
     protected AttributeTrackDocument setValueAttribute(
-        final int offset,
         final AttributeInfo attribute
     ) {
         final List<ValueRange> rangeList = new ArrayList<>();
 
         // Need to insert a default range if position > 0.
-        final int position = offset + attribute.position;
+        final int position = attribute.position;
         if (0 < position) {
             final var firstRange = new ValueRange(position);
             rangeList.add(firstRange);
@@ -207,7 +206,6 @@ public class AttributeTrackDocument
     }
 
     protected AttributeTrackDocument setBooleanAttribute(
-        final int offset,
         final AttributeInfo attribute
     ) {
         final List<BooleanRange> rangeList = new ArrayList<>();
@@ -215,7 +213,7 @@ public class AttributeTrackDocument
         // First boolean range from attribute command is always on, so
         // need to insert an off range for boolean range
         // if position > 0.
-        final int position = offset + attribute.position;
+        final int position = attribute.position;
         if (0 < position) {
             final var firstRange = new BooleanRange(position);
             rangeList.add(firstRange);
@@ -230,7 +228,6 @@ public class AttributeTrackDocument
     }
 
     public AttributeTrackDocument modifyAttributeListInfo(
-        final int offset,
         final AttributeListInfo newAttributeList
     ) {
         if (null == newAttributeList) {
@@ -242,10 +239,10 @@ public class AttributeTrackDocument
                     attributeValuesMap.get(newAttribute.name);
                 if (null == rangeList) {
                     // This is a new attribute.
-                    setValueAttribute(offset, newAttribute);
+                    setValueAttribute(newAttribute);
                 } else {
                     changeRangeList(
-                        offset, newAttribute, RangeTypes.VALUE, rangeList
+                        newAttribute, RangeTypes.VALUE, rangeList
                     );
                 }
             } else {
@@ -253,10 +250,10 @@ public class AttributeTrackDocument
                     attributeBooleanMap.get(newAttribute.name);
                 if (null == rangeList) {
                     // This is a new attribute.
-                    setBooleanAttribute(offset, newAttribute);
+                    setBooleanAttribute(newAttribute);
                 } else {
                     changeRangeList(
-                        offset, newAttribute, RangeTypes.BOOLEAN, rangeList
+                        newAttribute, RangeTypes.BOOLEAN, rangeList
                     );
                 }
             }
@@ -265,7 +262,6 @@ public class AttributeTrackDocument
     }
 
     private <T extends Range> AttributeTrackDocument changeRangeList(
-        final int offset,
         final AttributeInfo newAttribute,
         final RangeType<T> rangeType,
         final List<T> rangeList
@@ -274,7 +270,7 @@ public class AttributeTrackDocument
         // modify the existing list?
 
         // How long is the span for the new list?
-        final int position = offset + newAttribute.position;
+        final int position = newAttribute.position;
         int newRangeListLim = position;
         for (final var newAttributeRange : newAttribute.getRangeList()) {
             newRangeListLim += newAttributeRange.length;
