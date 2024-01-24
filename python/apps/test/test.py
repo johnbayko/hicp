@@ -19,7 +19,6 @@ class ButtonHandler:
         self.__next_text_id = next_text_id
 
     def update(self, hicp, event, component):
-        self.logger.debug("ButtonHandler In update handler")
         self.__label.set_text_id(self.__next_text_id)
         self.__label.update()
 
@@ -75,6 +74,12 @@ class TextFieldChanger:
 
     # These should be called in the Update thread.
 
+    def update_length(self):
+        field_text = self._field.get_content()
+        field_text_len = len(field_text)
+        self._length_field.set_content(str(field_text_len))
+        self._length_field.update()
+
 #    def del_before(self):
 #        ...
 
@@ -82,17 +87,11 @@ class TextFieldChanger:
 #        ...
 
     def add_text(self):
-#        print(f'start add_text()')  # debug
         self._field.add_content(self._position, self._add_text)
-#        print(f'after add_content({str(self._position)}, {self._add_text})')  # debug
-#        print(f'get_content() {self._field.get_content()}')  # debug
         self._field.update()
 
         # No change event from client, so update text length here.
-        field_text = self._field.get_content()
-        field_text_len = len(field_text)
-        self._length_field.set_content(str(field_text_len))
-        self._length_field.update()
+        self.update_length()
 
 
 class TextPositionHandler:
@@ -107,15 +106,22 @@ class TextPositionHandler:
 
     def update(self, hicp, event, text_position_field):
         new_position_str = event.message.get_header(Message.CONTENT)
+        print(f'new_position_str {new_position_str}')  # debug
         try:
             # Must be integer, but no range checks, protocol must handle that.
             new_position = int(new_position_str)
+            print(f'after new_position = int(new_position_str)')  # debug
             self._text_field_changer.set_position(new_position)
+            print(f'after self._text_field_changer.set_position(new_position)')  # debug
 
-            # Update to canonical representation.
-            new_position_str = str(new_position)
-            text_position_field.set_content(new_position_str)
-            text_position_field.update()
+            updated_position_str = str(new_position)
+            print(f'updated_position_str {updated_position_str}')  # debug
+            if new_position_str != updated_position_str:
+                # Update to canonical representation.
+                text_position_field.set_content(updated_position_str)
+                print(f'after text_position_field.set_content("{updated_position_str}")')  # debug
+                text_position_field.update()
+                print(f'after text_position_field.update()')  # debug
         except ValueError:
             old_position = self._text_field_changer.get_position()
             # Set contents to old valid value.

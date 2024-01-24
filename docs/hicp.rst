@@ -811,11 +811,11 @@ content: <content change> ":" <content_info>
       - "add"
       - "delete"
 
-    When modifying content, if the component is editable there is no guarantee
-    the actual content matches the expected content, so the user agent should
-    discard "add" or "delete" actions. The user agent can decide how to handle
-    "set" actions but the user will likely not expect the content being edited
-    to change, so those changes can be discarded as well.
+    When modifying content, if the component being edited there is no guarantee
+    the actual content matches the expected content, so the user agent must
+    discard content changes in that case. In response, the user agent must send
+    a "changed" event with the last unedited content and attributes to indicate
+    the command was rejected.
 
     "set":
       Replace any existing content. <content_info> is::
@@ -847,7 +847,7 @@ content: <content change> ":" <content_info>
       indicating where <text> is to be inserted. Any position outside the valid
       range above may be be ignored, and no text will be added.
 
-      If the new text would exceed the comp[onent's capacity, then text must be
+      If the new text would exceed the component's capacity, then text must be
       deleted to make room based on the value of <position>.
 
       0:
@@ -903,9 +903,11 @@ attributes: <attribute specifiers>
       content updates. Limiting attribute change scope means an additional
       modify command would be needed.
 
-    If the component is editable, there is no guarantee the actual
-    content matches the expected content, so the user agent should discard the
-    attribute information. Existing attributes (specifically the user agent
+    Same conditions apply here as to "content" when a content is being edited:
+    the change command must ignored, and a change event with current values
+    generated in response.
+
+    Existing attributes (specifically the user agent
     defaults when the content is first set) not covered by the new attributes
     are unchanged.
 
@@ -1135,6 +1137,10 @@ events: [ "enabled" | "disabled" ]
 
     "disabled":
       The user input does not change the content.
+
+      If the user is in the process of editing the content when this is
+      received as part of a modify command, the user agent should discard any
+      incomplete edits before making the component uneditable.
 
   "button":
     Indicates whether the button will generate events.

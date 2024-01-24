@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import javax.swing.JTextField;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +34,7 @@ public class TextFieldItem
     protected final MessageExchange _messageExchange;
 
     protected JTextField _component;
+    protected boolean _is_editing = false;
 
     protected String _content = "";
     protected AttributeTrackDocument _document;
@@ -51,20 +54,26 @@ public class TextFieldItem
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
-        final var attributeListInfo = guiTextFieldInfo.getAttributeListInfo();
 
         // TODO: If no width specified, use contents for default width.
         _component = new JTextField(guiTextFieldInfo.width);
         _document = new AttributeTrackDocument();
         _component.setDocument(_document);
 
-        // Add can only send set action with full content.
-        {
-            final var setInfo = guiTextFieldInfo.contentInfo.getSetInfo();
-            setContent(
-                setInfo,
-                attributeListInfo
-            );
+        // Add can only send set action with full content, so getSetInfo() is
+        // valid.
+        if (guiTextFieldInfo.hasContent()) {
+            final var contentInfo = guiTextFieldInfo.getContentInfo();
+            final var setInfo = contentInfo.getSetInfo();
+            setContent(setInfo);
+        }
+        if (guiTextFieldInfo.hasAttributes()) {
+            final var attributeListInfo =
+                guiTextFieldInfo.getAttributeListInfo();
+            _document.setAttributeListInfo(attributeListInfo);
+            // Save copy nobody else can access for checking if attributes
+            // changed later.
+            _attributeListInfo = _document.getAttributeListInfo();
         }
 
 // Is this needed if there's a focus listener?
@@ -72,6 +81,7 @@ public class TextFieldItem
             new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     sendChangedEventIfEdited();
+                    _is_editing = false;
                 }
             }
         );
@@ -83,9 +93,23 @@ public class TextFieldItem
                 }
                 public void focusLost(FocusEvent e) {
                     sendChangedEventIfEdited();
+                    _is_editing = false;
                 }
             }
         );
+        _component.addKeyListener(
+            new KeyListener() {
+                public void keyPressed(KeyEvent e) {
+                    _is_editing = true;
+                }
+                public void keyTyped(KeyEvent e) { }
+                public void keyReleased(KeyEvent e) { }
+            }
+        );
+        // Can mouse based changes happen (e.g select, paste) happen without
+        // triggering one of these events?
+        // Might need to add DocumentListener to _document (includes attribute
+        // changes).
 
         setEvents(guiTextFieldInfo.events);
         return this;
@@ -132,6 +156,21 @@ public class TextFieldItem
         }
     }
 
+    protected void sendChangedEvent() {
+        // Send a changed event with this object's ID
+        // and current content.
+        final var changedEvent = new Message(EventInfo.Event.CHANGED);
+        final var eventInfo = changedEvent.getEventInfo();
+        final var itemInfo = eventInfo.getItemInfo();
+        final var textFieldInfo = itemInfo.getTextFieldInfo();
+
+        itemInfo.id = idString;
+        textFieldInfo.content = _content;
+        textFieldInfo.setAttributeListInfo(_attributeListInfo);
+
+        _messageExchange.send(changedEvent);
+    }
+
     public Component getComponent() {
         return _component;
     }
@@ -151,8 +190,7 @@ public class TextFieldItem
     final static Pattern nonPrintablePattern = Pattern.compile("\\p{Cntrl}");
 
     protected void setContent(
-        final ContentInfo.SetInfo setInfo,
-        final AttributeListInfo attributeListInfo
+        final ContentInfo.SetInfo setInfo
     ) {
         // Make sure content is valid.
         String content = setInfo.text;
@@ -169,21 +207,10 @@ public class TextFieldItem
 
         _component.setText(content);
         _content = content;
-
-        // This keeps track of attributes associated with content string, but
-        // document could have text changed events fired, so set the text
-        // attributes after the text has been set.
-        if (null != attributeListInfo) {
-            _document.setAttributeListInfo(attributeListInfo);
-        }
-        // Save copy nobody else can access for checking if attributes changed
-        // later.
-        _attributeListInfo = new AttributeListInfo(attributeListInfo);
     }
 
     protected void addContent(
-        final ContentInfo.AddInfo addInfo,
-        final AttributeListInfo attributeListInfo
+        final ContentInfo.AddInfo addInfo
     ) {
         // Make sure content is valid.
         String addText = addInfo.text;
@@ -213,19 +240,6 @@ public class TextFieldItem
 
         _document.setUpdateAttributes(true);
         _content = newText;
-
-        if (null != attributeListInfo) {
-            // Text is now changed, and attributes at the insertion point have
-            // been expanded. Apply any attributes to the inserted text.
-            // Attribute positions need to be shifted by the text insertion
-            // position to apply to the inserted text.
-            _document.modifyAttributeListInfo(
-                attributeListInfo
-            );
-        }
-        // Save copy nobody else can access for checking if attributes changed
-        // later.
-        _attributeListInfo = _document.getAttributeListInfo();
     }
 
     protected void deleteContent(
@@ -266,6 +280,9 @@ public class TextFieldItem
                 : true; // Default is enabled.
 
         if (_component.isEditable() != enabled) {
+            // If this disables editing, it should restore the text to what it
+            // was before editing started (in component and document). Check if
+            // it does.
             _component.setEditable(enabled);
         }
         return this;
@@ -275,43 +292,36 @@ public class TextFieldItem
         final var itemInfo = commandInfo.getItemInfo();
         final var guiInfo = itemInfo.getGUIInfo();
         final var guiTextFieldInfo = guiInfo.getGUITextFieldInfo();
-        final var attributeListInfo = guiTextFieldInfo.getAttributeListInfo();
 
         // See what's changed.
-        if (null != guiTextFieldInfo.contentInfo) {
-            // Content and attriutes can only be changed when component is not
-            // editable.
-            if (_component.isEditable()) {
-                boolean contentChanged = false;
+        if (!_is_editing) {
+            if (guiTextFieldInfo.hasContent()) {
+                final var contentInfo = guiTextFieldInfo.getContentInfo();
 
-                switch (guiTextFieldInfo.contentInfo.action) {
+                switch (contentInfo.action) {
                   case SET:
+                    // Content can be replaced when editable, but not while user
+                    // is editing.
                     {
-                        final var setInfo =
-                            guiTextFieldInfo.contentInfo.getSetInfo();
-                        if (null != setInfo) {
-                            setContent(setInfo, attributeListInfo);
-                            contentChanged = true;
-                        }
+                        final var setInfo = contentInfo.getSetInfo();
+                        setContent(setInfo);
                     }
                     break;
                   case ADD:
+                    // Content can not be modified when editable.
                     {
-                        final var addInfo =
-                            guiTextFieldInfo.contentInfo.getAddInfo();
+                        final var addInfo = contentInfo.getAddInfo();
                         if (null != addInfo) {
-                            addContent(addInfo, attributeListInfo);
-                            contentChanged = true;
+                            addContent(addInfo);
                         }
                     }
                     break;
                   case DELETE:
+                    // Content can not be modified when editable.
                     {
-                        final var deleteInfo =
-                            guiTextFieldInfo.contentInfo.getDeleteInfo();
+                        final var deleteInfo = contentInfo.getDeleteInfo();
                         if (null != deleteInfo) {
                            deleteContent(deleteInfo);
-                           contentChanged = true;
                         }
                     }
                     break;
@@ -319,16 +329,27 @@ public class TextFieldItem
                   default:
                     break;
                 }
-
-                if (!contentChanged) {
-                    // Content not changed, but maybe attributes are.
-                    if (attributeListInfo.hasAttributes()) {
-                        _document.modifyAttributeListInfo(attributeListInfo);
-                    }
+            }
+            if (guiTextFieldInfo.hasAttributes()) {
+                final var attributeListInfo =
+                    guiTextFieldInfo.getAttributeListInfo();
+                if (attributeListInfo.hasAttributes()) {
+                    _document.modifyAttributeListInfo(attributeListInfo);
+                    // Save copy nobody else can access for checking if
+                    // attributes changed later.
+                    _attributeListInfo = _document.getAttributeListInfo();
                 }
             }
+        } else {
+            if ( guiTextFieldInfo.hasContent()
+              || guiTextFieldInfo.hasAttributes()
+            ) {
+                // Reject the modify command, and send a changed event back with
+                // the current values.
+                sendChangedEvent();
+            }
         }
-        if (guiTextFieldInfo.hasWidth) {
+        if (guiTextFieldInfo.hasWidth()) {
             if (guiTextFieldInfo.width != _component.getColumns()) {
                 _component.setColumns(guiTextFieldInfo.width);
                 // Resize?

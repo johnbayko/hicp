@@ -36,10 +36,15 @@ public class GUITextFieldInfo {
         }
     }
 
-    public ContentInfo contentInfo = null;
+    protected ContentInfo contentInfo = null;
+    protected boolean hasContent = false;
+
+    protected AttributeListInfo attributeListInfo = null;
+    protected boolean hasAttributes = false;
+
     public int width = 7;  // Arbitrary default
-    public boolean hasWidth = false;
-    private AttributeListInfo attributeListInfo = null;
+    protected boolean hasWidth = false;
+
     public EventsEnum events = null;
 
     private HeaderMap _headerMap = Message.DEFAULT_HEADER_MAP;
@@ -49,28 +54,26 @@ public class GUITextFieldInfo {
 
     public GUITextFieldInfo(final HeaderMap headerMap) {
         _headerMap = headerMap;
-        {
-            final boolean hasContent = headerMap.has(HeaderEnum.CONTENT);
-            if (hasContent) {
-                try {
-                    contentInfo = new ContentInfo(headerMap);
-                } catch (ParseException pe) {
-                    // Leave it as null, no valid content action.
-                }
+
+        hasContent = headerMap.has(HeaderEnum.CONTENT);
+        if (hasContent) {
+            try {
+                contentInfo = new ContentInfo(headerMap);
+            } catch (ParseException pe) {
+                // Leave it as null, no valid content action.
             }
         }
-        {
-            final boolean hasWidth = headerMap.has(HeaderEnum.WIDTH);
-            if (hasWidth) {
-                width = headerMap.getInt(HeaderEnum.WIDTH, width);
-            }
+
+        hasWidth = headerMap.has(HeaderEnum.WIDTH);
+        if (hasWidth) {
+            width = headerMap.getInt(HeaderEnum.WIDTH, width);
         }
-        {
-            final boolean hasAttributes = headerMap.has(HeaderEnum.ATTRIBUTES);
-            if (hasAttributes) {
-                attributeListInfo = new AttributeListInfo(_headerMap);
-            }
+
+        hasAttributes = headerMap.has(HeaderEnum.ATTRIBUTES);
+        if (hasAttributes) {
+            attributeListInfo = new AttributeListInfo(_headerMap);
         }
+
         events =
             EventsEnum.getEnum(
                 headerMap.getString(HeaderEnum.EVENTS)
@@ -93,11 +96,33 @@ public class GUITextFieldInfo {
         return this;
     }
 
+    public boolean hasContent() {
+        return hasContent;
+    }
+
+    public ContentInfo getContentInfo() {
+        try {
+            if (null == contentInfo) {
+                contentInfo = new ContentInfo(_headerMap);
+            }
+        } catch (ParseException pe) {
+            return null;
+        }
+        return contentInfo;
+    }
+
+    public boolean hasAttributes() {
+        return hasAttributes;
+    }
+
     public AttributeListInfo getAttributeListInfo() {
         if (null == attributeListInfo) {
             attributeListInfo = new AttributeListInfo(_headerMap);
         }
         return attributeListInfo;
     }
-}
 
+    public boolean hasWidth() {
+        return hasWidth;
+    }
+}

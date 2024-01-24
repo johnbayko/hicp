@@ -36,6 +36,8 @@ keep track of which items have been changed so they can be sent in
     def __init__(self):
         self.logger = newLogger(type(self).__name__)
 
+# TODO Sent should also be updated for a changed event?
+# Sort out which components need that.
         self.current = self.HeaderValues()
         self.sent = self.HeaderValues()
 
@@ -442,13 +444,6 @@ class TextField(ContainedComponent):
             self.attribute_string_map = other.attribute_string_map.copy()
             self.attributes = other.attributes
 
-        # TODO add add_content() and del_content() methods.
-        # If called once, store the change and send as "content: add:" or
-        # "content: del:" actions.  If called more than
-        # once before update(), they replace the existing content.
-        # This has no practical purpose, it's just for testing the add and del
-        # protocol.
-
         # The header value for the content.
         def get_content_value(self):
             return TextField.SET + ": " + self.content
@@ -477,10 +472,11 @@ class TextField(ContainedComponent):
         return content
 
     def set_content(self, content):
+        # Replace entire content is allowed for editable component.
         # Can only modify (after added) content and attributes if disabled.
-        if self.is_added():
-            if TextField.DISABLED != self.sent.events:
-                return
+#        if self.is_added():
+#            if TextField.DISABLED != self.sent.events:
+#                return
 
         self.current.content = self.sanitize_content(content)
 
@@ -551,8 +547,6 @@ class TextField(ContainedComponent):
             if TextField.DISABLED != self.sent.events:
                 return
 
-        # Delete from content from position forward if length is positive,
-        # backward if negative.
         # Modify each attribute by shortening at position by length (forward or
         # backward).
         ...
@@ -565,21 +559,40 @@ class TextField(ContainedComponent):
         # positive from start, so convert that.
         if position < 0:
             position = content_len - position
+
         # If position not in current content, don't do anything.
         if position > content_len:
             return
 
         # Do the delete.
+        # Delete from content from position forward if length is positive,
+        # backward if negative.
+        if length < 0:
+            length = -length
+            position -= length
+            # If length > original position, position is now before start of
+            # content.
+            if position < 0:
+                # Adjust position to start of content and length to ignore
+                # anything before start of content (does not exist).
+                before_start_len = 0 - position
+                if before_start_len > length:
+                    # Position is so far before start that there is no overlap
+                    # with the content, so nothing to delete.
+                    return
+                length -= before_start_len
+                position = 0
+
         content = content[:position] + content[position + length:]
         self.current.content = content
 
-        # Modify affected ranges in each TextFieldAttribute by extending at
-        # position by length of content.
+        # Modify affected ranges in each TextFieldAttribute by reducing at
+        # position by length of deletion.
         for attribute_info in self.current.attribute_map.values():
             length_ramining = length
 
             # Find an attribute range that includes the position just inserted,
-            # and extend it by the new content length.
+            # and reduce it up to the deletion length.
             attribute_pos = 0
             for attribute_range in attribute_info.attribute_range_list:
                 attribute_lim = attribute_pos + attribute_range.length
@@ -598,36 +611,42 @@ class TextField(ContainedComponent):
                     # that. All other ranges can be reduced completely. In all
                     # cases, if a range is reduced to 0, remove it (after the
                     # loop, can't modify what's being iterated over).
-                    min_len = position - attribute_pos
                     range_len = attribute_range.length
+                    keep_len = position - attribute_pos
+                    deletable_len = range_len - keep_len
+                    delete_len = \
+                        deletable_len \
+                            if length_remaining > deletable_len else \
+                        length_remaining
 
-                    attribute_range.length -= length_remaining
-                    if attribute_range.length < min_len:
-                        attribute_range.length = min_len
-
-                    length_deleted = range_len - attribute_range.length
-                    length_kept = range_len - length_deleted
-
-                    length_remaining -= length_deleted
-                    attribute_pos += length_kept
-                else:
-                    # Nothing deleted, update attribute position.
-                    attribute_pos = attribute_lim
+                    # Remaining range length will be same as keep_len,
+                    # but I think this is clearer.
+                    attribute_range.length -= delete_len
+                    length_remaining -= delete_len
 
                 if length_remaining <= 0:
                     break;
+
+                # If range was shortened, next range will start at this
+                # position and keep_len will be 0.
+                attribute_pos += attribute_range.length
 
             # Remove 0 length ranges.
             new_attribute_range_list = \
                 [r for r in attribute_info.attribute_range_list if r.length > 0]
 
-            # TODO Merge ranges with the same value.
+            # Merge ranges with the same value.
             # Set attribute will search for existing ranges, and extend if
             # value is same.
             # Add content will just extend existing attributes.
-            # So just need to do merges here.
+            # So this is the only place merges are needed.
+
+            # Comparing current to next, stop 1 before the end so range_idx+1
+            # is always valid.
+            # Loop will be skipped if len() is 1 (limit will be 0).
             range_lim = len(new_attribute_range_list) - 1
             range_idx = 0
+            # new_attribute_range_list will be modified, so need to use indexes.
             while range_idx < range_lim:
                 next_range_idx = range_idx + 1
 
@@ -648,16 +667,6 @@ class TextField(ContainedComponent):
 
     def get_content(self):
         return self.current.get_content()
-
-#    def content_del_before(self, del_len, del_pos=None):
-#        # If this has not been sent (message will be ADD command), then
-#        # directly change content.
-#        # If this has been sent (message will be MODIFY command), then add to
-#        # attribute map using key "change-list".
-#
-#    def content_del_after(self, del_len, del_pos=None):
-#
-#    def content_add(self, add_content, add_pos=None):
 
     def set_width(self, width):
         self.current.width = str(width)
@@ -1086,11 +1095,71 @@ class TextField(ContainedComponent):
         content = self.current.get_content()
 
         if sent_content != content:
-            message.add_header(Message.CONTENT, self.current.get_content_value())
+            position = 0
+            add_content = None
+            delete_len = None
+
+            # For testing, see if the change can be sent as an "add":" or
+            # "delete:" action.
+
+            # To test "content: add:", see if current is the same as sent
+            # with something added.
+            # difflib.SequenceMatcher does this, but is overkill.
+            # If length of current > sent then might be an addition.
+            if len(sent_content) > 0 and len(sent_content) < len(content):
+                # Find the first character that differs.
+                for diff_idx in range(len(sent_content)):
+                    if sent_content[diff_idx] != content[diff_idx]:
+                        position = diff_idx
+                        # If remainder of sent is the tail of current, then
+                        # the current characters between them is the added
+                        # text.
+                        tail_len = len(sent_content) - diff_idx
+                        if sent_content[-tail_len:] == content[-tail_len:]:
+                            diff_len = len(content) - len(sent_content)
+                            add_content = \
+                                content[diff_idx : diff_idx + diff_len]
+                            break
+            
+            # To test "content: delete:" is similar, but reversed - see if
+            # current is the same as sent with something removed.
+            # If length of current < sent then might be a deletion.
+            if len(sent_content) > 0 and len(sent_content) > len(content):
+                # Find the first character that differs.
+                for diff_idx in range(len(sent_content)):
+                    if sent_content[diff_idx] != content[diff_idx]:
+                        position = diff_idx
+                        # If remainder of current is the tail of sent, then
+                        # the number characters between them is the deleted
+                        # text.
+                        tail_len = len(content) - diff_idx
+                        if sent_content[-tail_len:] == content[-tail_len:]:
+                            delete_len = len(sent_content) - len(content)
+                            break
+
+            if None != add_content:
+                # Send command to add content at position diff_idx.
+                add_value = \
+                    TextField.ADD + ": " + str(position) + ": " + add_content
+                message.add_header(Message.CONTENT, add_value)
+            elif None != delete_len:
+                # Send command to delete content at position diff_idx.
+                delete_value = \
+                    TextField.DELETE + ": " + str(position) + ": " + str(delete_len)
+                message.add_header(Message.CONTENT, delete_value)
+            else:
+                # Not an add segment, set enitre content.
+                set_value = \
+                    self.current.get_content_value()
+                message.add_header(Message.CONTENT, set_value)
 
         if self.sent.width != self.current.width:
             message.add_header(Message.WIDTH, self.current.width)
+
         if self.sent.attributes != self.current.attributes:
+            # Attributes might differ even if the only change was content
+            # add/delete. Could loop through attributes and check that, but
+            # it's not worth it - sending attributes won't hurt anything.
             message.add_header(Message.ATTRIBUTES, self.current.attributes)
 
     def set_handler(self, event_type, handler):
@@ -1120,6 +1189,9 @@ class TextField(ContainedComponent):
         attribute_header = event.message.get_header(Message.ATTRIBUTES)
         if attribute_header is not None:
             self.set_attribute_string(attribute_header)
+
+        # Sent must match what's actually there, so update it.
+        self.notify_sent()
 
         # Return changed event handler.
         try:
@@ -1393,6 +1465,9 @@ class Selection(ContainedComponent):
         selection_header = event.message.get_header(Message.SELECTED)
         if selection_header is not None:
             self.set_selected_string(selection_header)
+
+        # Sent must match what's actually there, so update it.
+        self.notify_sent()
 
         try:
             return self.__handle_changed
