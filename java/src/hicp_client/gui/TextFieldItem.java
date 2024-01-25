@@ -80,8 +80,8 @@ public class TextFieldItem
         _component.addActionListener(
             new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    sendChangedEventIfEdited();
                     _is_editing = false;
+                    sendChangedEventIfEdited();
                 }
             }
         );
@@ -92,8 +92,8 @@ public class TextFieldItem
                     // yet.
                 }
                 public void focusLost(FocusEvent e) {
-                    sendChangedEventIfEdited();
                     _is_editing = false;
+                    sendChangedEventIfEdited();
                 }
             }
         );

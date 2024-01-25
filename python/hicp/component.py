@@ -54,6 +54,9 @@ keep track of which items have been changed so they can be sent in
         # tracked by individual component classes.
         pass
 
+    # Get an appropriate handler for the event. The component's current and
+    # sent state must reflect the actual values from the client, so update them
+    # in the leaf implementation of this method.
     def get_handler(self, event):
         # See set_handler().
         return None
@@ -1120,7 +1123,11 @@ class TextField(ContainedComponent):
                             add_content = \
                                 content[diff_idx : diff_idx + diff_len]
                             break
-            
+                if None == add_content:
+                    # Got to this point without a difference. Everything after
+                    # diff_idx was added.
+                    add_content = content[diff_idx:]
+
             # To test "content: delete:" is similar, but reversed - see if
             # current is the same as sent with something removed.
             # If length of current < sent then might be a deletion.
@@ -1136,6 +1143,10 @@ class TextField(ContainedComponent):
                         if sent_content[-tail_len:] == content[-tail_len:]:
                             delete_len = len(sent_content) - len(content)
                             break
+                if None == delete_len:
+                    # Got to this point without a difference. Everything after
+                    # diff_idx was deleted.
+                    delete_len = len(sent_content) - diff_idx
 
             if None != add_content:
                 # Send command to add content at position diff_idx.
@@ -1148,7 +1159,7 @@ class TextField(ContainedComponent):
                     TextField.DELETE + ": " + str(position) + ": " + str(delete_len)
                 message.add_header(Message.CONTENT, delete_value)
             else:
-                # Not an add segment, set enitre content.
+                # Not an add or delete, set enitre content.
                 set_value = \
                     self.current.get_content_value()
                 message.add_header(Message.CONTENT, set_value)
@@ -1455,12 +1466,12 @@ class Selection(ContainedComponent):
             return handler
 
         if EventType.CHANGED == event.event_type:
-            return self.get_handle_changed(event)
+            return self.__get_handle_changed(event)
         else:
             # Not an event type this component supports.
             return None
 
-    def get_handle_changed(self, event):
+    def __get_handle_changed(self, event):
         # Get selection from event.
         selection_header = event.message.get_header(Message.SELECTED)
         if selection_header is not None:
