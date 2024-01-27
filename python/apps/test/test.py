@@ -106,22 +106,16 @@ class TextPositionHandler:
 
     def update(self, hicp, event, text_position_field):
         new_position_str = event.message.get_header(Message.CONTENT)
-        print(f'new_position_str {new_position_str}')  # debug
         try:
             # Must be integer, but no range checks, protocol must handle that.
             new_position = int(new_position_str)
-            print(f'after new_position = int(new_position_str)')  # debug
             self._text_field_changer.set_position(new_position)
-            print(f'after self._text_field_changer.set_position(new_position)')  # debug
 
             updated_position_str = str(new_position)
-            print(f'updated_position_str {updated_position_str}')  # debug
             if new_position_str != updated_position_str:
                 # Update to canonical representation.
                 text_position_field.set_content(updated_position_str)
-                print(f'after text_position_field.set_content("{updated_position_str}")')  # debug
                 text_position_field.update()
-                print(f'after text_position_field.update()')  # debug
         except ValueError:
             old_position = self._text_field_changer.get_position()
             # Set contents to old valid value.
@@ -172,7 +166,6 @@ class TextAddButtonHandler:
         self._text_field_changer = text_field_changer
 
     def update(self, hicp, event, component):
-        print(f'start TextAddButtonHandler.update()')  # debug
         self._text_field_changer.add_text()
 
 
@@ -535,7 +528,8 @@ class TestApp(App):
         # Add text
         text_add_text_field = TextField()
         # Placeholder content to set size
-        text_add_text_field.set_content('text to add')
+        text_add_text_field.set_content('abc')
+        text_field_changer.set_add_text(text_add_text_field.get_content())
         text_add_text_field.set_handler(
             EventType.CHANGED,
             TextAddTextHandler(text_field_changer, text_add_text_field)

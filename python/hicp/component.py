@@ -475,12 +475,6 @@ class TextField(ContainedComponent):
         return content
 
     def set_content(self, content):
-        # Replace entire content is allowed for editable component.
-        # Can only modify (after added) content and attributes if disabled.
-#        if self.is_added():
-#            if TextField.DISABLED != self.sent.events:
-#                return
-
         self.current.content = self.sanitize_content(content)
 
         # Clear attributes if there are any.
@@ -490,11 +484,6 @@ class TextField(ContainedComponent):
             self.current.attributes = ""
 
     def add_content(self, position: int, new_content: str):
-        # Can only modify (after added) content and attributes if disabled.
-        if self.is_added():
-            if TextField.DISABLED != self.sent.events:
-                return
-
         # Add to content.
         content = self.current.content
 
@@ -545,11 +534,6 @@ class TextField(ContainedComponent):
                 attribute_pos = attribute_lim
 
     def del_content(self, position: int, length: int):
-        # Can only modify (after added) content and attributes if disabled.
-        if self.is_added():
-            if TextField.DISABLED != self.sent.events:
-                return
-
         # Modify each attribute by shortening at position by length (forward or
         # backward).
         ...
@@ -683,11 +667,6 @@ class TextField(ContainedComponent):
         new_attribute_range_length: int,
         value : bool | str
     ):
-        # Can only modify (after added) content and attributes if disabled.
-        if self.is_added():
-            if TextField.DISABLED != self.sent.events:
-                return
-
         # TODO: support MODIFY attributes
         # Check - done with command change?
 
