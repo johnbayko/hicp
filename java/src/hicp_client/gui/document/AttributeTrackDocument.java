@@ -457,12 +457,6 @@ public class AttributeTrackDocument
     }
 
     public AttributeTrackDocument insertForAttributes(
-        final ContentInfo.AddInfo addInfo
-    ) {
-        return insertForAttributes(addInfo.position, addInfo.text);
-    }
-
-    public AttributeTrackDocument insertForAttributes(
         final int offset,
         final String str
     ) {
@@ -503,8 +497,15 @@ public class AttributeTrackDocument
                 But insert "b" at position 1:
                   "abbc"
                      -
+                Exception for range starting at 0 of course (no previous range).
              */
-            if ((rangeStart < offset) && (nextRangeStart >= offset)) {
+            final boolean isOffsetAfterStart =
+                rangeStart == 0
+                    ? (rangeStart <= offset)
+                    : (rangeStart < offset);
+            final boolean isOffsetBeforeEnd =
+                (nextRangeStart >= offset);
+            if (isOffsetAfterStart && isOffsetBeforeEnd) {
                 range.length += len;
 
                 // Doesn't affect any other attribute range.
