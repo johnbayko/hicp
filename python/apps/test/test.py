@@ -62,7 +62,7 @@ class TextFieldChanger:
         return self._del_cnt
 
     def set_del_cnt(self, del_cnt: int):
-        self._del_cnt = del_cnt
+        self._del_cnt = del_cnt if del_cnt >= 0 else 0
         return self._del_cnt
 
     def get_add_text(self):
@@ -80,11 +80,20 @@ class TextFieldChanger:
         self._length_field.set_content(str(field_text_len))
         self._length_field.update()
 
-#    def del_before(self):
-#        ...
+    def del_before(self):
+        self._field.del_content(self._position, -self._del_cnt)
+        self._field.update()
 
-#    def del_after(self):
-#        ...
+        # No change event from client, so update text length here.
+        self.update_length()
+
+    def del_after(self):
+        self._field.del_content(self._position, self._del_cnt)
+        self._field.update()
+
+        # No change event from client, so update text length here.
+        self.update_length()
+
 
     def add_text(self):
         self._field.add_content(self._position, self._add_text)
@@ -110,6 +119,7 @@ class TextPositionHandler:
             # Must be integer, but no range checks, protocol must handle that.
             new_position = int(new_position_str)
             self._text_field_changer.set_position(new_position)
+            new_positon = self._text_field_changer.get_position()
 
             updated_position_str = str(new_position)
             if new_position_str != updated_position_str:
@@ -139,17 +149,33 @@ class TextDelCntHandler:
             # Must be integer, but no range checks, protocol must handle that.
             new_del_cnt = int(new_del_cnt_str)
             self._text_field_changer.set_del_cnt(new_del_cnt)
+            new_del_cnt = self._text_field_changer.get_del_cnt()
 
-            # Update to canonical representation.
-            new_del_cnt_str = str(new_del_cnt)
-            text_del_cnt_field.set_content(new_del_cnt_str)
-            text_del_cnt_field.update()
+            updated_del_cnt_str = str(new_del_cnt)
+            if new_del_cnt_str != updated_del_cnt_str:
+                # Update to canonical representation.
+                text_del_cnt_field.set_content(updated_del_cnt_str)
+                text_del_cnt_field.update()
         except ValueError:
             old_del_cnt = self._text_field_changer.get_del_cnt()
             # Set contents to old valid value.
             old_del_cnt_str = str(old_del_cnt)
             text_del_cnt_field.set_content(old_del_cnt_str)
             text_del_cnt_field.update()
+
+class TextDelBeforeButtonHandler:
+    def __init__(self, text_field_changer):
+        self._text_field_changer = text_field_changer
+
+    def update(self, hicp, event, component):
+        self._text_field_changer.del_before()
+
+class TextDelAfterButtonHandler:
+    def __init__(self, text_field_changer):
+        self._text_field_changer = text_field_changer
+
+    def update(self, hicp, event, component):
+        self._text_field_changer.del_after()
 
 class TextAddTextHandler:
     def __init__(self, text_field_changer, text_add_text_field):
@@ -493,13 +519,19 @@ class TestApp(App):
         # Del before
         text_del_before_button = Button()
         text_del_before_button.set_text_id(TextEnum.TEXT_DEL_BEFORE_ID)
-        # TODO: Add handler
+        text_del_before_button.set_handler(
+            EventType.CLICK,
+            TextDelBeforeButtonHandler(text_field_changer)
+        )
         text_panel.add(text_del_before_button, 1, 3)
 
         # Del after
         text_del_after_button = Button()
         text_del_after_button.set_text_id(TextEnum.TEXT_DEL_AFTER_ID)
-        # TODO: Add handler
+        text_del_after_button.set_handler(
+            EventType.CLICK,
+            TextDelAfterButtonHandler(text_field_changer)
+        )
         text_panel.add(text_del_after_button, 2, 3)
 
         # Del count
@@ -631,26 +663,6 @@ class TestApp(App):
                     AbleHandlerComponent(text_field,
                         enable=Message.ENABLED,
                         disable=Message.DISABLED),
-                    # Text manipulation only works when text field is disabled,
-                    # so these have enable/disable values reversed.
-#                    AbleHandlerComponent(text_position_field,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
-#                    AbleHandlerComponent(text_del_before_button,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
-#                    AbleHandlerComponent(text_del_after_button,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
-#                    AbleHandlerComponent(text_del_cnt_field,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
-#                    AbleHandlerComponent(text_add_button,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
-#                    AbleHandlerComponent(text_add_text_field,
-#                        enable=Message.DISABLED,
-#                        disable=Message.ENABLED),
 
                     AbleHandlerComponent(selection,
                         enable=Message.ENABLED,

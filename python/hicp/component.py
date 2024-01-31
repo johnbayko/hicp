@@ -536,7 +536,10 @@ class TextField(ContainedComponent):
     def del_content(self, position: int, length: int):
         # Modify each attribute by shortening at position by length (forward or
         # backward).
-        ...
+
+        if 0 == length:
+            # Nothing to delete.
+            return
 
         # Delete from content.
         content = self.current.content
@@ -545,7 +548,7 @@ class TextField(ContainedComponent):
         # Position can be negative as a Python index, but HICP only allows
         # positive from start, so convert that.
         if position < 0:
-            position = content_len - position
+            position = content_len + position
 
         # If position not in current content, don't do anything.
         if position > content_len:
@@ -576,7 +579,7 @@ class TextField(ContainedComponent):
         # Modify affected ranges in each TextFieldAttribute by reducing at
         # position by length of deletion.
         for attribute_info in self.current.attribute_map.values():
-            length_ramining = length
+            length_remaining = length
 
             # Find an attribute range that includes the position just inserted,
             # and reduce it up to the deletion length.
@@ -1090,8 +1093,10 @@ class TextField(ContainedComponent):
             # If length of current > sent then might be an addition.
             if len(sent_content) > 0 and len(sent_content) < len(content):
                 # Find the first character that differs.
+                found_diff = False
                 for diff_idx in range(len(sent_content)):
                     if sent_content[diff_idx] != content[diff_idx]:
+                        found_diff = True
                         position = diff_idx
                         # If remainder of sent is the tail of current, then
                         # the current characters between them is the added
@@ -1102,7 +1107,7 @@ class TextField(ContainedComponent):
                             add_content = \
                                 content[diff_idx : diff_idx + diff_len]
                             break
-                if None == add_content:
+                if not found_diff:
                     # Got to this point without a difference. Everything after
                     # diff_idx was added.
                     add_content = content[diff_idx:]
@@ -1112,8 +1117,10 @@ class TextField(ContainedComponent):
             # If length of current < sent then might be a deletion.
             if len(sent_content) > 0 and len(sent_content) > len(content):
                 # Find the first character that differs.
-                for diff_idx in range(len(sent_content)):
+                found_diff = False
+                for diff_idx in range(len(content)):
                     if sent_content[diff_idx] != content[diff_idx]:
+                        found_diff = True
                         position = diff_idx
                         # If remainder of current is the tail of sent, then
                         # the number characters between them is the deleted
@@ -1121,8 +1128,8 @@ class TextField(ContainedComponent):
                         tail_len = len(content) - diff_idx
                         if sent_content[-tail_len:] == content[-tail_len:]:
                             delete_len = len(sent_content) - len(content)
-                            break
-                if None == delete_len:
+                        break
+                if not found_diff:
                     # Got to this point without a difference. Everything after
                     # diff_idx was deleted.
                     delete_len = len(sent_content) - diff_idx
