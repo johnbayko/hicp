@@ -371,22 +371,29 @@ public class AttributeTrackDocument
         // If the first range is a default value, then use that as the
         // attribute start position.
         final int position;
-        {
-            final var firstRange = rangeList.get(0);
-            if (firstRange.isDefault()) {
-                position = firstRange.length;
-            } else {
-                position = 0;
+        final List<AttributeRange> newRangeList;
+        if (0 < rangeList.size()) {
+            final int rangesSkipped;
+            {
+                final var firstRange = rangeList.get(0);
+                if (firstRange.isDefault()) {
+                    position = firstRange.length;
+                    rangesSkipped = 1;
+                } else {
+                    position = 0;
+                    rangesSkipped = 0;
+                }
             }
+            newRangeList =
+                rangeList
+                    .stream()
+                    .skip(rangesSkipped)  // If first was used for position.
+                    .map(r -> r.newAttributeRange())
+                    .collect(Collectors.toList());
+        } else {
+            position = 0;
+            newRangeList = new ArrayList<>();
         }
-        final int rangesSkipped = (0 == position) ? 0 : 1;
-        final var newRangeList =
-            rangeList
-                .stream()
-                .skip(rangesSkipped)  // If first was used for position.
-                .map(r -> r.newAttributeRange())
-                .collect(Collectors.toList());
-
         final var attribute =
             new AttributeInfo(attributeName, position, newRangeList);
 
@@ -505,6 +512,7 @@ public class AttributeTrackDocument
                     : (rangeStart < offset);
             final boolean isOffsetBeforeEnd =
                 (nextRangeStart >= offset);
+
             if (isOffsetAfterStart && isOffsetBeforeEnd) {
                 range.length += len;
 
