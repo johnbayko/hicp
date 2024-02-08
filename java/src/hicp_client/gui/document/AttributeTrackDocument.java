@@ -162,8 +162,6 @@ public class AttributeTrackDocument
     protected Map<String, List<ValueRange>> attributeValuesMap = null;
     protected Map<String, List<BooleanRange>> attributeBooleanMap = null;
 
-    protected boolean updateAttributes = true;
-
     public AttributeTrackDocument setAttributeListInfo(
         final AttributeListInfo newAttributeList
     ) {
@@ -457,9 +455,7 @@ public class AttributeTrackDocument
     public void insertString(int offset, String str, AttributeSet a)
         throws BadLocationException
     {
-        if (updateAttributes) {
-            insertForAttributes(offset, str);
-        }
+        insertForAttributes(offset, str);
         super.insertString(offset, str, a);
     }
 
@@ -528,9 +524,7 @@ public class AttributeTrackDocument
     public void remove(int offset, int len)
         throws BadLocationException
     {
-        if (updateAttributes) {
-            removeForAttributes(offset, len);
-        }
+        removeForAttributes(offset, len);
         super.remove(offset, len);
     }
 
@@ -648,13 +642,6 @@ rangeLoop:
             }
             rangeStart = nextRangeStart;
         }
-        return this;
-    }
-
-    public AttributeTrackDocument setUpdateAttributes(
-        final boolean newUpdateAttributes
-    ) {
-        updateAttributes = newUpdateAttributes;
         return this;
     }
 }

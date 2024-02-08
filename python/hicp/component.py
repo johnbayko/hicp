@@ -1110,7 +1110,8 @@ class TextField(ContainedComponent):
                 if not found_diff:
                     # Got to this point without a difference. Everything after
                     # diff_idx was added.
-                    add_content = content[diff_idx:]
+                    position = diff_idx + 1
+                    add_content = content[position:]
 
             # To test "content: delete:" is similar, but reversed - see if
             # current is the same as sent with something removed.
@@ -1132,7 +1133,8 @@ class TextField(ContainedComponent):
                 if not found_diff:
                     # Got to this point without a difference. Everything after
                     # diff_idx was deleted.
-                    delete_len = len(sent_content) - diff_idx
+                    position = diff_idx + 1
+                    delete_len = len(sent_content) - position
 
             if None != add_content:
                 # Send command to add content at position diff_idx.

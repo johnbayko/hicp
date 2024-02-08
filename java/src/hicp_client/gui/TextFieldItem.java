@@ -222,50 +222,23 @@ public class TextFieldItem
             nonPrintablePattern.matcher(addText);
         addText = nonPrintableMatcher.replaceAll("");
 
-        // JTextComponent doesn't have a way to insert text, so have to take
-        // existing text, edit, and replace it.
-        // This shows up in the document as a delete all, then add new. This
-        // will erase existing attributes, so disable attribute updates, set
-        // the new text, and then expand attribute ranges where text was
-        // inserted.
-        _document.setUpdateAttributes(false);
-
-        final String oldText = _component.getText();
-        final StringBuilder changeText = new StringBuilder(oldText);
-        changeText.insert(addInfo.position, addText);
-        final String newText = changeText.toString();
-        _component.setText(newText);
-
-        _document.insertForAttributes(addInfo.position, addText);
-
-        _document.setUpdateAttributes(true);
-        _content = newText;
+        try {
+            _document.insertString(addInfo.position, addText, null);
+        } catch(javax.swing.text.BadLocationException ble) {
+            // Don't care, not inserted.
+        }
+        _content = _component.getText();
     }
 
     protected void deleteContent(
         final ContentInfo.DeleteInfo deleteInfo
     ) {
-        // JTextComponent doesn't have a way to delete text, so have to take
-        // existing text, edit, and replace it.
-        // This shows up in the document as a delete all, then add new. This
-        // will erase existing attributes, so disable attribute updates, set
-        // the new text, and then expand attribute ranges where text was
-        // inserted.
-        _document.setUpdateAttributes(false);
-
-        final String oldText = _component.getText();
-        final StringBuilder changeText = new StringBuilder(oldText);
-        changeText.delete(
-            deleteInfo.position,
-            deleteInfo.position + deleteInfo.length
-        );
-        final String newText = changeText.toString();
-        _component.setText(newText);
-
-        _document.removeForAttributes(deleteInfo);
-
-        _document.setUpdateAttributes(true);
-        _content = newText;
+        try {
+            _document.remove(deleteInfo.position, deleteInfo.length);
+        } catch(javax.swing.text.BadLocationException ble) {
+            // Don't care, not inserted.
+        }
+        _content = _component.getText();
     }
 
     public void dispose() {
@@ -300,6 +273,7 @@ public class TextFieldItem
 
                 switch (contentInfo.action) {
                   case SET:
+//System.out.println("SET");  // debug
                     // Content can be replaced when editable, but not while user
                     // is editing.
                     {
@@ -308,6 +282,7 @@ public class TextFieldItem
                     }
                     break;
                   case ADD:
+//System.out.println("ADD");  // debug
                     // Content can not be modified when editable.
                     {
                         final var addInfo = contentInfo.getAddInfo();
@@ -317,6 +292,7 @@ public class TextFieldItem
                     }
                     break;
                   case DELETE:
+//System.out.println("DELETE");  // debug
                     // Content can not be modified when editable.
                     {
                         final var deleteInfo = contentInfo.getDeleteInfo();
