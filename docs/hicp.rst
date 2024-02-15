@@ -675,10 +675,10 @@ component: <keyword>
     "changed" event when editing is finished, which is usually when "return"
     or "enter" is typed, or editing focus changes to some other component.
 
-    Text content and text attributes (both character and paragraph
-    structure) are specified with separate headers ("content" and
-    "attribute"). An end-of-line sequence (or other characters) within
-    the text is not valid for representing a paragraph break.
+    Text content, text attributes, and structure are specified with separate
+    headers ("content", "attribute", and "structure"). An end-of-line sequence
+    (or other characters) within the content is not valid for representing a
+    paragraph break.
 
   "textfield"
     A single line text field (which does not support paragraph structures in
@@ -938,6 +938,7 @@ attributes: <attribute specifiers>
       font: 19: ...attribute ranges...
       --
 
+
       Q: Should there be a "set" and "add" action for attributes like there is
       for content?
 
@@ -1094,37 +1095,6 @@ attributes: <attribute specifiers>
       result exactly, and the format may be adjusted internally before it is
       output again.
 
-    "layout"
-      [Will probably change a lot when I get around to implementing]
-      This only applies to "textpanel" components, which wrap text at the
-      end of each line to continue on the next (as specified by the
-      panel's text direction), and scrolling line-by-line. "textfield"
-      components consist of a single line (normally scrolling in the
-      primary text direction as needed), but this attribute must still
-      be kept consistent as text is added or removed. This attribute
-      specifies where and how to break up the text into paragraphs,
-      lists, and so on. The defined attributes are:
-
-      "block(" <integer> ")":
-        A plain paragraph, where the next character is on the start of the next
-        line.  The integer indicates how many levels of indentation, if
-        supported.
-
-      "indent-first(" <integer> ")":
-        A paragraph where the first line is indented one level more than the
-        rest.  The integer indicates how many levels of indentation, if
-        supported.
-
-      "indent-rest(" <integer> ")":
-        A paragraph where the following lines are indented one level more than
-        the rest.  The integer indicates how many levels of indentation, if
-        supported.
-
-      "list(" <integer> ")":
-        A paragraph with a list indicator (such as a bullet or dash). The
-        integer indicates how many levels of indentation, if supported. The
-        list indicator character may be different for different indent levels.
-
 events: [ "enabled" | "disabled" ]
   If specified, this is used by these components:
 
@@ -1229,6 +1199,163 @@ selected: [<integer> [ "," <integer> ]*]
     does not allow no selection), it's up to the user agent to decide how to
     handle it (e.g. select 0 by default), and to communicate this to the
     server with a "changed" message.
+
+structure: <structure specifiers>
+  If specified, this is used by these components:
+
+  "textpanel":
+    Specifies paragraph and other structure for the text contained by the
+    component.
+
+    This generally follows the rules of the "attributes" header with regards to
+    the component's contewnt, specifically when content modifications are part
+    of the command, and when content is being edited. Similarly, content
+    structure not covered by the new structure specification is unchanged.
+
+    The user agent must support at lest 32,768 (32K) characters (not bytes) for
+    all structure specification of a "textpanel" component.
+
+    The user agent has the option of not supporting all of the specified
+    structure specification, but the specification must be preserved while text
+    is edited.
+
+    Structure specifiers are separated by <end-of-line> sequences - the
+    structure header itself is terminated by an <end-of-line> sequence. This
+    makes the string a data block which would be encoded with a boundary
+    string, and would look like this::
+
+      structure:: boundary=
+      --
+      1024: position
+      32: header: level=2
+      768: section: level=1, prefix=bullet
+      --
+
+    Structure elements are specified in this form::
+
+      <length> : <style> [: <style info>]
+
+    Where <length> is the number of characters in the style element, <style>
+    indicates the type of element this specification is for, and <style info>
+    is information related to the specified style. The sections must be
+    specified in order (in the same way that attribute ranges are).
+
+    Any section which exceeds the content length must be truncated, and any
+    beyond must be discarded.
+
+    <style> is one of:
+
+    "position"
+      Do not change the structure information for the given <length> of
+      characters.
+
+    "header"
+      Indicates this is a header. <style info> consists of:
+
+        "level=" <level sepcifier>
+          If specified, indicates the header level. This is an arbitrary
+          integer starting at 1 for the highest level. The user agent may have
+          a limit on the number of levels, but must display at least 9, and
+          keep track of at lease 32,768.
+
+          If "level" is not specified, the same level as the previous header is
+          used, or 1 if there is none. If specified, <level specifier> can be:
+
+          <integer>
+            Set the level.
+
+          "+" [<integer>]
+            Increase the level by the given integer, or 1 if not specified. The
+            level will not change if it is at the highest level tracked.
+
+          "-" [<integer>]
+            Decrease the level by the given integer, or 1 if not specified. The
+            level will not change if it is at 1.
+
+    "section"
+      Indicates this is a non-header section of text. <style info> is in the
+      form of::
+
+        <section attribute> [, <section attribute>]*
+
+      Each <section attribute> may be specified once. Section attributes are:
+
+        "level=" <level sepcifier>
+          If specified, indicates the indent level and format of some prefies.
+          Level specifier is the same as for "header".
+
+        "prefix=" <prefix specifier>
+          If specified, indicates how to modify the format of a section. The
+          user agent does not need to support all prefix specifiers. If it does
+          not, it must still track the specifier internally to include in event
+          messages, but can display the section in another way. <prefix
+          specifier> can be:
+
+          "none"
+            Default section format. If no change is wanted, the prefix can
+            normally be omitted.
+
+          "indent"
+            Indent the first line.
+
+          "text"
+            Indicates a definition list item. The text must be specified by the
+            "value" specifier. If "value" is missing, the section should be
+            treated as a "bullet" prefix. Normally the text is displayed
+            one the first line (or more if needed), and the section itself is
+            indented starting on the line after.
+
+          "bullet"
+            Indicates a bullet list item.
+
+          "number"
+            Indicates a numbered list item, starting at 1. If this is a level
+            other than 1, normally the prefix of any imcrementing list item
+            with the next higher level prior to this is used as a prefix to the
+            number for this list item (e.g. second "number" section at level 2
+            following a level 1 section prefixed with "3" would start with
+            "3.2", for a previous section prefixed with "C" it would start with
+            "C.2", for "III" it would sart with "III.2", etc.).
+
+          "uppercase"
+            Uses letters "A" to "Z" instead of digita "0" to "9".
+
+          "lowercase"
+            Like uppercase, but using lower case letters.
+
+          "upper_roman"
+            Indicates a numbered list using upper case roman numerals.
+
+          "lower_roman"
+            Indicates a numbered list using lower case roman numerals.
+
+        "value=" <value>
+          Provides a value to be used for different prefix specifiers. It must
+          be the last attribute when specifying text.
+
+          For "number", "uppercase", "lowercase", "upper_roman", and
+          "lower_roman", <value> can be:
+
+            <integer>
+              A valid list item number. For display it is converted to the
+              aappropriate prefix format.
+
+                Q: Shouldn't you be able to specify "A", "I", etc.?
+
+                A: I think this is complicated enough, don't you? Besides, how
+                can you be sure "I" means 1 (upper_roman) and not 9
+                (uppercase)?
+
+            "+" [<integer>]
+              Increase the item number by the given integer, or 1 if not
+              specified.
+
+            "-" [<integer>]
+              Decrease the item number by the given integer, or 1 if not
+              specified.
+
+          For "text" a value is required. All the text between "=" and the end
+          of the line is used as the prefix text.
 
 width: <string>
   If specified, this is used by these components:
@@ -1678,4 +1805,11 @@ selected: <integer> "," <integer>
 
     If selection mode is "single" and multiple elements are in the list, the
     one with the lowest ID is taken as the selected item.
+
+structure: <structure specifiers>
+  Generated by these components:
+
+  "textpanel":
+    Format is the same as the "structure" header of an "add" or "modify"
+    command.
 
